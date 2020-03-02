@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<title>Live coding environment</title>
 
-	<!-- Fork Awesome -->
+	<!-- Fork Awesome (Icons) -->
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css" integrity="sha256-gsmEoJAws/Kd3CjuOQzLie5Q3yshhvmo7YNtBG7aaEY=" crossorigin="anonymous">
 
 	<!-- CodeMirror -->
@@ -17,10 +17,16 @@
     <!--script type="text/javascript" src="https://unpkg.com/codemirror/mode/htmlmixed/htmlmixed.js"></script-->
 
 	<!-- morphdom -->
-	<!--script type="text/javascript" src="https://unpkg.com/morphdom/dist/morphdom-umd.js"></script-->
+	<script type="text/javascript" src="https://unpkg.com/morphdom/dist/morphdom-umd.js"></script>
 
 	<!-- Pts -->
 	<script type="text/javascript" src="https://unpkg.com/pts/dist/pts.js"></script>
+
+	<!-- RxMIDI -->
+	<script type="text/javascript" src="https://raw.githubusercontent.com/jordipbou/rxmidi/master/rxmidi.js"></script>
+
+	<!-- debug.js -->
+	<script type="text/javascript" src="./debug.js/debug.js"></script>
 
 	<style>
 		html, body {
@@ -43,21 +49,27 @@
 		#editor, #result, #toolbar {
 			position: absolute;
 			top: 0px;
-			left: 0px;
-			width: 100%;
 		}
 
 		#editor, #result {
+			left: 0px;
 			height: 100%;
+			width: 100%;
 		}
 
-		body.split-screen #editor, body.split-screen #result {
+		#toolbar {
+			right: 0px;
+		}
+
+		body.split-screen #editor, 
+		body.split-screen #result {
 			position: relative;
 		}
 
 		#editor {
 			z-index: 1;
 			opacity: 0.5;
+			height: 100%;
 		}
 
 		#toolbar {
@@ -96,6 +108,12 @@
 </head>
 <body>
 	<div id="toolbar">
+		<a id="show-settings" href="javascript:void(0);">
+			<i id="settings" class="fa fa-gear"></i>
+		</a>
+		<a id="toggle-terminal" href="javascript:void(0);">
+			<i id="terminal" class="fa fa-terminal"></i>
+		</a>
 		<a id="split-screen" href="javascript:void(0);">
 			<i id="split-screens" class="fa fa-columns"></i>
 			<i id="layered-screens" class="fa fa-square"></i>
@@ -105,7 +123,7 @@
 		</a>
 	</div>
 	<div id="container">
-		<div id="editor" class="class1 class2"></div>
+		<div id="editor"></div>
 		<div id="result"></div>
 	</div>
 </body>
@@ -122,6 +140,14 @@
 	}
 
 	// Toolbar
+	let settings_btn = document.querySelector('#show-settings');
+
+	let terminal_btn = document.querySelector('#toggle-terminal');
+	terminal_btn.onclick = () => {
+		if (dbg.isVisible()) dbg.hide();
+		else dbg.show();
+	}
+
 	let toggle_btn = document.querySelector('#toggle-editor');
 	toggle_btn.onclick = () => toggleClass('body', 'hidden-editor');
 
