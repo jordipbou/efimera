@@ -11,10 +11,13 @@
     <script type="text/javascript" src="https://unpkg.com/codemirror"></script>
 	<link rel="stylesheet" type="text/css" href="https://unpkg.com/codemirror/lib/codemirror.css">
    	<link rel="stylesheet" type="text/css" href="https://unpkg.com/codemirror/theme/mbo.css">
-	<!--script type="text/javascript" src="https://unpkg.com/codemirror/mode/xml/xml.js"></script-->
-    <!--script type="text/javascript" src="https://unpkg.com/codemirror/mode/css/css.js"></script-->
     <script type="text/javascript" src="https://unpkg.com/codemirror/mode/javascript/javascript.js"></script>
-    <!--script type="text/javascript" src="https://unpkg.com/codemirror/mode/htmlmixed/htmlmixed.js"></script-->
+	<link rel="stylesheet" type="text/css" href="https://unpkg.com/codemirror/addon/hint/show-hint.css"></script>
+	<script type="text/javascript" src="https://unpkg.com/codemirror/addon/hint/show-hint.js"></script>
+	<script type="text/javascript" src="https://unpkg.com/codemirror/addon/hint/javascript-hint.js"></script>
+
+	<!-- Handlebars -->
+	<script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
 
 	<!-- morphdom -->
 	<script type="text/javascript" src="https://unpkg.com/morphdom/dist/morphdom-umd.js"></script>
@@ -22,11 +25,12 @@
 	<!-- Pts -->
 	<script type="text/javascript" src="https://unpkg.com/pts/dist/pts.js"></script>
 
-	<!-- RxMIDI -->
-	<script type="text/javascript" src="https://raw.githubusercontent.com/jordipbou/rxmidi/master/rxmidi.js"></script>
+	<!-- RxJS -->
+	<script type="text/javascript" src="https://unpkg.com/@reactivex/rxjs@6.5.4/dist/global/rxjs.umd.js"></script>
 
-	<!-- debug.js -->
-	<script type="text/javascript" src="./debug.js/debug.js"></script>
+	<!-- RxMIDI -->
+	<!--script type="text/javascript" src="./rxmidi/rxmidi.js"></script-->
+	<script type="text/javascript" src="../rxmidi/rxmidi.js"></script>
 
 	<style>
 		html, body {
@@ -68,7 +72,7 @@
 
 		#editor {
 			z-index: 1;
-			opacity: 0.5;
+			opacity: 0.75;
 			height: 100%;
 		}
 
@@ -102,7 +106,7 @@
 		}
 
 		.hidden, body.hidden-editor #editor {
-			display: none;
+			display: none !important;
 		}
 	</style>
 </head>
@@ -110,9 +114,6 @@
 	<div id="toolbar">
 		<a id="show-settings" href="javascript:void(0);">
 			<i id="settings" class="fa fa-gear"></i>
-		</a>
-		<a id="toggle-terminal" href="javascript:void(0);">
-			<i id="terminal" class="fa fa-terminal"></i>
 		</a>
 		<a id="split-screen" href="javascript:void(0);">
 			<i id="split-screens" class="fa fa-columns"></i>
@@ -126,7 +127,10 @@
 		<div id="editor"></div>
 		<div id="result"></div>
 	</div>
+</template>
 </body>
+
+
 <script>
 	'use strict';
 
@@ -142,12 +146,6 @@
 	// Toolbar
 	let settings_btn = document.querySelector('#show-settings');
 
-	let terminal_btn = document.querySelector('#toggle-terminal');
-	terminal_btn.onclick = () => {
-		if (dbg.isVisible()) dbg.hide();
-		else dbg.show();
-	}
-
 	let toggle_btn = document.querySelector('#toggle-editor');
 	toggle_btn.onclick = () => toggleClass('body', 'hidden-editor');
 
@@ -158,15 +156,23 @@
 	var codemirror = CodeMirror(document.querySelector('#editor'), {
 		lineNumbers: true,
 		mode: {
-			name: "javascript"
+			name: "javascript",
+			globalVars: true
 		},
 		theme: "mbo",
 		extraKeys: {
+			"Ctrl-Space": "autocomplete",
 			"Ctrl-Enter": function(cm) {
 				// TODO: Should do block/scope based execution but...
 				// ...right now, just eval selection.
 				let sel = cm.doc.getSelection();
-				window.eval(sel);
+				if (sel === '') {
+					let line = cm.doc.getCursor().line;
+					let txt = cm.doc.getLine(line);
+					console.log(window.eval(txt));
+				} else {
+					console.log(window.eval(sel));
+				}
 			}
 		}
 	});
