@@ -1,13 +1,4 @@
-<hello-world>
- Hello {planet}
-</hello-world>
+class Editor extends HTMLElement {
+}
 
-<script src=//unpkg.com/snuggsi></script>
-<script>
-Element `hello-world`
-
-(class extends HTMLElement {
-	onclick () { alert (this.textContent) }
-	get planet() { return 'world !' }
-})
-</script>
+window.customElements.define('editor', Editor);
