@@ -2,32 +2,38 @@
 import Editor from './Editor.svelte'
 import Toolbar from './Toolbar.svelte'
 
-let editor_full_screen = true;
+let full_screen = true;	// or split screen
 let editor_hidden = false;
-let preview_full_screen = true;
 </script>
 
 <style>
-.editor_full_screen {
-	@apply absolute top-0 left-0 w-full h-full z-10 opacity-75;
+.full-screen {
+	@apply absolute top-0 left-0 w-full h-full;
 }
 
-.editor_hidden {
-	@apply hidden;
+.split-screen {
+	@apply relative w-1/2 h-full;
 }
 
-.preview_full_screen {
-	@apply absolute top-0 left-0 w-full h-full z-0 opacity-25;
+.editor-full {
+	@apply z-10 opacity-75;
 }
 </style>
 
-<main class="w-screen h-screen">
-	<div class:editor_full_screen class:editor_hidden>
+<main class="w-screen h-screen flex flex-row">
+	<div class:full-screen={ full_screen } 
+		 class:editor-full={ full_screen } 
+		 class:split-screen={ !full_screen } 
+		 class:hidden={ editor_hidden }>
 		<Editor/>
 	</div>
-	<div id="preview" class:preview_full_screen>
+	<div id="preview" 
+		 class:full-screen={ full_screen }
+		 class:split-screen={ !full_screen }>
 	</div>
 	<div class="absolute top-0 right-0 z-20">
-		<Toolbar on:hideEditor={() => { editor_hidden = !editor_hidden }}/>
+		<Toolbar columns={ !full_screen } 
+				 on:hideEditor={() => { editor_hidden = !editor_hidden }}
+				 on:changeViewMode={() => { full_screen = !full_screen }}/>
 	</div>
 </main>
