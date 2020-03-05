@@ -47,5 +47,5 @@ onMount(() => {
 }
 </style>
 
-<div bind:this={editor} class="w-screen h-screen bg-gray-400">
+<div bind:this={editor} class="w-full h-full bg-gray-400">
 </div>

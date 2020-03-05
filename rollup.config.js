@@ -4,6 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import postcss from 'rollup-plugin-postcss';
+import copy from 'rollup-plugin-copy';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -16,13 +17,7 @@ export default {
 		file: 'public/build/bundle.js'
 	},
 	external: [
-		//'codemirror/lib/codemirror.js',
-		//'codemirror/mode/javascript/javascript.js',
-		//'codemirror/hint/show-hint.js',
-		//'codemirror/hint/javascript-hint.js',
-		//'codemirror/lib/codemirror.css',
-		//'codemirror/theme/mob.css',
-		//'codemirror/hint/show-hint.css'
+		'/fonts/forkawesome-webfont.woff2'
 	],
 	plugins: [
 		postcss({
@@ -60,7 +55,13 @@ export default {
 
 		// If we're building for production (npm run build
 		// instead of npm run dev), minify
-		production && terser()
+		production && terser(),
+
+		copy({
+			targets: [
+				{ src: 'node_modules/fork-awesome/fonts', dest: 'public/' }
+			]
+		})
 	],
 	watch: {
 		clearScreen: false
