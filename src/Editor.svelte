@@ -11,33 +11,35 @@ import 'codemirror/addon/hint/show-hint.css';
 let editor;
 
 onMount(() => {
-	let cm = CodeMirror(
-		editor,
-		{
-			lineNumbers: true,
-			mode: {
-				name: 'javascript',
-				globalVars: true
-			},
-			theme: 'mbo',
-			extraKeys: {
-				"Ctrl-Space": "autocomplete",
-				"Ctrl-Enter": function(cm) {
-					// Evaluate current selection or current line
-					// if no selection is present.
-					let sel = cm.doc.getSelection();
-					let txt;
-					if (sel === '') {
-						let line = cm.doc.getCursor().line;
-						txt = cm.doc.getLine(line);
-					} else {
-						txt = sel;
-					}
+	setTimeout(() => {
+		let cm = CodeMirror(
+			editor,
+			{
+				lineNumbers: true,
+				mode: {
+					name: 'javascript',
+					globalVars: true
+				},
+				theme: 'mbo',
+				extraKeys: {
+					"Ctrl-Space": "autocomplete",
+					"Ctrl-Enter": function(cm) {
+						// Evaluate current selection or current line
+						// if no selection is present.
+						let sel = cm.doc.getSelection();
+						let txt;
+						if (sel === '') {
+							let line = cm.doc.getCursor().line;
+							txt = cm.doc.getLine(line);
+						} else {
+							txt = sel;
+						}
 
-					console.log(window.eval(txt));
+						console.log(window.eval(txt));
+					}
 				}
-			}
-		});
+			});
+		}, 250);
 });
 </script>
 
