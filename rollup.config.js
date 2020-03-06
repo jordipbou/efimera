@@ -59,7 +59,9 @@ export default {
 
 		copy({
 			targets: [
-				{ src: 'node_modules/fork-awesome/fonts', dest: 'public/' }
+				{ src: 'node_modules/fork-awesome/fonts', dest: 'public/' },
+				{ src: 'node_modules/rxjs/bundles/rxjs.umd.js', dest: 'public/build/' },
+				{ src: 'node_modules/rxjs/bundles/rxjs.umd.js.map', dest: 'public/build/' }
 			]
 		})
 	],

@@ -22,7 +22,7 @@ function changeViewMode() {
 			class:fa-columns={!columns}
 			class:fa-clone={columns}></i>
 	</a>
-	<a href="javascript:void(0);" on:click="{ hideEditor }">
+	<a href="javascript:void(0);" on:click="{ hideEditor }" alt="Toggle editor visibility">
 		<i class="text-orange-500 fa fa-circle mr-2"></i>
 	</a>
 </div>
