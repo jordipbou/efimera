@@ -24,6 +24,7 @@
   "dependencies": {
     "codemirror": "^5.52.0",
     "fork-awesome": "^1.1.7",
+    "pts": "^0.9.1",
     "rxjs": "^6.5.4",
     "sirv-cli": "^0.4.4"
   }
