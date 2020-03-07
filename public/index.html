@@ -11,18 +11,12 @@
 
 	<script defer src=./build/bundle.js></script>
 	<script>
-		window.loadRxJS = () => loadScript('./build/rxjs.umd.js');
-		window.loadPts = () => loadScript('./build/pts.js');
+		window.pikaImport = (pkg, ns) => {
+			if (ns === undefined) {
+				ns = pkg;
+			}
 
-		window.loadScript = src => {
-			return new Promise((resolve, reject) => {
-				const script = document.createElement('script');
-		    	document.body.appendChild(script);
-				script.onload = resolve;
-				script.onerror = reject;
-				script.async = true;
-				script.src = src;
-			});
+			import('https://cdn.pika.dev/' + pkg).then(m => window[ns] = m)
 		};
 	</script>
 </head>
