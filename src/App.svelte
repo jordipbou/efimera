@@ -18,6 +18,7 @@ function handleKeydown(e) {
 		switch (e.keyCode) {
 			case 80: toggleEditor(); break;
 			case 77: toggleViewMode(); break;
+			case 76: console.clear(); break;
 		}
 	}
 }
