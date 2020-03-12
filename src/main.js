@@ -1,10 +1,8 @@
 import App from './App.svelte';
 import './main.css';
 
-const app = new App({
+export const efimera = new App({
 	target: document.body,
 	props: {
 	}
 });
-
-export default app;

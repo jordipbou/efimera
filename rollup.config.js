@@ -9,11 +9,11 @@ import copy from 'rollup-plugin-copy';
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
-	input: 'src/main.js',
+	input: [ 'src/main.js' ],
 	output: {
 		sourcemap: true,
-		format: 'iife',
-		name: 'app',
+		format: 'umd',
+		name: 'efimera',
 		file: 'public/build/bundle.js'
 	},
 	external: [
@@ -27,6 +27,7 @@ export default {
 			// enable run-time checks when not in production
 			dev: !production,
 			emitCss: true,
+			format: 'esm',
 			// we'll extract any component CSS out into
 			// a separate file - better for performance
 			css: css => {
