@@ -1,3 +1,15 @@
+<script context="module">
+let cm
+
+export function getContent() {
+	return cm.doc.getValue()
+}
+
+export function setContent(content) {
+	cm.doc.setValue(content)
+}
+</script>
+
 <script>
 import { onMount } from 'svelte';
 import CodeMirror from 'codemirror/lib/codemirror.js';
@@ -8,11 +20,11 @@ import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/mbo.css';
 import 'codemirror/addon/hint/show-hint.css';
 
-let editor;
+let editor
 
 onMount(() => {
 	setTimeout(() => {
-		let cm = CodeMirror(
+		cm = CodeMirror(
 			editor,
 			{
 				lineNumbers: true,
