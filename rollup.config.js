@@ -68,7 +68,8 @@ export default {
 		})
 	],
 	watch: {
-		clearScreen: false
+		clearScreen: false,
+		include: 'src/**'
 	}
 };
 

@@ -28,10 +28,10 @@ function deleteFile(filename) {
 			<ul>
 				{#each files as filename}
 					<li>
-						<a href="#" on:click|preventDefault={loadFile(filename)}>
+						<a href="/" on:click|preventDefault={loadFile(filename)}>
 							{filename}
 						</a>
-						<a href="#" on:click|preventDefault={deleteFile(filename)}>
+						<a href="/" on:click|preventDefault={deleteFile(filename)}>
 							<i class="fa fa-trash-o"></i>
 						</a>
 					</li>
