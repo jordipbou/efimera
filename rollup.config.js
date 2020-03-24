@@ -63,13 +63,14 @@ export default {
 				{ src: 'node_modules/fork-awesome/fonts', dest: 'public/' },
 				{ src: 'node_modules/rxjs/', dest: 'public/libs/' },
 				{ src: 'node_modules/midi-parser-js/', dest: 'public/libs/' },
-				{ src: 'src/rxmidi.js', dest: 'public/libs/' }
+				{ src: 'src/rxmidi.js', dest: 'public/libs/' },
+				{ src: 'src/linnstrument.js', dest: 'public/libs/' },
 			]
 		})
 	],
 	watch: {
 		clearScreen: false,
-		include: 'src/**'
+		include: 'src/*.js'
 	}
 };
 
