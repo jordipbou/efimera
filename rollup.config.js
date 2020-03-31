@@ -27,7 +27,7 @@ export default {
 			// enable run-time checks when not in production
 			dev: !production,
 			emitCss: true,
-			format: 'esm',
+			//format: 'esm',
 			// we'll extract any component CSS out into
 			// a separate file - better for performance
 			css: css => {
@@ -63,14 +63,14 @@ export default {
 				{ src: 'node_modules/fork-awesome/fonts', dest: 'public/' },
 				{ src: 'node_modules/rxjs/', dest: 'public/libs/' },
 				{ src: 'node_modules/midi-parser-js/', dest: 'public/libs/' },
+				{ src: 'node_modules/tone/build/', dest:'public/libs/' },
 				{ src: 'src/rxmidi.js', dest: 'public/libs/' },
 				{ src: 'src/linnstrument.js', dest: 'public/libs/' },
 			]
 		})
 	],
 	watch: {
-		clearScreen: false,
-		include: 'src/*.js'
+		clearScreen: false
 	}
 };
 

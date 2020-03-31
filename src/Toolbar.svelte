@@ -1,5 +1,7 @@
 <script>
+import { NotificationDisplay, notifier } from '@beyonk/svelte-notifications'
 import { createEventDispatcher } from 'svelte';
+import 'tone';
 const dispatch = createEventDispatcher();
 
 export let columns;
@@ -9,12 +11,23 @@ function changeViewMode() {	dispatch('changeViewMode', undefined); }
 function openFileBrowser() { dispatch('openFileBrowser', undefined); }
 function openFileSaveDialog() { dispatch('openFileSaveDialog', undefined); }
 function initMidiWithSysex() { 
-	RxMidi.init(true);
+	init(true)
+		.then(() => notifier.success('WebMidi API initialized (with Sysex)'))
+		.catch(() => {
+			init(false)
+				.then(() => notifier.warning('WebMidi API initialized (without Sysex)'))
+				.catch(() => notifier.error('WebMidi could not be initialized'))
+		})
+	Tone.start()
+		.then(() => notifier.success('ToneJS initialized'))
+		.catch(() => notifier.error('ToneJS can not be initialized'))
 }
 </script>
 
 <style>
 </style>
+
+<NotificationDisplay />
 
 <div class="flex flex-row">
 	<a href="javascript:void(0);" on:click={initMidiWithSysex}>
