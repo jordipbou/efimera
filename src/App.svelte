@@ -4,6 +4,7 @@ import Editor, { getContent, setContent } from './Editor.svelte'
 import Toolbar from './Toolbar.svelte'
 import FileBrowser from './FileBrowser.svelte'
 import FileSaveDialog from './FileSaveDialog.svelte'
+import * as counter from './testmodule.js'
 
 let editor
 

@@ -1,7 +1,7 @@
 <script>
+import { init } from './rxmidi.js'
 import { NotificationDisplay, notifier } from '@beyonk/svelte-notifications'
 import { createEventDispatcher } from 'svelte';
-import 'tone';
 const dispatch = createEventDispatcher();
 
 export let columns;
@@ -16,11 +16,10 @@ function initMidiWithSysex() {
 		.catch(() => {
 			init(false)
 				.then(() => notifier.warning('WebMidi API initialized (without Sysex)'))
-				.catch(() => notifier.error('WebMidi could not be initialized'))
+				.catch(() => notifier.danger('WebMidi could not be initialized'))
 		})
-	Tone.start()
-		.then(() => notifier.success('ToneJS initialized'))
-		.catch(() => notifier.error('ToneJS can not be initialized'))
+	// TODO: Change this for using a module for audio (as RxMidi)
+	window.ctx = new AudioContext()
 }
 </script>
 

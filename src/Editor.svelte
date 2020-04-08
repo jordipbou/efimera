@@ -48,6 +48,20 @@ onMount(() => {
 						}
 
 						console.log(window.eval(txt));
+					},
+					"Ctrl-Alt-Enter": function(cm) {
+						// Evaluate current selection as AudioWorklet
+						let sel = cm.doc.getSelection();
+						let txt;
+						if (sel === '') {
+							let line = cm.doc.getCursor().line;
+							txt = cm.doc.getLine(line);
+						} else {
+							txt = sel;
+						}
+
+						console.log('Evaluating audio worklet...')
+						console.log(window.ctx.audioWorklet.addModule('data:text/javascript,'+encodeURI(txt)));
 					}
 				}
 			});

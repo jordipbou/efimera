@@ -60,12 +60,12 @@ export default {
 
 		copy({
 			targets: [
-				{ src: 'node_modules/fork-awesome/fonts', dest: 'public/' },
-				{ src: 'node_modules/rxjs/', dest: 'public/libs/' },
-				{ src: 'node_modules/midi-parser-js/', dest: 'public/libs/' },
-				{ src: 'node_modules/tone/build/', dest:'public/libs/' },
-				{ src: 'src/rxmidi.js', dest: 'public/libs/' },
-				{ src: 'src/linnstrument.js', dest: 'public/libs/' },
+				//{ src: 'node_modules/fork-awesome/fonts', dest: 'public/' },
+				//{ src: 'node_modules/rxjs/', dest: 'public/libs/' },
+				//{ src: 'node_modules/midi-parser-js/', dest: 'public/libs/' },
+				//{ src: 'node_modules/tone/build/', dest:'public/libs/' },
+				//{ src: 'src/rxmidi.js', dest: 'public/libs/' },
+				//{ src: 'src/linnstrument.js', dest: 'public/libs/' },
 			]
 		})
 	],
