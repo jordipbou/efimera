@@ -24,10 +24,12 @@
   "dependencies": {
     "@beyonk/svelte-notifications": "^2.0.3",
     "codemirror": "^5.52.0",
+    "effector": "^20.13.7",
     "fork-awesome": "^1.1.7",
     "midi-parser-js": "^4.0.4",
     "pts": "^0.9.1",
     "rxjs": "^6.5.4",
-    "sirv-cli": "^0.4.4"
+    "sirv-cli": "^0.4.4",
+    "uuid": "^7.0.3"
   }
 }

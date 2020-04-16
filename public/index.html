@@ -31,7 +31,6 @@
 			return p
 		}
 	</script>
-	<script defer src=./libs/all-around-keyboard.min.js></script>
 	<script defer src=./libs/rxjs/bundles/rxjs.umd.min.js></script>
 	<script defer type=module src=./libs/midi-parser-js/src/main.js></script>
 	<script defer type=module>
@@ -45,6 +44,18 @@
 
 		for (let p in efimera.RxSequencer)
 			window[p] = efimera.RxSequencer[p]
+
+		//for (let p in efimera.JSorth)
+		//	window[p] = efimera.JSorth[p]
+
+		for (let p in efimera.Effector)
+			window[p] = efimera.Effector[p]
+
+		for (let p in efimera.Utils)
+			window[p] = efimera.Utils[p]
+
+		window.rx = rxjs
+		window.rxo = rxjs.operators
 	</script>
 </head>
 <body>
