@@ -1,8 +1,9 @@
-// TODO: Modify to use channels 1-16 instead of 0-15
+// TODO: MidiParserJs adds type and metaType properties
+// to a MIDI Message object, maybe they're interesting
+// for debugging purposes?
 
 import { from, fromEvent, Observable, of } from 'rxjs'
 import { map, mergeMap } from 'rxjs/operators'
-//import { deepClone, copy } from './utils.js'
 
 let midiAccess
 
@@ -170,19 +171,22 @@ export let mapController =
 	(ccin, ccout) => map(d => {	if (isControlChange(d) && d.data[1] === ccin) d.data[1] = ccout; return d; })
 // ---- Note mapping ----
 export let transpose = i => map(d => { if (hasNote(d)) d.data[1] = d.data[1] + i; return d; })
-//// ==== State management ====
-//export let combineState = s => map(d => { d.state = deepClone(s); return d; })
-//export let saveState = s => tap(d => copy(d.state, s))
-////	s => map(
-////		d => {
-////			if (d instanceof MIDIMessageEvent) {
-////				copy(d.state, s)
-////				return d
-////			} else {
-////				// d is an observable, first item emitted should contain state
-////				return d.pipe(take(1), tap(i => copy(i.state, s)), merge(d.pipe(skip(1))))
-////			}
-////		})
+
 //// ==== Other utilities ====
 export let midiToHzs =
 	(n, tuning = 440) => ((tuning / 32) * (Math.pow(((n - 9) / 12), 2)))
+
+export let loadMidiFile =
+	(sel = '#preview') => {
+		let id = 'local-midi-file-browser'
+		var e = document.querySelector(sel)
+		e.innerHTML = e.innerHTML + '<input type="file" id="' + id + '" style="display: none">'
+		let promise = 
+			new Promise((s, r) => 
+				MidiParser.parse(document.querySelector('#' + id), o => { 
+					document.querySelector('#' + id).remove()
+					return s(o)
+				}))
+		document.querySelector('#' + id).click()
+		return promise
+	}
