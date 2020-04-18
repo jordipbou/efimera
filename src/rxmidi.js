@@ -1,4 +1,4 @@
-import { from, fromEvent, interval, merge, Observable, of } from 'rxjs'
+import { from, fromEvent, interval, merge, Observable, of, pipe } from 'rxjs'
 import { map, mapTo, mergeMap, take } from 'rxjs/operators'
 
 let midiAccess
@@ -91,8 +91,11 @@ export let spp = (b, delay = 0) => msg([242, b % 128, b >> 7], delay)
 export let s = (s, delay = 0) => msg([243, s], delay)
 export let tun = (delay = 0) => msg([246], delay)
 // ---- System real time messages generation ----
-// Sends two beats of MIDI clock (48 messages) at indicated tempo
-export let clock = bpm => interval(bpm / 120).pipe(take(48), mapTo(mc()))
+export let clock = 
+	(bpm, beats = 0, ppqn = 24) => 
+		interval((1000 / (bpm / 60)) / ppqn).pipe(beats > 0 ? 
+													pipe(take(beats * ppqn), mapTo(mc())) 
+												 	: mapTo(mc()))
 export let mc = (delay = 0) => msg([248], delay)
 export let start = (delay = 0) => msg([250], delay)
 export let cont = (delay = 0) => msg([251], delay)
@@ -181,6 +184,8 @@ export let transpose = i => map(d => { if (hasNote(d)) d.data[1] = d.data[1] + i
 
 //// ==== Other utilities ====
 export let inject = (mm) => mergeMap(d => of(d, mm))
+
+export let QNPM2BPM = (qnpm) => 60 * 1000000 / qnpm
 
 export let midiToHzs =
 	(n, tuning = 440) => ((tuning / 32) * (Math.pow(((n - 9) / 12), 2)))

@@ -1,3 +1,12 @@
+// --- Durations ---
+export const w = 96
+export const h = 48
+export const q = 24
+export const e = 12
+export const et = 8
+export const s = 6
+export const st = 4
+
 // --- Intervals ---
 export const root = 0
 export const P1 = 0
