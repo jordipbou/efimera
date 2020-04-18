@@ -1,9 +1,5 @@
-// TODO: MidiParserJs adds type and metaType properties
-// to a MIDI Message object, maybe they're interesting
-// for debugging purposes?
-
-import { from, fromEvent, Observable, of } from 'rxjs'
-import { map, mergeMap } from 'rxjs/operators'
+import { from, fromEvent, interval, merge, Observable, of } from 'rxjs'
+import { map, mapTo, mergeMap, take } from 'rxjs/operators'
 
 let midiAccess
 
@@ -95,9 +91,8 @@ export let spp = (b, delay = 0) => msg([242, b % 128, b >> 7], delay)
 export let s = (s, delay = 0) => msg([243, s], delay)
 export let tun = (delay = 0) => msg([246], delay)
 // ---- System real time messages generation ----
-export let clock =
-	// TODO: Send 2 beats of MIDI Timing Clock for indicated BPM (1-999)
-	bpm => []
+// Sends two beats of MIDI clock (48 messages) at indicated tempo
+export let clock = bpm => interval(bpm / 120).pipe(take(48), mapTo(mc()))
 export let mc = (delay = 0) => msg([248], delay)
 export let start = (delay = 0) => msg([250], delay)
 export let cont = (delay = 0) => msg([251], delay)
@@ -185,6 +180,8 @@ export let mapController =
 export let transpose = i => map(d => { if (hasNote(d)) d.data[1] = d.data[1] + i; return d; })
 
 //// ==== Other utilities ====
+export let inject = (mm) => mergeMap(d => of(d, mm))
+
 export let midiToHzs =
 	(n, tuning = 440) => ((tuning / 32) * (Math.pow(((n - 9) / 12), 2)))
 
