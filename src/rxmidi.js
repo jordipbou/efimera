@@ -35,6 +35,8 @@ export let output = n => [...midiAccess.outputs].map( ([k, v]) => v )
 												.map( v => (x) => {
 																if (x.type === 'midimessage') {
 																	v.send(x.data, x.timeStamp)
+																} else if (x.type === 'metaevent') {
+																	// Do nothing with that message
 																} else if (x instanceof Observable) {
 																	x.subscribe(y => v.send(y.data, y.timeStamp))
 																} else {
@@ -57,6 +59,13 @@ export let msg =
 		}}
 export let copy = 
 	mm => { return { type: 'midimessage', timeStamp: mm.timeStamp, deltaTime: mm.deltaTime, data: [ ...mm.data ]}}
+// Create just one message with all observables messages, useful to send to output without calling lots
+// of times to output.send
+export let observableToMsgArray =
+	o => {
+		let msg = []
+		o.
+	}
 // ---- MIDI Messages definition ----
 // --- Channel Voice messages generation ---
 export let on =	(n, v = 96, ch = 0, delay = 0) => msg([144 + ch, n, v], delay)
@@ -199,6 +208,23 @@ export let loadMidiFile =
 			new Promise((s, r) => 
 				MidiParser.parse(document.querySelector('#' + id), o => { 
 					document.querySelector('#' + id).remove()
+					// Convert data from each event to a format compatible
+					// with rest of library
+					for (let t of o.track) {
+						for (let e of t.event) {
+							if (e.type > 7 && e.type < 14) {
+								if (e.data instanceof Array) {
+									e.data = [(e.type << 4) + e.channel, ...e.data]
+								} else {
+									e.data = [(e.type << 4) + e.channel, e.data]
+								}
+								e.type = 'midimessage'
+							} else if (e.type === 255) {
+								e.type = 'metaevent'
+							}
+						}
+					}
+
 					return s(o)
 				}))
 		document.querySelector('#' + id).click()
