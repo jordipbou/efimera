@@ -1,5 +1,5 @@
 import { 
-	__, always, append, concat, drop, evolve, filter, findIndex, flatten, head, init, 
+	__, addIndex, always, append, concat, drop, evolve, filter, findIndex, flatten, head, init, 
 	last, length, map, mergeLeft, objOf, pipe, prop, reduce, repeat,
 	scan, sort, tail, take, takeWhile 
 } from 'ramda'
@@ -68,10 +68,17 @@ export let sortEvents =
 			objOf('event'),
 			append(__, []))})
 
-// TODO: Add argument to select what tracks should be played ?
-// TODO: What if I want to add filters or something after being played ? (like not program change)
+let filterIndexed = addIndex(filter)
+
+export let filterTracks =
+	(tracks, midiFile) => 
+		evolve({
+			tracks: () => tracks.length,
+			track: filterIndexed((v, k) => tracks.includes(k))
+		}, midiFile)
+
 export let playMidi =
-	(midiFile, out, bpm = 120, resolution = 25, look_ahead = 100) => {
+	(midiFile, bpm$ = null, resolution = 25, look_ahead = 100) => {
 		let playable = pipe(
 			withAbsoluteDeltaTimes,
 			mergeTracks,
@@ -80,13 +87,24 @@ export let playMidi =
 		let track = playable.track[0].event
 		let time_division = playable.timeDivision
 
-		let bpm$ = new rx.BehaviorSubject(bpm).pipe(rxo.observeOn(rx.asyncScheduler))
+		if (bpm$ === null) {
+			bpm$ = new rx.BehaviorSubject(120)
+		} else if (typeof bpm$ === 'number') {
+			bpm$ = new rx.BehaviorSubject(bpm$)
+		}
+
+		// Let's ensure that bpm events will be received after
+		// executing 'scan' code
+		bpm$ = bpm$.pipe(rxo.observeOn(rx.asyncScheduler))
+
 		let player = rx.combineLatest(
 			rx.interval(resolution),
 			bpm$
 		).pipe(
 			rxo.map( ([_, bpm]) => bpm),
 			rxo.scan( ([last_tick_time, last_tick, last_event, _], bpm) => {
+				last_tick_time = last_tick_time === null ? performance.now() : last_tick_time
+
 				let ms_per_tick = 60000 / (bpm * time_division)
 				let look_ahead_end = performance.now() + look_ahead
 				let new_last_tick_time = last_tick_time
@@ -125,7 +143,7 @@ export let playMidi =
 				} 
 
 				return [new_last_tick_time, new_last_tick, new_last_event, from(look_ahead_events)]
-			}, [performance.now(), 0, 0, null]),
+			}, [null, 0, 0, null]),
 			rxo.mergeMap(([a, b, c, events]) => events),
 		)
 

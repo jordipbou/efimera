@@ -1,5 +1,6 @@
 import { from, fromEvent, interval, merge, Observable, of, pipe } from 'rxjs'
 import { concatMap, map, mapTo, mergeMap, share, take } from 'rxjs/operators'
+import { type } from 'ramda'
 
 let midiAccess
 
@@ -44,7 +45,7 @@ export let output = n => [...midiAccess.outputs].map( ([k, v]) => v )
 																			v.send(y.data, y.timeStamp)
 																		}
 																	})
-																} else {
+																} else if (type(v) === 'Array') {
 																	// Just an array of data
 																	v.send(x)
 																}
@@ -173,16 +174,17 @@ export let panic =
 	}
 
 // ==== MIDI Messages predicates ====
+export let isMidiMessage = d => d.type !== undefined && d.type === 'midimessage'
 // ---- Channel Voice Messages ----
-export let isNoteOn = d => d.data[0] >> 4 === 9
-export let isNoteOff = d => d.data[0] >> 4 === 8
+export let isNoteOn = d => isMidiMessage(d) && d.data[0] >> 4 === 9
+export let isNoteOff = d => isMidiMessage(d) && d.data[0] >> 4 === 8
 export let isNote = d => isNoteOn(d) || isNoteOff(d)
-export let isPolyPressure =	d => d.data[0] >> 4 === 10
+export let isPolyPressure =	d => isMidiMessage(d) && d.data[0] >> 4 === 10
 export let hasNote = d => isNote(d) || isPolyPressure(d)
-export let isControlChange = d => d.data[0] >> 4 === 11
-export let isProgramChange = d => d.data[0] >> 4 === 12
-export let isChannelPressure = d => d.data[0] >> 4 === 13
-export let isPitchBend = d => d.data[0] >> 4 === 14
+export let isControlChange = d => isMidiMessage(d) && d.data[0] >> 4 === 11
+export let isProgramChange = d => isMidiMessage(d) && d.data[0] >> 4 === 12
+export let isChannelPressure = d => isMidiMessage(d) && d.data[0] >> 4 === 13
+export let isPitchBend = d => isMidiMessage(d) && d.data[0] >> 4 === 14
 // ---- Channel Mode Messages ----
 export let isAllSoundOff = d => isControlChange(d) && d.data[1] === 120 && d.data[2] === 0
 export let isResetAll = d => isControlChange(d) && d.data[1] === 121
@@ -211,11 +213,11 @@ export let isChannelVoice =
 		|| isChannelPressure(d)
 		|| isPitchBend(d)
 export let isChannelMessage = d => isChannelMode(d) || isChannelVoice(d)
-export let getChannel = (d) => d.data[0] & 0xF
+export let getChannel = (d) => isMidiMessage(d) ? d.data[0] & 0xF : 0
 export let isOnChannel = (d, ch) => isChannelMessage(d) && getChannel(d) === ch
 export let isOnChannels = (d, chs) => isChannelMessage(d) && chs.includes(getChannel(d))
 
-export let isMetaEvent = (d) => d.type === 'metaevent'
+export let isMetaEvent = (d) => d.type !== undefined && d.type === 'metaevent'
 
 // TODO: System Common Messages and System Real-Time Messages
 // ==== MIDI Message transformers ====
