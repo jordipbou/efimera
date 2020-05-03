@@ -39,6 +39,9 @@
 		for (let p in efimera.RxMidi) 
 			window[p] = efimera.RxMidi[p]
 
+		for (let p in efimera.MidiFile)
+			window[p] = efimera.MidiFile[p]
+
 		for (let p in efimera.RxMusic)
 			window[p] = efimera.RxMusic[p]
 
@@ -62,6 +65,7 @@
 		window.pipe = rxjs.pipe
 		window.race = rxjs.race
 		window.Subject = rxjs.Subject
+		window.bufferCount = rxjs.operators.bufferCount
 		window.filter = rxjs.operators.filter
 		window.map = rxjs.operators.map
 		window.mapTo = rxjs.operators.mapTo
@@ -73,6 +77,8 @@
 		window.take = rxjs.operators.take
 		window.takeUntil = rxjs.operators.takeUntil
 		window.tap = rxjs.operators.tap
+
+		window.setGlobal = name => v => window[name] = v
 	</script>
 </head>
 <body>

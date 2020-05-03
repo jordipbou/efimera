@@ -1,5 +1,5 @@
 import { from, fromEvent, interval, merge, Observable, of, pipe } from 'rxjs'
-import { map, mapTo, mergeMap, take } from 'rxjs/operators'
+import { concatMap, map, mapTo, mergeMap, share, take } from 'rxjs/operators'
 
 let midiAccess
 
@@ -66,6 +66,7 @@ export let copy =
 	(mm, timeStamp = null) => { 
 		return { 
 			type: mm.type,
+			metaType: mm.metaType,
 			timeStamp: timeStamp === null ? mm.timeStamp : timeStamp, 
 			deltaTime: mm.deltaTime, 
 			data: mm.data instanceof Object ? [ ...mm.data ] : [ mm.data ]
@@ -109,6 +110,26 @@ export let tun = (delay = 0, delta = 0) => msg([246], delay, delta)
 // https://www.html5rocks.com/en/tutorials/audio/scheduling/
 // but, as we're working with midi, all the beats (ticks) of a
 // window are sent as an observable with their correct timings.
+//export let clock = 
+//	(bpm, time_division = 24, resolution = 25, window = 100) => 
+//		interval(resolution).pipe(
+//			scan(([last_tick_time, bpm, time_division, window, observable], v) => {
+//				let ms_per_tick = 60000 / (bpm * time_division)
+//				let next_tick_time = last_tick_time + ms_per_tick
+//				let start = performance.now()
+//				let end = start + window
+//				let beats = []
+//				while (next_tick_time < end) {
+//					beats.push(mc(0, 0, next_tick_time))
+//					next_tick_time = next_tick_time + ms_per_tick
+//				}
+//				
+//				return [next_tick_time - ms_per_tick, bpm, time_division, window, beats] //from(beats)]
+//			}, [performance.now(), bpm, time_division, window, []]), //rx.never()]),
+//			map(([_, __, ___, ____, b]) => b),
+//			share() // Make this a HOT observable
+//			//switchMap(([l, b, t, w, o]) => o)
+//		)
 export let clock = 
 	(bpm, time_division = 24, resolution = 25, window = 100) => 
 		interval(resolution).pipe(
@@ -124,9 +145,11 @@ export let clock =
 				}
 				
 				return [next_tick_time - ms_per_tick, bpm, time_division, window, from(beats)]
-			}, [performance.now(), bpm, time_division, window, rx.never()]),
-			switchMap(([l, b, t, w, o]) => o)
+			}, [performance.now(), bpm, time_division, window, null]),
+			switchMap(([l, b, t, w, o]) => o),
+			share(), // Make this a HOT observable
 		)
+
 
 export let mc = (delay = 0, delta = 0, timeStamp = performance.now()) => msg([248], delay, delta, timeStamp)
 export let start = (delay = 0, delta = 0) => msg([250], delay, delta)
@@ -191,6 +214,9 @@ export let isChannelMessage = d => isChannelMode(d) || isChannelVoice(d)
 export let getChannel = (d) => d.data[0] & 0xF
 export let isOnChannel = (d, ch) => isChannelMessage(d) && getChannel(d) === ch
 export let isOnChannels = (d, chs) => isChannelMessage(d) && chs.includes(getChannel(d))
+
+export let isMetaEvent = (d) => d.type === 'metaevent'
+
 // TODO: System Common Messages and System Real-Time Messages
 // ==== MIDI Message transformers ====
 // ---- Channel transformation (Rx Operators) ----
@@ -221,36 +247,3 @@ export let QNPM2BPM = (qnpm) => 60 * 1000000 / qnpm
 
 export let midiToHzs =
 	(n, tuning = 440) => ((tuning / 32) * (Math.pow(((n - 9) / 12), 2)))
-
-export let loadMidiFile =
-	(sel = '#preview') => {
-		let id = 'local-midi-file-browser'
-		var e = document.querySelector(sel)
-		e.innerHTML = e.innerHTML + '<input type="file" id="' + id + '" style="display: none">'
-		let promise = 
-			new Promise((s, r) => 
-				MidiParser.parse(document.querySelector('#' + id), o => { 
-					document.querySelector('#' + id).remove()
-					// Convert data from each event to a format compatible
-					// with rest of library
-					for (let t of o.track) {
-						for (let e of t.event) {
-							e.timeStamp = 0
-							if (e.type > 7 && e.type < 14) {
-								if (e.data instanceof Array) {
-									e.data = [(e.type << 4) + e.channel, ...e.data]
-								} else {
-									e.data = [(e.type << 4) + e.channel, e.data]
-								}
-								e.type = 'midimessage'
-							} else if (e.type === 255) {
-								e.type = 'metaevent'
-							}
-						}
-					}
-
-					return s(o)
-				}))
-		document.querySelector('#' + id).click()
-		return promise
-	}
