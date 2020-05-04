@@ -1,5 +1,5 @@
 import { 
-	__, addIndex, always, append, concat, drop, evolve, filter, findIndex, flatten, head, init, 
+	__, addIndex, always, append, assoc, concat, drop, evolve, filter, findIndex, flatten, head, init, 
 	last, length, map, mergeLeft, objOf, pipe, prop, reduce, repeat,
 	scan, sort, tail, take, takeWhile 
 } from 'ramda'
@@ -48,10 +48,6 @@ export let withAbsoluteDeltaTimes =
 					map(([tick, v]) => mergeLeft({ absoluteDeltaTime: tick }, v)),
 					tail)}))})
 
-// TODO: First, calculate absolute delta times...
-// ...then, merge tracks (adding track:n to each event?)...
-// ...then, sort by absolute delta times...
-// ...then, recalculate delta times (for consistency)
 export let mergeTracks =
 	evolve({
 		tracks: always(1),
@@ -77,7 +73,11 @@ export let filterTracks =
 			track: filterIndexed((v, k) => tracks.includes(k))
 		}, midiFile)
 
-export let playMidi =
+//export let addTracks =
+//	(tracks, midiFile) =>
+//		// TODO
+
+export let playMidiFile =
 	(midiFile, bpm$ = null, resolution = 25, look_ahead = 100) => {
 		let playable = pipe(
 			withAbsoluteDeltaTimes,
@@ -97,11 +97,14 @@ export let playMidi =
 		// executing 'scan' code
 		bpm$ = bpm$.pipe(rxo.observeOn(rx.asyncScheduler))
 
+		let loop = playable.loop !== undefined && playable.loop === true
+		let loop$ = new BehaviorSubject(true).pipe(rxo.observeOn(rx.asyncScheduler))
 		let player = rx.combineLatest(
 			rx.interval(resolution),
+			loop$,
 			bpm$
 		).pipe(
-			rxo.map( ([_, bpm]) => bpm),
+			rxo.map( ([_, loop, bpm]) => bpm),
 			rxo.scan( ([last_tick_time, last_tick, last_event, _], bpm) => {
 				last_tick_time = last_tick_time === null ? performance.now() : last_tick_time
 
@@ -142,10 +145,28 @@ export let playMidi =
 					new_last_event = last_event + length(look_ahead_events) + 1
 				} 
 
+				// If last_event is last on midi file, new_last_tick and new_last_tick_time
+				// have to be recalcultated as on tempo change, to allow correct restart
+				if (loop && last(look_ahead_events) === last(track)) {
+					loop$.next(true)
+					new_last_tick = 0
+					new_last_tick_time = last_tick_time + (last(look_ahead_events).absoluteDeltaTime - last_tick)*ms_per_tick
+					new_last_event = 0
+				}
+
 				return [new_last_tick_time, new_last_tick, new_last_event, from(look_ahead_events)]
 			}, [null, 0, 0, null]),
-			rxo.mergeMap(([a, b, c, events]) => events),
+			rxo.mergeMap(([a, b, c, events]) => events)
 		)
 
 		return player
 	}
+
+export let createMidiFile =
+	(track, timeDivision = 24) => {
+		return {
+			tracks: 1,
+			timeDivision: timeDivision,
+			track: [{ event: track }]}}
+
+export let createLoop =	(midiFile) => assoc('loop', true, midiFile)
