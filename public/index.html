@@ -31,7 +31,6 @@
 			return p
 		}
 	</script>
-	<script defer src=./libs/rxjs/bundles/rxjs.umd.min.js></script>
 	<script defer type=module src=./libs/midi-parser-js/src/main.js></script>
 	<script defer type=module>
 		// Make everything of rxjs, RxMidi and of LinnStrument
@@ -51,34 +50,17 @@
 		for (let p in efimera.LinnStrumentJS)
 			window[p] = efimera.LinnStrumentJS[p]
 
-		window.rx = rxjs
-		window.rxo = rxjs.operators
-		window.BehaviorSubject = rxjs.BehaviorSubject
-		window.concat = rxjs.concat
-		window.empty = rxjs.empty
-		window.from = rxjs.from
-		window.fromEvent = rxjs.fromEvent
-		window.interval = rxjs.interval
-		window.merge = rxjs.merge
-		window.never = rxjs.never
-		window.of = rxjs.of
-		window.pipe = rxjs.pipe
-		window.race = rxjs.race
-		window.Subject = rxjs.Subject
-		window.bufferCount = rxjs.operators.bufferCount
-		window.filter = rxjs.operators.filter
-		window.map = rxjs.operators.map
-		window.mapTo = rxjs.operators.mapTo
-		window.mergeMap = rxjs.operators.mergeMap
-		window.reduce = rxjs.operators.reduce
-		window.repeat = rxjs.operators.repeat
-		window.scan = rxjs.operators.scan
-		window.switchMap = rxjs.operators.switchMap
-		window.take = rxjs.operators.take
-		window.takeUntil = rxjs.operators.takeUntil
-		window.tap = rxjs.operators.tap
+		window.R = efimera.ramda
+
+		window.rx = efimera.rxjs
+		window.rxo = efimera.rxjs_operators
 
 		window.setGlobal = name => v => window[name] = v
+
+		window.rxs = efimera.rxjs_spy
+		window.rxso = efimera.rxjs_spy.operators
+
+		window.spy = efimera.spy
 	</script>
 </head>
 <body>

@@ -1,5 +1,5 @@
 import { from, fromEvent, interval, merge, Observable, of, pipe } from 'rxjs'
-import { concatMap, map, mapTo, mergeMap, share, take } from 'rxjs/operators'
+import { concatMap, map, mapTo, mergeMap, scan, share, take } from 'rxjs/operators'
 import { type } from 'ramda'
 
 let midiAccess
