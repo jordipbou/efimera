@@ -41,65 +41,74 @@ export let output = n =>
 
 // =============================== Transport/Clock ============================
 export let createTransport = (resolution = 25, look_ahead = 100) => {
-	let bpm$ = new rx.BehaviorSubject(120).pipe(rxo.observeOn(rx.asyncScheduler))
-	
-	let start$ = new rx.Subject()
-	let pause$ = new rx.Subject()
-	let stop$ = new rx.Subject()
-	let status$ = new rx.BehaviorSubject('stopped')
-	
-	let clock$ = start$.pipe(
-		rxo.switchMap(() => rx.timer(0, resolution)),
-		rxo.takeUntil(pause$),
-		rxo.repeat(),
-		rxo.takeUntil(stop$),
-		rxo.repeat(),
+	let control$ = new rx.Subject()
+	let status = 'stopped'
+	let bpm = 120
+
+	let transport$ = control$.pipe(
+		rxo.switchMap(msg => {
+			status = msg
+			if (msg === 'playing') {
+				return rx.timer(0, resolution).pipe(
+							rxo.map(_ => [performance.now(), 'playing', bpm, resolution, look_ahead])
+						)
+			} else {
+				return rx.of([performance.now(), msg, bpm, resolution, look_ahead])
+			}
+		}),
+		rxo.share(),
 	)
 	
-	let transport$ = rx.combineLatest(
-		clock$,
-		bpm$,
-		status$
-	).pipe(
-		rxo.map(([_, bpm, status]) => [resolution, look_ahead, bpm, status])
-	)
-	
-	transport$.start = () => { status$.next('playing'); start$.next(); }
-	transport$.pause = () => { status$.next('paused'); pause$.next(); }
-	transport$.stop = () => { status$.next('stopped'); stop$.next(); }
-	transport$.next = () => { status$.next('next'); }
-	transport$.prev = () => { status$.next('prev'); }
-	transport$.bpm = v => bpm$.next(v)
+	transport$.start = () => control$.next('playing')
+	transport$.pause = () => control$.next('paused')
+	transport$.stop = () => control$.next('stopped')
+	transport$.next = () => control$.next('next')
+	transport$.prev = () => control$.next('prev')
+	transport$.bpm = v => { bpm = v; control$.next(status); }
 	
 	return transport$
 }
 
 export let MIDIClock = (time_division = 24) => 
 	rx.pipe(
-		rxo.scan(([last_tick_time, _], [resolution, look_ahead, bpm, status]) => {
-			switch (status) {
+		rxo.scan(([last_tick_time, _], [now, st, bpm, resolution, look_ahead]) => {
+			switch (st) {
 				case 'playing':
-					last_tick_time = last_tick_time || performance.now()
+					last_tick_time = last_tick_time || now
 
 					let ms_per_tick = 60000 / (bpm * time_division)
-					let now = performance.now()
 					let look_ahead_end = now + look_ahead
 
 					let events = []
 					while (last_tick_time < look_ahead_end) {
 						last_tick_time = last_tick_time + ms_per_tick
 						if (last_tick_time > now) {
-							events.push(mc(0, 0, last_tick_time))
+							events.push(R.assoc('status', 'playing', mc(0, 0, last_tick_time)))
 						}
 					}
 
 					return [last_tick_time, rx.from(events)]
 				default:
-					return [null, rx.empty()]
+					return [null, rx.of(R.assoc('status', st, mc(0, 0, now)))]
 			}
 		}, [null, null]),
-		rxo.switchMap(([_, v]) => v)
+		rxo.switchMap(([_, v]) => v),
+		rxo.share()
 	)
+
+export let createClock = (time_division = 24, resolution = 25, look_ahead = 100) => {
+	let transport$ = createTransport(resolution, look_ahead)
+
+	let clock$ = transport$.pipe(MIDIClock(time_division))
+
+	clock$.start = transport$.start
+	clock$.pause = transport$.pause
+	clock$.stop = transport$.stop
+	clock$.next = transport$.next
+	clock$.bpm = transport$.bpm
+
+	return clock$
+}
 
 // =========================== MIDI Messages creation =========================
 // Converts one MIDI Message byte array to a MIDIMessageEvent
