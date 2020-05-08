@@ -1,11 +1,6 @@
-import { 
-	__, addIndex, always, append, assoc, concat, drop, evolve, filter, findIndex, flatten, groupWith,
-	head, init, indexOf, last, length, map, mergeLeft, objOf, pipe, prop, reduce, repeat,
-	scan, sort, tail, take, takeWhile 
-} from 'ramda'
+import * as R from 'ramda'
 import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
-import { tag } from 'rxjs-spy/operators/tag'
 
 export let loadMidiFile =
 	(sel = '#preview') => {
@@ -41,35 +36,35 @@ export let loadMidiFile =
 	}
 
 export let withAbsoluteDeltaTimes =
-	evolve({
-		track: map(
-			evolve({
-				event: pipe(
-					scan(([current_tick, _], v) => [current_tick + v.deltaTime, v], [0, null]),
-					map(([tick, v]) => mergeLeft({ absoluteDeltaTime: tick }, v)),
-					tail)}))})
+	R.evolve({
+		track: R.map(
+			R.evolve({
+				event: R.pipe(
+					R.scan(([current_tick, _], v) => [current_tick + v.deltaTime, v], [0, null]),
+					R.map(([tick, v]) => R.mergeLeft({ absoluteDeltaTime: tick }, v)),
+					R.tail)}))})
 
 export let mergeTracks =
-	evolve({
-		tracks: always(1),
-		track: pipe(
-			reduce((acc, v) => concat(acc, v.event), []),
-			objOf('event'),
-			append(__, []))})
+	R.evolve({
+		tracks: R.always(1),
+		track: R.pipe(
+			R.reduce((acc, v) => R.concat(acc, v.event), []),
+			R.objOf('event'),
+			R.append(R.__, []))})
 
 export let sortEvents = 
-    evolve({
-		track: pipe(
-			map(v => sort((a, b) => a.absoluteDeltaTime - b.absoluteDeltaTime, v.event)),
-			head,
-			objOf('event'),
-			append(__, []))})
+    R.evolve({
+		track: R.pipe(
+			R.map(v => R.sort((a, b) => a.absoluteDeltaTime - b.absoluteDeltaTime, v.event)),
+			R.head,
+			R.objOf('event'),
+			R.append(R.__, []))})
 
-let filterIndexed = addIndex(filter)
+let filterIndexed = R.addIndex(R.filter)
 
 export let filterTracks =
 	(tracks, midiFile) => 
-		evolve({
+		R.evolve({
 			tracks: () => tracks.length,
 			track: filterIndexed((v, k) => tracks.includes(k))
 		}, midiFile)
@@ -84,53 +79,11 @@ export let createMidiFile =
 			timeDivision: timeDivision,
 			track: [{ event: track }]}}
 
-export let createLoop =	(midiFile) => assoc('loop', true, midiFile)
+export let createLoop =	(midiFile) => R.assoc('loop', true, midiFile)
 
-export let createTransport = (resolution = 25, look_ahead = 100) => {
-	let bpm$ = new rx.BehaviorSubject(120).pipe(rxo.observeOn(rx.asyncScheduler))
-	
-	let start$ = new rx.Subject()
-	let pause$ = new rx.Subject()
-	let stop$ = new rx.Subject()
-	let status$ = new rx.BehaviorSubject('stopped')
-	
-	let clock$ = start$.pipe(
-		tag('clock'),
-		rxo.switchMap( () => rx.timer(0, resolution) ),
-		rxo.takeUntil(pause$),
-		rxo.startWith(-1),
-		rxo.repeat(),
-		rxo.scan( (a, v) => a + 1, -1 ),
-		rxo.takeUntil(stop$),
-		rxo.repeat(),
-	)
-	
-	let transport$ = rx.combineLatest(
-		clock$,
-		bpm$,
-		status$
-	).pipe(
-		tag('transport'),
-		rxo.map( ([n, bpm, status]) => [n, resolution, look_ahead, bpm, status] )
-	)
-	
-	transport$.start = () => { status$.next('playing'); start$.next(); }
-	transport$.pause = () => { status$.next('paused'); pause$.next(); }
-	transport$.stop = () => { status$.next('stopped'); stop$.next(); }
-	transport$.next = () => { status$.next('next'); }
-	transport$.prev = () => { status$.next('prev'); }
-	transport$.bpm = v => bpm$.next(v)
-	
-	return transport$
-}
-
-// TODO: Add the option of sending "just advance" to the player
-// to be able of jumping from deltaTime to deltaTime without having
-// a transport, that way, I will have a sequencer (for organ combinations)
-// directly accessible!!
 export let createPlayer =
 	(midiFile, transport$) => {
-		let playable = pipe(
+		let playable = R.pipe(
 			withAbsoluteDeltaTimes,
 			mergeTracks,
 			sortEvents)(midiFile)
@@ -145,36 +98,57 @@ export let createPlayer =
 			transport$,
 			loop$
 		).pipe(
-			tag('player-merge'),
 			rxo.map( ([[n, resolution, look_ahead, bpm, status], loop]) => [n, look_ahead, bpm, status] ),
 			rxo.scan ( ([last_tick_time, last_tick, last_event, _], [n, look_ahead, bpm, status]) => {
+				// TODO:
+				// last event podría eliminarse si se tiene en cuenta que se envían
+				// todos los eventos para un tick de golpe.
+				// Lo introduje por si aparecía un cambio de tempo -entre- un grupo
+				// de eventos del mismo delta time, pero básicamente lo que hay que
+				// hacer es enviarlos todos y en último lugar el cambio de tempo.
+				// Nunca se dará el caso que se envíe solo un grupo de mismo 
+				// absoluteDeltaTime a medias !!
+				// TODO:
+				// Más o menos igual pasa con loop, ya que si se han acabado los
+				// eventos, el inicio está a un tick de distancia (o en el tick 0), no hace falta
+				// enviar ninguna señal, simplemente el acumulador last_tick se pone a 0 ó
+				// si last_tick es igual al mayor absoluteDeltaTime y loop es true
+				// entonces se vuelve a empezar. Joder que sencillo !!!
+				// TODO:
+				// Entiendo que todo esto pasaba por el uso de las ventanas, pero
+				// si lo paso a utilizar con MIDI Clock (vienen con sus timestamps)
+				// entonces puedo trabajar el fichero midi a nivel de ticks, no de
+				// ventanas, y será mucho más sencillo.
+				// El problema del MIDI clock es que pierdo el status (tal como lo he
+				// hecho ahora), aunque lo podría añadir como propiedad en el evento
+				// mc (MIDI Clock), boníssim !!!
 				if (status === 'next' && last_event !== last(track)) {
-					return head(map(
+					return R.head(R.map(
 						l => [
 							performance.now(), 
-							head(l) ? head(l).absoluteDeltaTime : 0, 
-							indexOf(last(l)), 
+							R.head(l) ? R.head(l).absoluteDeltaTime : 0, 
+							R.indexOf(R.last(l)), 
 							rx.from(l)
 						],
-						pipe(
-							filter(e => e.absoluteDeltaTime > last_tick),
-							groupWith((a, b) => a.absoluteDeltaTime === b.absoluteDeltaTime),
-							take(1)
+						R.pipe(
+							R.filter(e => e.absoluteDeltaTime > last_tick),
+							R.groupWith((a, b) => a.absoluteDeltaTime === b.absoluteDeltaTime),
+							R.take(1)
 						)(track)))
 				}
 
 				if (status === 'prev' && last_event !== 0) {
-					return head(map(
+					return R.head(R.map(
 						l => [
 							performance.now(),
-							head(l) ? head(l).absoluteDeltaTime : 0,
-							indexOf(last(l)),
+							R.head(l) ? R.head(l).absoluteDeltaTime : 0,
+							R.indexOf(R.last(l)),
 							rx.from(l)
 						],
-						pipe(
-							filter(e => e.absoluteDeltaTime < last_tick),
-							groupWith((a, b) => a.absoluteDeltaTime === b.absoluteDeltaTime),
-							take(1)
+						R.pipe(
+							R.filter(e => e.absoluteDeltaTime < last_tick),
+							R.groupWith((a, b) => a.absoluteDeltaTime === b.absoluteDeltaTime),
+							R.take(1)
 						)(track)))
 				}
 
@@ -201,26 +175,26 @@ export let createPlayer =
 					new_last_tick = new_last_tick + 1
 				}
 			
-				let look_ahead_events = pipe(
-					drop(last_event),
-					filter(e => e.absoluteDeltaTime >= last_tick
+				let look_ahead_events = R.pipe(
+					R.drop(last_event),
+					R.filter(e => e.absoluteDeltaTime >= last_tick
 							 && e.absoluteDeltaTime <= new_last_tick),
-					map(e => {
+					R.map(e => {
 						e.timeStamp = last_tick_time + (e.absoluteDeltaTime - last_tick)*ms_per_tick
 						return e
 					})
 				)(track)
 
-				let new_last_event = last_event + length(look_ahead_events)
+				let new_last_event = last_event + R.length(look_ahead_events)
 
-				let tempo_change_idx = findIndex(e => e.metaType !== undefined && e.metaType === 81, look_ahead_events)
+				let tempo_change_idx = R.findIndex(e => e.metaType !== undefined && e.metaType === 81, look_ahead_events)
 				if (tempo_change_idx !== -1) {
 					let tempo_change = look_ahead_events[tempo_change_idx]
-					look_ahead_events = take(tempo_change_idx, look_ahead_events)
+					look_ahead_events = R.take(tempo_change_idx, look_ahead_events)
 					transport$.bpm(60000000 / tempo_change.data)
 					new_last_tick = tempo_change.absoluteDeltaTime
 					new_last_tick_time = last_tick_time + (new_last_tick - last_tick)*ms_per_tick
-					new_last_event = last_event + length(look_ahead_events) + 1
+					new_last_event = last_event + R.length(look_ahead_events) + 1
 				} 
 
 				if (loop && last(look_ahead_events) === last(track)) {
@@ -232,7 +206,6 @@ export let createPlayer =
 
 				return [new_last_tick_time, new_last_tick, new_last_event, rx.from(look_ahead_events)]
 			}, [null, 0, 0, null] ),
-			tag('aft-player'),
 			rxo.switchMap( ([a, b, c, events]) => events ),
 		)
 
