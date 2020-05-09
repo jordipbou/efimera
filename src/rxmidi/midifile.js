@@ -2,8 +2,6 @@ import * as R from 'ramda'
 import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
 
-import { tag } from 'rxjs-spy/operators/tag'
-
 export let loadMidiFile =
 	(sel = '#preview') => {
 		let id = 'local-midi-file-browser'
@@ -86,85 +84,94 @@ export let createMidiFile =
 
 export let createLoop =	(midiFile) => R.assoc('loop', true, midiFile)
 
+export let MIDIPlayer = (midiFile) => {
+	let playable = R.pipe(
+		withAbsoluteDeltaTimes,
+		mergeTracks,
+		sortEvents)(midiFile)
+
+	return rx.pipe(
+		rxo.scan(([tick, _], o) => {
+			let midi_clock = []
+			if (R.is(rx.Observable, o)) {
+				o.subscribe(mc => midi_clock.push(mc))
+			} else {
+				midi_clock.push[o]
+			}
+
+			let events = R.flatten(
+				R.map(
+					mc => {
+						let events
+						switch (mc.status) {
+							case 'started':
+								events = R.pipe(
+									R.filter(e => e.absoluteDeltaTime === tick),
+									R.map(e => { e.timeStamp = mc.timeStamp; return e })
+								)(playable.track[0].event)
+
+								tick = playable.loop ? ((tick + 1) % playable.track[0].event.length) : (tick + 1)
+								break;
+							case 'next':
+								events = R.pipe(
+									R.filter(e => e.absoluteDeltaTime === tick),
+									R.map(e => { e.timeStamp = mc.timeStamp; return e })
+								)(playable.track[0].event)
+
+								tick = R.head(
+									R.filter(
+										e => e.absoluteDeltaTime > tick, 
+										playable.track[0].event)).absoluteDeltaTime
+
+								break;
+							case 'prev':
+								events = R.pipe(
+									R.filter(e => e.absoluteDeltaTime === tick),
+									R.map(e => { e.timeStamp = mc.timeStamp; return e })
+								)(playable.track[0].event)
+
+								tick = R.last(
+									R.filter(
+										e => e.absoluteDeltaTime < tick, 
+										playable.track[0].event)).absoluteDeltaTime
+
+								events = []
+								break
+							case 'paused':
+								events = panic()	// TODO: Change this to instrument state
+
+								tick = tick + 1
+
+								break
+							default:
+								events = panic()	// TODO: Change this to instrument state
+
+								tick = 0
+
+								break
+						}
+
+						return events
+					},
+					midi_clock)
+				)
+
+			return [tick, rx.from(events)]
+		}, [0, null]),
+		rxo.switchMap(([t, events]) => events)
+	)
+}
+
+export let tempoChangeListener = (transport$) =>
+	rxo.tap(v => { if (v.type === 'metaevent' && v.metaType === 81) { transport$.bpm(60000000 / v.data) } })
+
 export let createPlayer =
 	(midiFile) => {
-		let playable = R.pipe(
-			withAbsoluteDeltaTimes,
-			mergeTracks,
-			sortEvents)(midiFile)
-
-		let clock$ = createClock(playable.timeDivision)
+		let clock$ = createClock(midiFile.timeDivision)
 
 		let player$ = clock$.pipe(
-			rxo.scan(([tick, _], o) => {
-				let midi_clock = []
-				if (R.is(rx.Observable, o)) {
-					o.subscribe(mc => midi_clock.push(mc))
-				} else {
-					midi_clock.push[o]
-				}
-
-				let events = R.flatten(
-					R.map(
-						mc => {
-							let events
-							switch (mc.status) {
-								case 'started':
-									events = R.pipe(
-										R.filter(e => e.absoluteDeltaTime === tick),
-										R.map(e => { e.timeStamp = mc.timeStamp; return e })
-									)(playable.track[0].event)
-
-									tick = playable.loop ? ((tick + 1) % playable.track[0].event.length) : (tick + 1)
-									break;
-								case 'next':
-									events = R.pipe(
-										R.filter(e => e.absoluteDeltaTime === tick),
-										R.map(e => { e.timeStamp = mc.timeStamp; return e })
-									)(playable.track[0].event)
-
-									tick = R.head(
-										R.filter(
-											e => e.absoluteDeltaTime > tick, 
-											playable.track[0].event)).absoluteDeltaTime
-
-									break;
-								case 'prev':
-									events = R.pipe(
-										R.filter(e => e.absoluteDeltaTime === tick),
-										R.map(e => { e.timeStamp = mc.timeStamp; return e })
-									)(playable.track[0].event)
-
-									tick = R.last(
-										R.filter(
-											e => e.absoluteDeltaTime < tick, 
-											playable.track[0].event)).absoluteDeltaTime
-
-									events = []
-									break
-								case 'paused':
-									events = panic()	// TODO: Change this to instrument state
-
-									tick = tick + 1
-
-									break
-								default:
-									events = panic()	// TODO: Change this to instrument state
-
-									tick = 0
-
-									break
-							}
-
-							return events
-						},
-						midi_clock)
-					)
-
-				return [tick, rx.from(events)]
-			}, [0, null]),
-			tag('player-out'),
-			rxo.switchMap(([t, events]) => events)
+			MIDIPlayer(midiFile),
+			tempoChangeListener(clock$)
 		)
 
 		player$.start = clock$.start
@@ -172,6 +179,7 @@ export let createPlayer =
 		player$.stop = clock$.stop
 		player$.next = clock$.next
 		player$.prev = clock$.prev
+		player$.bpm = clock$.bpm
 
 		return player$
 	}

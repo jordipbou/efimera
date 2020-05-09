@@ -3,6 +3,8 @@ import './main.css';
 import { create } from 'rxjs-spy'
 
 export * as RxMidi from './rxmidi/main.js'
+export * as RxMidiClock from './rxmidi/clock.js'
+export * as RxMidiFile from './rxmidi/midifile.js'
 //export * as RxMusic from './rxmusic.js'
 //export * as RxMusic_Defs from './rxmusic_defs.js'
 //export * as LinnStrumentJS from './linnstrument.js'

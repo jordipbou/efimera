@@ -2,9 +2,6 @@ import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
 import * as R from 'ramda'
 
-export * from './clock.js'
-export * from './midifile.js'
-
 let midiAccess
 
 // =========================== WebMidi initialization =========================
@@ -163,7 +160,7 @@ export let isMetaEvent = (d) => d.type !== undefined && d.type === 'metaevent'
 // ---- Channel transformation (Rx Operators) ----
 // Every channel message will change its channel to ch
 export let changeToChannel = (d, ch) => { d.data[0] = (d.data[0] & 0xF0) + ch; return d; }
-export let toChannel = ch => map(d => isChannelMessage(d) ? changeToChannel(d, ch) : d)
+export let toChannel = ch => rxo.map(d => isChannelMessage(d) ? changeToChannel(d, ch) : d)
 // Maps every channel message with chin channel to chout channel
 export let mapChannel =	(chin, chout) => rxo.map(d => isOnChannel(d, chin) ? changeToChannel(d, chout) : d)
 // Maps every channel message in chin array of channels to chout array of channels
