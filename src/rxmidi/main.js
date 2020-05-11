@@ -1,17 +1,17 @@
 import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
 import * as R from 'ramda'
-// Comment this for browser, uncomment for testing
-//import * as navigator from 'jzz'
-//import { performance } from 'perf_hooks'
 
 let midiAccess
 
 // ============ WebMidi initialization ===============
-export let init = (sysex = false) => 
-	navigator
+export let init = (sysex = false, custom_navigator = window.navigator) =>
+	custom_navigator
 		.requestMIDIAccess({ sysex: sysex })
-		.then(m => midiAccess = m)
+		.then(m => { 
+			midiAccess = m; 
+			return midiAccess; 
+		})
 
 export let logPorts = () => {
 	R.forEach(
