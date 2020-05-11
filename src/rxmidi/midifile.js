@@ -70,10 +70,13 @@ export let filterTracks =
 		}, midiFile)
 
 // TODO
-//export let addTrack/s =
+//export let addTrack/s = (midiFile, tracks) => 
 
 // TODO
-//export let changeTimeDivision =
+//export let changeTimeDivision = (midiFile, newTimeDivision) =>
+
+// TODO
+// export let commonTimeDivision = (midiFile1, midiFile2, ...) => 
 
 export let createMidiFile =
 	(track, timeDivision = 24) => {
@@ -84,11 +87,59 @@ export let createMidiFile =
 
 export let createLoop =	(midiFile) => R.assoc('loop', true, midiFile)
 
+let getCurrentTickEvents = (status, track, timeStamp, tick, maxTick, loop) => {
+	if (status === 'paused' || status === 'stopped') {
+		return []
+	} else {
+		return R.pipe(
+			R.filter(e => e.absoluteDeltaTime === tick || (loop ? (e.absoluteDeltaTime === (tick % maxTick)) : false)),
+			R.map(e => { e.timeStamp = timeStamp; return e; })
+		)(track)
+	}
+}
+
+let getNextTick = (status, track, tick, maxTick, loop) => {
+	switch (status) {
+	case 'stopped': return 0
+	case 'paused': return tick = tick + 1
+	case 'started': 
+		return (loop && (tick + 1 > maxTick)) ? (tick + 1) % maxTick : tick + 1
+	case 'next':
+		let next_events = R.filter(e => e.absoluteDeltaTime > tick)(track)
+		if (loop && next_events.length === 0) {
+			next_events = R.filter(e => e.absoluteDeltaTime > 0)(track)
+		}
+		return next_events.length > 0 ? R.head(next_events).absoluteDeltaTime : (maxTick + 1)
+	case 'prev':
+		let prev_events = R.filter(e => e.absoluteDeltaTime < tick)(track)
+		if (loop && prev_events.length === 0) {
+			prev_events = R.filter(e => e.absoluteDeltaTime < maxTick)(track)
+		}
+		return prev_events.length > 0 ? R.last(prev_events).absoluteDeltaTime : -1
+	default: return tick
+	}
+}
+
+let updateSoundingNotes = (status, events, soundingNotes) => {
+	if (status === 'paused' || status === 'stopped') {
+		let off_events = R.map(e => off(getNote(e), getVelocity(e), getChannel(e)), soundingNotes)
+
+	} else {
+		return events
+	}
+}
+
 export let MIDIPlayer = (midiFile) => {
 	let playable = R.pipe(
 		withAbsoluteDeltaTimes,
 		mergeTracks,
 		sortEvents)(midiFile)
+
+	let track = playable.track[0].event
+	let loop = playable.loop
+	let maxTick = R.last(track).absoluteDeltaTime
+
+	let soundingNotes = []
 
 	return rx.pipe(
 		rxo.scan(([tick, _], o) => {
@@ -102,54 +153,9 @@ export let MIDIPlayer = (midiFile) => {
 			let events = R.flatten(
 				R.map(
 					mc => {
-						let events
-						switch (mc.status) {
-							case 'started':
-								events = R.pipe(
-									R.filter(e => e.absoluteDeltaTime === tick),
-									R.map(e => { e.timeStamp = mc.timeStamp; return e })
-								)(playable.track[0].event)
-
-								tick = playable.loop ? ((tick + 1) % playable.track[0].event.length) : (tick + 1)
-								break;
-							case 'next':
-								events = R.pipe(
-									R.filter(e => e.absoluteDeltaTime === tick),
-									R.map(e => { e.timeStamp = mc.timeStamp; return e })
-								)(playable.track[0].event)
-
-								tick = R.head(
-									R.filter(
-										e => e.absoluteDeltaTime > tick, 
-										playable.track[0].event)).absoluteDeltaTime
-
-								break;
-							case 'prev':
-								events = R.pipe(
-									R.filter(e => e.absoluteDeltaTime === tick),
-									R.map(e => { e.timeStamp = mc.timeStamp; return e })
-								)(playable.track[0].event)
-
-								tick = R.last(
-									R.filter(
-										e => e.absoluteDeltaTime < tick, 
-										playable.track[0].event)).absoluteDeltaTime
-
-								events = []
-								break
-							case 'paused':
-								events = panic()	// TODO: Change this to instrument state
-
-								tick = tick + 1
-
-								break
-							default:
-								events = panic()	// TODO: Change this to instrument state
-
-								tick = 0
-
-								break
-						}
+						let events = getCurrentTickEvents(mc.status, track, mc.timeStamp, tick, maxTick, loop)
+						//soundingNotes = updateSoundingNotes(mc.status, events, soundingNotes)
+						tick = getNextTick(mc.status, track, tick, maxTick, loop)
 
 						return events
 					},

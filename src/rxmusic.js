@@ -33,3 +33,5 @@ export let pattern =
 
 		return [getPatternEvents(p, timeDivision), timeDivision]
 	}
+
+export let createPattern = p => createLoop(createMidiFile(...pattern(p)))

@@ -37,10 +37,10 @@ export let MIDIClock = (time_division = 24) =>
 		rxo.scan(([last_tick_time, _], [now, st, bpm, resolution, look_ahead]) => {
 			switch (st) {
 				case 'started':
-					last_tick_time = last_tick_time || now
-
 					let ms_per_tick = 60000 / (bpm * time_division)
 					let look_ahead_end = now + look_ahead
+
+					last_tick_time = last_tick_time || (now + ms_per_tick)
 
 					let events = []
 					while (last_tick_time < look_ahead_end) {
@@ -68,6 +68,7 @@ export let createClock = (time_division = 24, resolution = 25, look_ahead = 100)
 	clock$.pause = transport$.pause
 	clock$.stop = transport$.stop
 	clock$.next = transport$.next
+	clock$.prev = transport$.prev
 	clock$.bpm = transport$.bpm
 
 	return clock$
