@@ -21,7 +21,7 @@ export let getPatternTimeDivision =
 export let getPatternEvents =
 	(p, td) => {
 		if (R.type(p) !== 'Array') {
-			return [on(p, 96), off(p, 96, 0, 0, td)]
+			return [on(p), deltaTime(td, off(p))]
 		} else {
 			return R.flatten(R.map(v => getPatternEvents(v, td / R.length(p)), p))
 		}

@@ -23,5 +23,9 @@ export const efimera = new App({
 });
 
 // Unit tests
-import { run } from './rxmidi/main.test.js'
-run()
+import main_tests from './rxmidi/main.test.js'
+import messages_tests from './rxmidi/messages.test.js'
+import predicates_tests from './rxmidi/predicates.test.js'
+main_tests()
+messages_tests()
+predicates_tests()
