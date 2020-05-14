@@ -9,7 +9,9 @@ export { isMidiMessage }
 let isMessageType = t => d => isMidiMessage(d)
 							  && d.data[0] >> 4 === t
 let isNoteOn = isMessageType(9)
+let actsAsNoteOn = v => isNoteOn(v) && getVelocity(v) !== 0
 let isNoteOff = isMessageType(8)
+let actsAsNoteOff = v => isNoteOff(v) || (isNoteOn(v) && getVelocity(v) === 0)
 let isNote = v => isNoteOn(v) || isNoteOff(v)
 let isPolyPressure = isMessageType(10)
 let hasNote = v => isNote(v) || isPolyPressure(v)
@@ -23,7 +25,9 @@ let isChannelPressure = isMessageType(13)
 let isPitchBend = isMessageType(14)
 
 export { 
-	isNoteOn, isNoteOff, isNote, 
+	isNoteOn, actsAsNoteOn,
+	isNoteOff, actsAsNoteOff, 
+	isNote, 
 	isPolyPressure, hasNote,
 	isControlChange, isProgramChange,
 	isChannelPressure, isPitchBend

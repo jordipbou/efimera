@@ -26,6 +26,7 @@ export let createTransport = (resolution = 25, look_ahead = 100) => {
 	transport$.pause = () => control$.next('paused')
 	transport$.stop = () => control$.next('stopped')
 	transport$.next = () => control$.next('next')
+	transport$.nextOn = () => control$.next('nextOn')
 	transport$.prev = () => control$.next('prev')
 	transport$.bpm = v => { bpm = v; control$.next(status); }
 	
@@ -68,6 +69,7 @@ export let createClock = (time_division = 24, resolution = 25, look_ahead = 100)
 	clock$.pause = transport$.pause
 	clock$.stop = transport$.stop
 	clock$.next = transport$.next
+	clock$.nextOn = transport$.nextOn
 	clock$.prev = transport$.prev
 	clock$.bpm = transport$.bpm
 

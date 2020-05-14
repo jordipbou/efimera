@@ -8,9 +8,24 @@ export default () => {
 			t.assert(m.isNoteOn(m.on(64))).isTrue()
 		})
 
+		s.test('actsAsNoteOn', ctx => t => {
+			t.assert(m.actsAsNoteOn(m.on(64))).isTrue()
+			t.assert(m.actsAsNoteOn(m.on(64, 0)))
+				.isFalse()
+		})
+
 		s.test('isNoteOff', ctx => t => {
 			t.assert(m.isNoteOff(m.on(64))).isFalse()
 			t.assert(m.isNoteOff(m.off(64))).isTrue()
+		})
+
+		s.test('actsAsNoteOff', ctx => t => {
+			t.assert(m.actsAsNoteOff(m.on(64, 127)))
+				.isFalse()
+			t.assert(m.actsAsNoteOff(m.on(64, 0)))
+				.isTrue()
+			t.assert(m.actsAsNoteOff(m.off(64)))
+				.isTrue()
 		})
 
 		s.test('isNote', ctx => t => {

@@ -87,6 +87,9 @@ export let createMidiFile =
 
 export let createLoop =	(midiFile) => R.assoc('loop', true, midiFile)
 
+// TODO: Implement nextOn on getCurrectTickEvents and getNextTick to
+// retrieve next events until a note on appears (to implement something
+// like TouchPiano with any midi file)
 let getCurrentTickEvents = (status, track, timeStamp, tick, maxTick, loop) => {
 	if (status === 'paused' || status === 'stopped') {
 		return []
@@ -105,6 +108,7 @@ let getNextTick = (status, track, tick, maxTick, loop) => {
 	case 'started': 
 		return (loop && (tick + 1 > maxTick)) ? (tick + 1) % maxTick : tick + 1
 	case 'next':
+	case 'nextOn':
 		let next_events = R.filter(e => e.absoluteDeltaTime > tick)(track)
 		if (loop && next_events.length === 0) {
 			next_events = R.filter(e => e.absoluteDeltaTime > 0)(track)
@@ -153,9 +157,14 @@ export let MIDIPlayer = (midiFile) => {
 			let events = R.flatten(
 				R.map(
 					mc => {
-						let events = getCurrentTickEvents(mc.status, track, mc.timeStamp, tick, maxTick, loop)
-						//soundingNotes = updateSoundingNotes(mc.status, events, soundingNotes)
-						tick = getNextTick(mc.status, track, tick, maxTick, loop)
+						let events = []
+						do {
+							events = R.concat(
+								events,
+								getCurrentTickEvents(mc.status, track, mc.timeStamp, tick, maxTick, loop))
+							//soundingNotes = updateSoundingNotes(mc.status, events, soundingNotes)
+							tick = getNextTick(mc.status, track, tick, maxTick, loop)
+						} while(mc.status === 'nextOn' && R.length(R.filter(e => actsAsNoteOn(e), events)) === 0)
 
 						return events
 					},
@@ -184,6 +193,7 @@ export let createPlayer =
 		player$.pause = clock$.pause
 		player$.stop = clock$.stop
 		player$.next = clock$.next
+		player$.nextOn = clock$.nextOn
 		player$.prev = clock$.prev
 		player$.bpm = clock$.bpm
 
