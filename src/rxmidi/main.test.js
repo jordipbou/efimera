@@ -9,25 +9,35 @@ export default () => {
 			inputs.set('INPUT1', { name: 'Port-10' })
 			inputs.set('INPUT2', { name: 'Port-11' })
 			let outputs = new Map()
-			outputs.set('OUTPUT1', { name: 'Port-10', open: () => {} })
-			outputs.set('OUTPUT2', { name: 'Port-11', open: () => {} })
-			outputs.set('OUTPUT3', { name: 'Port-20', open: () => {} })
+			outputs.set(
+				'OUTPUT1', 
+				{ name: 'Port-10', open: () => {} })
+			outputs.set(
+				'OUTPUT2', 
+				{ name: 'Port-11', open: () => {} })
+			outputs.set(
+				'OUTPUT3', 
+				{ name: 'Port-20', open: () => {} })
 
 			ctx.navigator = {
-				requestMIDIAccess: () => Promise.resolve({
-					inputs: inputs,
-					outputs: outputs
-				})
+				requestMIDIAccess: 
+					() => Promise.resolve({
+						inputs: inputs,
+						outputs: outputs
+					})
 			}
 
 			ctx.midiAccess = null
 		}
 
 		s.test('init', ctx => t => {
-			t.assert(m.init(false, ctx.navigator)).isPromise()
+			t.assert(m.init(false, ctx.navigator))
+				.isPromise()
 			m.init(false, ctx.navigator)
 				.then(ma => ctx.midiAccess = ma)
-				.then(() =>	t.assert(ctx.midiAccess).isNotNull())
+				.then(() =>	
+					t.assert(ctx.midiAccess)
+						.isNotNull())
 		})
 
 		s.test('input', ctx => t => {
@@ -59,20 +69,23 @@ export default () => {
 			ctx.output = { send: x => ctx.result = x }
 		}
 
-		s.test('send array to MIDI output', ctx => t => {
-			m.send(ctx.output)(ctx.msg)
-			t.assert(ctx.result).isEqual(ctx.msg)
-		})
+		s.test('send array to MIDI output', 
+			ctx => t => {
+				m.send(ctx.output)(ctx.msg)
+				t.assert(ctx.result).isEqual(ctx.msg)
+			})
 
-		s.test('send midimessage to MIDI output', ctx => t => {
-			m.send(ctx.output)(m.on(64))
-			t.assert(ctx.result).isEqual(ctx.msg)
-		})
+		s.test('send midimessage to MIDI output', 
+			ctx => t => {
+				m.send(ctx.output)(m.on(64))
+				t.assert(ctx.result).isEqual(ctx.msg)
+			})
 
-		s.test('send observable to MIDI output', ctx => t => {
-			m.send(ctx.output)(rx.of(m.on(64)))
-			t.assert(ctx.result).isEqual(ctx.msg)
-		})
+		s.test('send observable to MIDI output', 
+			ctx => t => {
+				m.send(ctx.output)(rx.of(m.on(64)))
+				t.assert(ctx.result).isEqual(ctx.msg)
+			})
 	})
 
 	suite('MIDI output subscription', s => {

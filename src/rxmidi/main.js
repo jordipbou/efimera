@@ -10,13 +10,15 @@ import { asMIDIMessage } from './operators.js'
 let midiAccess
 
 // ============ WebMidi initialization ===============
-export let init = (sysex = false, custom_navigator = window.navigator) =>
-	custom_navigator
-		.requestMIDIAccess({ sysex: sysex })
-		.then(m => { 
-			midiAccess = m; 
-			return midiAccess; 
-		})
+export let init = 
+	(sysex = false, 
+	 custom_navigator = window.navigator) =>
+		custom_navigator
+			.requestMIDIAccess({ sysex: sysex })
+			.then(m => { 
+				midiAccess = m; 
+				return midiAccess; 
+			})
 
 export let logPorts = () => {
 	R.forEach(
@@ -61,9 +63,10 @@ export let output = n =>
 			R.map( v => { v.open(); return v; } ),
 			R.map( v => {
 				let output = send(v)
-				Object.defineProperty(output, 
-									  'name', 
-									  { value: v.name })
+				Object.defineProperty(
+					output, 
+					'name', 
+					{ value: v.name })
 				output.id = v.id
 				output.manufacturer = v.manufacturer
 				output.version = v.version

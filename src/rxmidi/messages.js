@@ -65,10 +65,10 @@ export { on, off, pp, cc, pc, cp, pb, rpn, nrpn }
 let syx = (b) => msg([240, ...b, 247])
 let tc = (t, v) => msg([241, (t << 4) + v])
 let spp = (b) => msg([242, b % 128, b >> 7])
-let s = (s) => msg([243, s])
+let ss = (s) => msg([243, s])
 let tun = () => msg([246])
 
-export { syx, tc, spp, s, tun }
+export { syx, tc, spp, ss, tun }
 
 // ---- System real time messages generation ----
 let mc = () => msg([248])

@@ -7,7 +7,7 @@ export * as RxMidiClock from './rxmidi/clock.js'
 export * as RxMidiFile from './rxmidi/midifile.js'
 export * as RxMusic from './rxmusic.js'
 export * as RxMusic_Defs from './rxmusic_defs.js'
-//export * as LinnStrumentJS from './linnstrument.js'
+export * as LinnStrumentJS from './linnstrument.js'
 
 export * as ramda from 'ramda'
 export * as rxjs from 'rxjs'
