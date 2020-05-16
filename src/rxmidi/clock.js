@@ -36,24 +36,36 @@ export let createTransport = (resolution = 25, look_ahead = 100) => {
 export let MIDIClock = (time_division = 24) => 
 	rx.pipe(
 		rxo.scan(([last_tick_time, _], [now, st, bpm, resolution, look_ahead]) => {
+			let ms_per_tick = 60000 / (bpm * time_division)
 			switch (st) {
 				case 'started':
-					let ms_per_tick = 60000 / (bpm * time_division)
 					let look_ahead_end = now + look_ahead
 
-					last_tick_time = last_tick_time || (now + ms_per_tick)
+					last_tick_time = last_tick_time || now
 
 					let events = []
 					while (last_tick_time < look_ahead_end) {
-						last_tick_time = last_tick_time + ms_per_tick
-						if (last_tick_time > now) {
-							events.push(R.assoc('status', 'started', mc(0, 0, last_tick_time)))
+						if (last_tick_time >= now) {
+							events.push(R.merge(mc(), {
+								status: 'started',
+								bpm: bpm,
+								time_division: time_division,
+								ms_per_tick: ms_per_tick,
+								timeStamp: last_tick_time
+							}))
 						}
+						last_tick_time = last_tick_time + ms_per_tick
 					}
 
 					return [last_tick_time, rx.from(events)]
 				default:
-					return [null, rx.of(R.assoc('status', st, mc(0, 0, now)))]
+					return [null, rx.of(R.merge({
+											status: st,
+											bpm: bpm,
+											time_division: time_division,
+											ms_per_tick: ms_per_tick,
+											timeStamp: now
+										}, mc()))]
 			}
 		}, [null, null]),
 		rxo.map(([_, v]) => v),
@@ -76,4 +88,21 @@ export let createClock = (time_division = 24, resolution = 25, look_ahead = 100)
 	return clock$
 }
 
-
+export let quantize = () => rxo.map(([e, o]) => {
+	// o represents an observable from a clock
+	// e should be the received event
+	// MIDI Time Clock messages received from
+	// clock represent the last sent clock 
+	// message before receiving the event,
+	// that means that, if look_ahead is big
+	// enough, event timestamp will happen
+	// between some ticks of received
+	// MIDI Time Clock messages.
+	let midi_clock = []
+	o.subscribe(mc => midi_clock.push(mc))
+	console.log('Event timestamp: ', e.timeStamp)
+	console.log('Ticks:')
+	for (let mc of midi_clock) {
+		console.log(mc.timeStamp)
+	}
+})

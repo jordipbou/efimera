@@ -79,7 +79,10 @@ let isOnChannels =
 	(d, chs) => isChannelMessage(d) 
 			 && chs.includes(getChannel(d))
 
+// =========== MIDI Meta Events predicates ==============
 let isMetaEvent = R.propEq('type', 'metaevent')
+let isTempoChange = 
+	msg => isMetaEvent(msg) && msg.metaType === 81
 
 export {
 	isAllSoundOff, isResetAll, 
@@ -91,7 +94,8 @@ export {
 	isChannelMessage, 
 	getChannel,
 	isOnChannel, isOnChannels,
-	isMetaEvent
+	isMetaEvent,
+	isTempoChange
 }
 
 // TODO: System Common Messages and System Real-Time Messages

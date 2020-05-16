@@ -134,47 +134,54 @@ let updateSoundingNotes = (status, events, soundingNotes) => {
 }
 
 export let MIDIPlayer = (midiFile) => {
-	let playable = R.pipe(
-		withAbsoluteDeltaTimes,
-		mergeTracks,
-		sortEvents)(midiFile)
+	let midiFileSubject = new rx.BehaviorSubject(midiFile)
 
-	let track = playable.track[0].event
-	let loop = playable.loop
-	let maxTick = R.last(track).absoluteDeltaTime
+	let operator = rx.pipe(
+		rxo.withLatestFrom(
+			midiFileSubject.pipe(
+				rxo.map(mf => R.pipe(
+					withAbsoluteDeltaTimes,
+					mergeTracks,
+					sortEvents)(mf)))),
+		rxo.scan(([tick, _], [o, playable]) => {
+			let track = playable.track[0].event
+			let loop = playable.loop
+			let maxTick = R.last(track).absoluteDeltaTime
 
-	let soundingNotes = []
-
-	return rx.pipe(
-		rxo.scan(([tick, _], o) => {
-			let midi_clock = []
+			let midi_clocks = []
 			if (R.is(rx.Observable, o)) {
-				o.subscribe(mc => midi_clock.push(mc))
+				o.subscribe(mc => midi_clocks.push(mc))
 			} else {
-				midi_clock.push[o]
+				midi_clocks.push[o]
 			}
 
-			let events = R.flatten(
-				R.map(
-					mc => {
-						let events = []
-						do {
-							events = R.concat(
-								events,
-								getCurrentTickEvents(mc.status, track, mc.timeStamp, tick, maxTick, loop))
-							//soundingNotes = updateSoundingNotes(mc.status, events, soundingNotes)
-							tick = getNextTick(mc.status, track, tick, maxTick, loop)
-						} while(mc.status === 'nextOn' && R.length(R.filter(e => actsAsNoteOn(e), events)) === 0)
+			// TODO: If on nextOn event no more events can be
+			// retrieved (because we are at end of file) we
+			// fall into an infinite loop !!!
+			let events = R.head(R.reduce(([events, found_tempo_change], mc) => {
+				if (mc.status === 'nextOn' || !found_tempo_change) {
+					let tick_events = []
+					do{
+						tick_events = R.concat(
+							tick_events,
+							getCurrentTickEvents(mc.status, track, mc.timeStamp, tick, maxTick, loop))
+						tick = getNextTick(mc.status, track, tick, maxTick, loop)
+					} while(mc.status === 'nextOn' && R.length(R.filter(e => actsAsNoteOn(e), tick_events)) === 0)
 
-						return events
-					},
-					midi_clock)
-				)
+					return [R.concat(events, tick_events), R.length(R.filter(isTempoChange, tick_events)) > 0]
+				} else {
+					return [events, found_tempo_change]
+				}
+			}, [[], false], midi_clocks))
 
 			return [tick, rx.from(events)]
 		}, [0, null]),
 		rxo.switchMap(([t, events]) => events)
 	)
+
+	operator.changeMidiFile = mf => midiFileSubject.next(mf)
+
+	return operator
 }
 
 export let tempoChangeListener = (transport$) =>
