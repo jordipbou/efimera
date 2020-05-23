@@ -8,29 +8,29 @@
     "test": "ava"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^11.0.0",
-    "@rollup/plugin-node-resolve": "^7.1.1",
-    "autoprefixer": "^9.7.4",
-    "postcss": "^7.0.27",
+    "@rollup/plugin-commonjs": "^11.1.0",
+    "@rollup/plugin-node-resolve": "^7.1.3",
+    "autoprefixer": "^9.8.0",
+    "postcss": "^7.0.30",
     "postcss-import": "^12.0.1",
-    "rollup": "^1.20.0",
+    "rollup": "^1.32.1",
     "rollup-plugin-copy": "^3.3.0",
-    "rollup-plugin-livereload": "^1.0.4",
-    "rollup-plugin-postcss": "^2.2.0",
-    "rollup-plugin-svelte": "^5.0.3",
-    "rollup-plugin-terser": "^5.1.2",
+    "rollup-plugin-livereload": "^1.3.0",
+    "rollup-plugin-postcss": "^2.9.0",
+    "rollup-plugin-svelte": "^5.2.2",
+    "rollup-plugin-terser": "^5.3.0",
     "rxjs-spy": "^7.5.1",
-    "svelte": "^3.0.0",
-    "tailwindcss": "^1.2.0"
+    "svelte": "^3.22.3",
+    "tailwindcss": "^1.4.6"
   },
   "dependencies": {
     "@beyonk/svelte-notifications": "^2.0.3",
     "browser-or-node": "^1.2.1",
-    "codemirror": "^5.52.0",
+    "codemirror": "^5.54.0",
     "fork-awesome": "^1.1.7",
     "midi-parser-js": "^4.0.4",
     "ramda": "^0.27.0",
-    "rxjs": "^6.5.4",
+    "rxjs": "^6.5.5",
     "sirv-cli": "^0.4.4",
     "uuid": "^7.0.3"
   }

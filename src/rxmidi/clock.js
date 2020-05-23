@@ -2,6 +2,14 @@ import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
 import * as R from 'ramda'
 
+// =================== Architecture ======================
+// Transport : start / stop / continue -> midi messages
+// A transport allows synchronization between different
+// clocks...is it necessary ?
+// Clock : receives start / stop / continue midi messages
+// and sends midi clock messages (with optional absolute
+// tick)
+
 // =============================== Transport/Clock ============================
 export let createTransport = (resolution = 25, look_ahead = 100) => {
 	let control$ = new rx.Subject()
@@ -89,20 +97,20 @@ export let createClock = (time_division = 24, resolution = 25, look_ahead = 100)
 }
 
 export let quantize = () => rxo.map(([e, o]) => {
-	// o represents an observable from a clock
-	// e should be the received event
-	// MIDI Time Clock messages received from
-	// clock represent the last sent clock 
-	// message before receiving the event,
-	// that means that, if look_ahead is big
-	// enough, event timestamp will happen
-	// between some ticks of received
-	// MIDI Time Clock messages.
-	let midi_clock = []
-	o.subscribe(mc => midi_clock.push(mc))
-	console.log('Event timestamp: ', e.timeStamp)
-	console.log('Ticks:')
-	for (let mc of midi_clock) {
-		console.log(mc.timeStamp)
+	let midi_clocks = []
+	o.subscribe(mc => midi_clocks.push(mc))
+	let midi_clock = R.head(midi_clocks)
+	let tick = midi_clock.timeStamp
+	let ms_per_tick = midi_clock.ms_per_tick
+	while (tick < e.timeStamp) {
+		tick = tick + ms_per_tick
 	}
+
+	if (e.timeStamp - tick > (tick + ms_per_tick) - e.timeStamp) {
+		e.timeStamp = tick
+	} else {
+		e.timeStamp = tick + ms_per_tick	
+	}
+
+	return e
 })

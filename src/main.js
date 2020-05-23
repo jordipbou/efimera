@@ -10,11 +10,15 @@ export * as RxMusic_Defs from './rxmusic_defs.js'
 export * as LinnStrumentJS from './linnstrument.js'
 
 export * as ramda from 'ramda'
+
+//export * as flyd from 'flyd'
+//export * as graflow from 'graflow'
+
 export * as rxjs from 'rxjs'
 export * as rxjs_operators from 'rxjs/operators'
 
-export const spy = create()
-export * as rxjs_spy from 'rxjs-spy'
+//export const spy = create()
+//export * as rxjs_spy from 'rxjs-spy'
 
 export const efimera = new App({
 	target: document.body,
@@ -23,9 +27,9 @@ export const efimera = new App({
 });
 
 // Unit tests
-import main_tests from './rxmidi/main.test.js'
-import messages_tests from './rxmidi/messages.test.js'
-import predicates_tests from './rxmidi/predicates.test.js'
-main_tests()
-messages_tests()
-predicates_tests()
+//import main_tests from './rxmidi/main.test.js'
+//import messages_tests from './rxmidi/messages.test.js'
+//import predicates_tests from './rxmidi/predicates.test.js'
+//main_tests()
+//messages_tests()
+//predicates_tests()

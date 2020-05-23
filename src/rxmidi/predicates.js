@@ -79,7 +79,14 @@ let isOnChannels =
 	(d, chs) => isChannelMessage(d) 
 			 && chs.includes(getChannel(d))
 
-// =========== MIDI Meta Events predicates ==============
+// ====== System Real Time message predicates ========
+let isMidiClock = d => isMidiMessage(d) && d.data[0] === 248
+let isStart = d => isMidiMessage(d) && d.data[0] === 250
+let isContinue = d => isMidiMessage(d) && d.data[0] === 251
+let isStop = d => isMidiMessage(d) && d.data[0] === 254
+let isReset = d => isMidiMessage(d) && d.data[0] === 255
+
+// ========== MIDI Meta Events predicates ============
 let isMetaEvent = R.propEq('type', 'metaevent')
 let isTempoChange = 
 	msg => isMetaEvent(msg) && msg.metaType === 81
@@ -94,6 +101,8 @@ export {
 	isChannelMessage, 
 	getChannel,
 	isOnChannel, isOnChannels,
+	isMidiClock, isStart, isContinue, isStop,
+	isReset,
 	isMetaEvent,
 	isTempoChange
 }
