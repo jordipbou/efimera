@@ -5,12 +5,14 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public",
-    "test": "ava"
+    "test": "ava --watch"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^11.1.0",
     "@rollup/plugin-node-resolve": "^7.1.3",
     "autoprefixer": "^9.8.0",
+    "ava": "^3.8.2",
+    "esm": "^3.2.25",
     "postcss": "^7.0.30",
     "postcss-import": "^12.0.1",
     "rollup": "^1.32.1",
@@ -34,5 +36,10 @@
     "rxjs": "^6.5.5",
     "sirv-cli": "^0.4.4",
     "uuid": "^7.0.3"
+  },
+  "ava": {
+	"require": [
+		"esm"
+	]
   }
 }

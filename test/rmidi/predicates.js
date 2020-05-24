@@ -1,0 +1,25 @@
+const test = require('ava')
+const P = require('../../src/rmidi/predicates.js')
+
+test('seemsMIDIMessage', t => {
+  t.false (P.seemsMIDIMessage (null))
+  t.false (P.seemsMIDIMessage (undefined))
+  t.false (P.seemsMIDIMessage ({}))
+  t.false (P.seemsMIDIMessage ({ type: 'midimessage' }))
+  t.false (P.seemsMIDIMessage ({ data: [144, 64, 96] }))
+  t.true (P.seemsMIDIMessage ({ type: 'midimessage', data: []}))
+})
+
+test('isChannelVoiceMessageOfType', t => {
+  t.false (P.isChannelVoiceMessageOfType (null) (null))
+  t.false (P.isChannelVoiceMessageOfType (null) (undefined))
+  t.false (P.isChannelVoiceMessageOfType (undefined) (null))
+  t.false (P.isChannelVoiceMessageOfType (undefined) (undefined))
+  t.false (P.isChannelVoiceMessageOfType (8) (null))
+  t.false (P.isChannelVoiceMessageOfType (8) (undefined))
+  t.false (P.isChannelVoiceMessageOfType (8) ({ type: 'midimessage', data: [128]}))
+  t.false (P.isChannelVoiceMessageOfType (8) ({ type: 'midimessage', data: [128, 64]}))
+  t.true (P.isChannelVoiceMessageOfType (8) ({ type: 'midimessage', data: [128, 64, 96]}))
+  t.true (P.isChannelVoiceMessageOfType (12) ({ type: 'midimessage', data: [192, 13]}))
+  t.false (P.isChannelVoiceMessageOfType (12) ({ type: 'midimessage', data: [192, 13, 88]}))
+})
