@@ -1,4 +1,4 @@
-import './rxmusic_defs.js'
+import './rmusic_defs.js'
 import { generate, of } from 'rxjs'
 import { mergeMap } from 'rxjs/operators'
 import * as R from 'ramda'

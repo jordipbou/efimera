@@ -1,6 +1,6 @@
 import { Subject, of, pipe, from } from 'rxjs'
 import { concatAll, filter, map, skip, tap } from 'rxjs/operators'
-import { cc, msg, nrpn, isNoteOn } from './rxmidi/main.js'
+import { cc, msg, nrpn, isNoteOn } from './rmidi/main.js'
 
 export let linnColors = {
 	off: 0,

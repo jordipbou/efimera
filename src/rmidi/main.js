@@ -6,6 +6,8 @@ export * from './messages.js'
 export * from './predicates.js'
 export * from './operators.js'
 import { asMIDIMessage } from './operators.js'
+export * from './utils.js'
+export * from './getters.js'
 
 let midiAccess
 

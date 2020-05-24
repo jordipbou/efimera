@@ -1,5 +1,5 @@
 <script>
-import { init } from './rxmidi/main.js'
+import { init } from './rmidi/main.js'
 import { NotificationDisplay, notifier } from '@beyonk/svelte-notifications'
 import { createEventDispatcher } from 'svelte';
 const dispatch = createEventDispatcher();
