@@ -1,8 +1,8 @@
 import { 
-  allPass, anyPass, both, complement, curry, 
-  either, eqBy, has, includes, is, isNil, hasPath, last, length,
+  allPass, anyPass, both, cond, complement, curry, 
+  either, eqBy, F, has, includes, is, isNil, hasPath, last, length,
   pathEq, pathSatisfies, propEq, propIs,
-  propSatisfies, type, when
+  propSatisfies, T, type, when
 } from 'ramda'
 
 // ================= MIDI Messages predicates ======================
@@ -40,23 +40,55 @@ export let isNote =
 export let hasVelocity = 
   isNote
 
+export let velocityEq = (v) =>
+  both (hasVelocity)
+       (pathEq (['data', 2]) (v))
+
 export let isPolyPressure = 
   isChannelVoiceMessageOfType (10)
 
 export let hasNote = 
   either (isNote) (isPolyPressure)
 
+export let noteEq = (n) => 
+  both (hasNote)
+       (pathEq (['data', 1]) (n))
+
 export let isControlChange = 
   isChannelVoiceMessageOfType (11)
+
+export let controlEq = (c) =>
+  both (isControlChange)
+       (pathEq (['data', 1]) (c))
+
+export let valueEq = (v) =>
+  both (isControlChange)
+       (pathEq (['data', 2]) (v))
 
 export let isProgramChange = 
   isChannelVoiceMessageOfType (12)
 
+export let programEq = (p) =>
+  both (isProgramChange)
+       (pathEq (['data', 1]) (p))
+
 export let isChannelPressure = 
   isChannelVoiceMessageOfType (13)
 
+export let pressureEq = (p) =>
+  cond ([
+    [isPolyPressure, pathEq (['data', 2]) (p)],
+    [isChannelPressure, pathEq (['data', 1]) (p)],
+    [T, F]])
+
 export let isPitchBend = 
   isChannelVoiceMessageOfType (14)
+
+export let pitchBendEq = (pb) =>
+  allPass ([isPitchBend,
+            pathEq (['data', 1], pb & 0x7F),
+            pathEq (['data', 2], pb >> 7)])
+
 
 // ------------ Channel Mode Messages ----------------
 

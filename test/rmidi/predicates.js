@@ -1,5 +1,5 @@
-const test = require('ava')
-const P = require('../../src/rmidi/predicates.js')
+const test = require ('ava')
+const P = require ('../../src/rmidi/predicates.js')
 
 let msg = (data) => 
   ({ type: 'midimessage', data: data })
@@ -76,6 +76,11 @@ test ('hasVelocity', t => {
   t.false (P.isNote (msg ([160, 64, 96])))
 })
 
+test ('velocityEq', t => {
+  t.false (P.velocityEq (127) (msg ([144, 64, 96])))
+  t.true (P.velocityEq (127) (msg ([144, 64, 127])))
+})
+
 test ('isPolyPressure', t => {
   t.false (P.isPolyPressure (msg ([159, 64, 96])))
   t.true (P.isPolyPressure (msg ([160, 64, 96])))
@@ -94,11 +99,28 @@ test ('hasNote', t => {
   t.false (P.hasNote (msg ([176, 64, 96])))
 })
 
+test ('noteEq', t => {
+  t.false (P.noteEq (64) (msg ([176, 64, 96])))
+  t.true (P.noteEq (64) (msg ([128, 64, 96])))
+  t.true (P.noteEq (64) (msg ([144, 64, 96])))
+  t.true (P.noteEq (64) (msg ([160, 64, 96])))
+})
+
 test ('isControlChange', t => {
   t.false (P.isControlChange (msg ([175, 32, 16])))
   t.true (P.isControlChange (msg ([176, 32, 16])))
   t.true (P.isControlChange (msg ([191, 32, 16])))
   t.false (P.isControlChange (msg ([192, 32, 16])))
+})
+
+test ('controlEq', t => {
+  t.false (P.controlEq (32) (msg ([144, 32, 18])))
+  t.true (P.controlEq (32) (msg ([176, 32, 18])))
+})
+
+test ('valueEq', t => {
+  t.false (P.valueEq (18) (msg ([144, 32, 18])))
+  t.true (P.valueEq (18) (msg ([176, 32, 18])))
 })
 
 test ('isProgramChange', t => {
@@ -108,6 +130,11 @@ test ('isProgramChange', t => {
   t.false (P.isProgramChange (msg ([208, 48])))
 })
 
+test ('programEq', t => {
+  t.false (P.programEq (18) (msg ([144, 18])))
+  t.true (P.programEq (18) (msg ([192, 18])))
+})
+
 test ('isChannelPressure', t => {
   t.false (P.isChannelPressure (msg ([207, 96])))
   t.true (P.isChannelPressure (msg ([208, 96])))
@@ -115,11 +142,22 @@ test ('isChannelPressure', t => {
   t.false (P.isChannelPressure (msg ([224, 96])))
 })
 
+test ('pressureEq', t => {
+  t.false (P.pressureEq (96) (msg ([144, 64, 96])))
+  t.true (P.pressureEq (96) (msg ([160, 64, 96])))
+  t.true (P.pressureEq (96) (msg ([208, 96])))
+})
+
 test ('isPitchBend', t => {
   t.false (P.isPitchBend (msg ([223, 64, 0])))
   t.true (P.isPitchBend (msg ([224, 64, 0])))
   t.true (P.isPitchBend (msg ([239, 64, 0])))
   t.false (P.isPitchBend (msg ([240, 64, 0])))
+})
+
+test ('pitchBendEq', t => {
+  t.false (P.pitchBendEq (8192) (msg ([144, 0, 64])))
+  t.true (P.pitchBendEq (8192) (msg ([224, 0, 64])))
 })
 
 // ------------------- Channel Mode Messages ----------------------
