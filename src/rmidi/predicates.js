@@ -1,26 +1,60 @@
 import { 
-  allPass, anyPass, both, cond, complement, curry, 
-  either, eqBy, F, has, includes, is, isNil, hasPath, last, length,
-  pathEq, pathSatisfies, propEq, propIs,
+  all, allPass, anyPass, both, cond, complement, curry, 
+  either, eqBy, equals, F, has, includes, is, isEmpty, isNil, 
+  hasPath, last, length,
+  path, pathEq, pathSatisfies, propEq, propIs,
   propSatisfies, T, type, when
 } from 'ramda'
 
 // ================= MIDI Messages predicates ======================
 
+export let seemsMIDIMessageArray =
+  allPass ([is (Array),
+            complement (isEmpty),
+            all (is (Number))])
+
 export let seemsMIDIMessage = 
   allPass ([is (Object),
             propEq ('type', 'midimessage'),
-            propIs (Array, 'data')])
-   
+            propSatisfies (seemsMIDIMessageArray, 'data')])
+
+export let dataEq = curry ((d, m) =>
+  seemsMIDIMessageArray (m) ?
+    equals (d, m)
+    : seemsMIDIMessage (m) ?
+      propEq ('data') (d) (m)
+      : false )
+
+export let byteEq = curry ((n, d, m) =>
+  seemsMIDIMessageArray (m) ?
+    pathEq ([n]) (d) (m)
+    : seemsMIDIMessage (m) ?
+      pathEq (['data', n]) (d) (m)
+      : false )
+
+export let dataEqBy = curry ((p, m) =>
+  seemsMIDIMessageArray (m) ?
+    p (m)
+    : seemsMIDIMessage (m) ?
+      propSatisfies (p, 'data') (m)
+      : false )
+
+export let byteEqBy = curry ((n, p, m) =>
+  seemsMIDIMessageArray (m) ?
+    p (path ([n]) (m))
+    : seemsMIDIMessage (m) ?
+      pathSatisfies (p, ['data', n]) (m)
+      : false )
+
+
 // ------------------ Channel Voice Messages -----------------------
 
 export let isChannelVoiceMessageOfType = (t) =>
-  both (seemsMIDIMessage)
-       (propSatisfies 
+  both (either (seemsMIDIMessageArray) (seemsMIDIMessage))
+       (dataEqBy 
          (p => includes (t, [8, 9, 10, 11, 14]) ?
                  length(p) === 3 && p[0] >> 4 === t
-                 : length(p) === 2 && p[0] >> 4 === t)
-         ('data'))
+                 : length(p) === 2 && p[0] >> 4 === t))
 
 export let isNoteOff = 
   isChannelVoiceMessageOfType (8)
@@ -29,10 +63,10 @@ export let isNoteOn =
   isChannelVoiceMessageOfType (9)
 
 export let asNoteOn = 
-  both (isNoteOn) (complement (pathEq (['data', 2], 0)))
+  both (isNoteOn) (complement (byteEq (2) (0)))
 
 export let asNoteOff =
-  either (isNoteOff) (both (isNoteOn) (pathEq (['data', 2], 0)))
+  either (isNoteOff) (both (isNoteOn) (byteEq (2) (0)))
 
 export let isNote = 
   either (isNoteOff) (isNoteOn)
@@ -42,7 +76,7 @@ export let hasVelocity =
 
 export let velocityEq = (v) =>
   both (hasVelocity)
-       (pathEq (['data', 2]) (v))
+       (byteEq (2) (v))
 
 export let isPolyPressure = 
   isChannelVoiceMessageOfType (10)
@@ -52,33 +86,33 @@ export let hasNote =
 
 export let noteEq = (n) => 
   both (hasNote)
-       (pathEq (['data', 1]) (n))
+       (byteEq (1) (n))
 
 export let isControlChange = 
   isChannelVoiceMessageOfType (11)
 
 export let controlEq = (c) =>
   both (isControlChange)
-       (pathEq (['data', 1]) (c))
+       (byteEq (1) (c))
 
 export let valueEq = (v) =>
   both (isControlChange)
-       (pathEq (['data', 2]) (v))
+       (byteEq (2) (v))
 
 export let isProgramChange = 
   isChannelVoiceMessageOfType (12)
 
 export let programEq = (p) =>
   both (isProgramChange)
-       (pathEq (['data', 1]) (p))
+       (byteEq (1) (p))
 
 export let isChannelPressure = 
   isChannelVoiceMessageOfType (13)
 
 export let pressureEq = (p) =>
   cond ([
-    [isPolyPressure, pathEq (['data', 2]) (p)],
-    [isChannelPressure, pathEq (['data', 1]) (p)],
+    [isPolyPressure, byteEq (2) (p)],
+    [isChannelPressure, byteEq (1) (p)],
     [T, F]])
 
 export let isPitchBend = 
@@ -86,18 +120,18 @@ export let isPitchBend =
 
 export let pitchBendEq = (pb) =>
   allPass ([isPitchBend,
-            pathEq (['data', 1], pb & 0x7F),
-            pathEq (['data', 2], pb >> 7)])
+            byteEq (1) (pb & 0x7F),
+            byteEq (2) (pb >> 7)])
 
 
 // ------------ Channel Mode Messages ----------------
 
 export let isChannelModeMessage = (d1, d2) =>
   d2 === undefined ?
-    both (isControlChange) (pathEq (['data', 1], d1))
+    both (isControlChange) (byteEq (1) (d1))
     : allPass ([isControlChange,
-                pathEq (['data', 1], d1),
-                pathEq (['data', 2], d2)])
+                byteEq (1) (d1),
+                byteEq (2) (d2)])
 
 export let isAllSoundOff = 
   isChannelModeMessage (120, 0)
@@ -146,58 +180,92 @@ export let isChannelVoice =
             isChannelPressure,
             isPitchBend])
 
+// -------------------- RPN & NRPN predicates ----------------------
+
+export let isRPN =
+  allPass ([either (seemsMIDIMessage) (seemsMIDIMessageArray),
+            byteEq (1) (101),
+            byteEq (4) (100),
+            byteEq (7) (6),
+            byteEq (-5) (101),
+            byteEq (-4) (127),
+            byteEq (-2) (100),
+            byteEq (-1) (127)])
+
+export let isNRPN =
+  allPass ([either (seemsMIDIMessage) (seemsMIDIMessageArray),
+            byteEq (1) (99),
+            byteEq (4) (98),
+            byteEq (7) (6),
+            byteEq (-5) (101),
+            byteEq (-4) (127),
+            byteEq (-2) (100),
+            byteEq (-1) (127)])
+
 export let isChannelMessage =
-  either (isChannelMode) (isChannelVoice)
+  anyPass ([ isChannelMode, isChannelVoice, isRPN, isNRPN ])
 
 export let isOnChannel = (ch) =>
   both (isChannelMessage)
-       (propSatisfies (v => (v[0] & 0xF) === ch, 'data'))
+       (byteEqBy (0) (v => (v & 0xF) === ch))
 
 export let isOnChannels = (chs) =>
   both (isChannelMessage)
-       (propSatisfies (v => includes (v[0] & 0xF, chs), 'data'))
+       (byteEqBy (0) (v => includes (v & 0xF, chs)))
 
 // =============== System Common message predicates ================
 
 export let isSystemExclusive = 
-  allPass ([seemsMIDIMessage,
-            propSatisfies (v => v[0] === 240, 'data'),
-            propSatisfies (v => last(v) === 247, 'data')])
+  allPass ([either (seemsMIDIMessage) (seemsMIDIMessageArray),
+            byteEq (0) (240),
+            byteEq (-1) (247)])
 
 export let isMIDITimeCodeQuarterFrame =
-  both (seemsMIDIMessage) (propSatisfies (v => v[0] === 241, 'data'))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray)) 
+       (byteEq (0) (241))
 
 export let isSongPositionPointer =
-  both (seemsMIDIMessage) (propSatisfies (v => v[0] === 242, 'data'))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray)) 
+       (byteEq (0) (242))
 
 export let isSongSelect =
-  both (seemsMIDIMessage) (propSatisfies (v => v[0] === 243, 'data'))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
+       (byteEq (0) (243))
 
 export let isTuneRequest =
-  both (seemsMIDIMessage) (propEq ('data', [246]))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
+       (dataEq ([246]))
 
 export let isEndOfExclusive =
-  both (seemsMIDIMessage) (propEq ('data', [247]))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray)) 
+       (dataEq ([247]))
 
 // ============= System Real Time message predicates ===============
 
 export let isMIDIClock =
-  both (seemsMIDIMessage) (propEq ('data', [248]))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray)) 
+       (dataEq ([248]))
 
 export let isStart =
-  both (seemsMIDIMessage) (propEq ('data', [250]))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
+       (dataEq ([250]))
 
 export let isContinue =
-  both (seemsMIDIMessage) (propEq ('data', [251]))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
+       (dataEq ([251]))
 
 export let isStop =
-  both (seemsMIDIMessage) (propEq ('data', [252]))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
+       (dataEq ([252]))
 
 export let isActiveSensing =
-  both (seemsMIDIMessage) (propEq ('data', [254]))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
+       (dataEq ([254]))
 
 export let isReset =
-  both (seemsMIDIMessage) (propEq ('data', [255]))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
+       (dataEq ([255]))
+
 
 // ============== MIDI File Meta Events predicates =================
 

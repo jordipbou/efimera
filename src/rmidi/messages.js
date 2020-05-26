@@ -1,5 +1,4 @@
-//import * as rx from 'rxjs'
-import { curry } from 'ramda'
+import { curry, flatten, head, is, map, prop } from 'ramda'
 
 // =================== MIDI Message creation =======================
 
@@ -14,22 +13,31 @@ export let msg = (data, timeStamp = 0, deltaTime = 0) =>
 })
 
 export let from = (msg) =>
-({
-  type: 'midimessage',
-  timeStamp: msg.timeStamp,
-  deltaTime: msg.deltaTime,
-  data: [ ...msg.data ]
-})
+  is (Array, msg) ?
+    { 
+      type: 'midimessage',
+      timeStamp: head (msg).timeStamp,
+      deltaTime: head (msg).deltaTime,
+      data: flatten (map (prop ('data'), msg)) 
+    }
+    : {
+        type: 'midimessage',
+        timeStamp: msg.timeStamp,
+        deltaTime: msg.deltaTime,
+        data: [ ...msg.data ]
+      }
 
 // --------------- MIDI Message Modification Helpers ---------------
 
 // Messages are treated as immutable, so they are cloned and
 // modified later.
 
+export let now = Symbol()
+
 export let timeStamp = curry((t, msg) =>
 ({
   type: 'midimessage',
-  timeStamp: t,
+  timeStamp: t === now ? performance.now() : t,
   deltaTime: msg.deltaTime,
   data: [ ...msg.data ]
 }))
@@ -75,26 +83,28 @@ export let cp = (v, ch = 0) =>
 export let pb = (v, ch = 0) => 
   msg([224 + ch, v & 0x7F, v >> 7])
 
-//export let rpn = (n, v, ch = 0) => rx.from([
-//	cc(101, n >> 7, ch),
-//	cc(100, n % 128, ch), 
-//	cc(6, v >> 7, ch),
-//	cc(38, v % 128, ch),
-//	cc(101, 127, ch),
-//	cc(100, 127, ch)
-//])
-//let nrpn = (n, v, ch = 0) => rx.from([
-//	cc(99, n >> 7, ch),
-//	cc(98, n % 128, ch),
-//	cc(6, v >> 7, ch),
-//	cc(38, v % 128, ch),
-//	cc(101, 127, ch),
-//	cc(100, 127, ch)
-//])
-//
-//export { on, off, pp, cc, pc, cp, pb, rpn, nrpn }
-//
+export let rpn = (n, v, ch = 0) => 
+  from ([
+  	cc (101, n >> 7, ch),
+  	cc (100, n % 128, ch), 
+  	cc (6, v >> 7, ch),
+  	cc (38, v % 128, ch),
+  	cc (101, 127, ch),
+  	cc (100, 127, ch)
+  ])
+
+export let nrpn = (n, v, ch = 0) => 
+from([
+	cc(99, n >> 7, ch),
+	cc(98, n % 128, ch),
+	cc(6, v >> 7, ch),
+	cc(38, v % 128, ch),
+	cc(101, 127, ch),
+	cc(100, 127, ch)
+])
+
 //// ------- System common messages generation ---------
+
 //let syx = (b) => msg([240, ...b, 247])
 //let tc = (t, v) => msg([241, (t << 4) + v])
 //let spp = (b) => msg([242, b % 128, b >> 7])

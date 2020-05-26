@@ -3,15 +3,15 @@ import './main.css';
 import { create } from 'rxjs-spy'
 
 export * as RMidi from './rmidi/main.js'
-export * as RMidiClock from './rmidi/clock.js'
-export * as RMidiFile from './rmidi/midifile.js'
-export * as RMusic from './rmusic.js'
-export * as RMusic_Defs from './rmusic_defs.js'
-export * as LinnStrumentJS from './linnstrument.js'
+//export * as RMidiClock from './rmidi/clock.js'
+//export * as RMidiFile from './rmidi/midifile.js'
+//export * as RMusic from './rmusic.js'
+//export * as RMusic_Defs from './rmusic_defs.js'
+//export * as LinnStrumentJS from './linnstrument.js'
 
 export * as ramda from 'ramda'
 
-export * as flyd from 'flyd'
+//export * as flyd from 'flyd'
 
 export * as rxjs from 'rxjs'
 export * as rxjs_operators from 'rxjs/operators'

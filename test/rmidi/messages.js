@@ -29,11 +29,12 @@ test ('MIDI Message creation', t => {
 })
 
 test ('MIDI Message cloning', t => {
-  let msg = M.msg ([145, 64, 96], 25, 100)
-  let clone = M.from (msg)
+  let msgs = [ M.msg ([248]), M.msg ([144, 64, 96])]
+  let combine = M.from (msgs)
 
-  t.deepEqual (msg, clone)
-  t.not (msg, clone)
+  t.is (combine.timeStamp, msgs[0].timeStamp)
+  t.is (combine.deltaTime, msgs[0].deltaTime)
+  t.deepEqual (combine.data, [248, 144, 64, 96])
 })
 
 // --------------- MIDI Message Modification Helpers ---------------
@@ -143,4 +144,20 @@ test ('Pitch Bend message creation', t => {
 
   t.true (allPass (preds (8192, 0)) (M.pb (8192)))
   t.true (allPass (preds (8192, 10)) (M.pb (8192, 10)))
+})
+
+test ('RPN message creation', t => {
+  let preds = (n, v, ch) =>
+    [P.isRPN, P.isOnChannel (ch)]
+
+  t.true (allPass (preds (245, 1, 0)) (M.rpn (245, 1)))
+  t.true (allPass (preds (245, 1, 3)) (M.rpn (245, 1, 3)))
+})
+
+test ('NRPN message creation', t => {
+  let preds = (n, v, ch) =>
+    [P.isNRPN, P.isOnChannel (ch)]
+
+  t.true (allPass (preds (245, 1, 0)) (M.nrpn (245, 1)))
+  t.true (allPass (preds (245, 1, 3)) (M.nrpn (245, 1, 3)))
 })
