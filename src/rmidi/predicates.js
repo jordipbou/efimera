@@ -13,44 +13,47 @@ export let seemsMIDIMessageArray =
             complement (isEmpty),
             all (is (Number))])
 
-export let seemsMIDIMessage = 
+export let seemsMIDIMessageObject =
   allPass ([is (Object),
             propEq ('type', 'midimessage'),
             propSatisfies (seemsMIDIMessageArray, 'data')])
 
+export let seemsMIDIMessage = 
+  either (seemsMIDIMessageArray) (seemsMIDIMessageObject)
+
 export let dataEq = curry ((d, m) =>
   seemsMIDIMessageArray (m) ?
-    equals (d, m)
+    equals (d) (m)
     : seemsMIDIMessage (m) ?
-      propEq ('data') (d) (m)
+      dataEq (d) (m.data)
       : false )
 
 export let byteEq = curry ((n, d, m) =>
   seemsMIDIMessageArray (m) ?
     pathEq ([n]) (d) (m)
     : seemsMIDIMessage (m) ?
-      pathEq (['data', n]) (d) (m)
+      byteEq (n) (d) (m.data)
       : false )
 
 export let dataEqBy = curry ((p, m) =>
   seemsMIDIMessageArray (m) ?
     p (m)
     : seemsMIDIMessage (m) ?
-      propSatisfies (p, 'data') (m)
+      dataEqBy (p) (m.data)
       : false )
 
 export let byteEqBy = curry ((n, p, m) =>
   seemsMIDIMessageArray (m) ?
     p (path ([n]) (m))
     : seemsMIDIMessage (m) ?
-      pathSatisfies (p, ['data', n]) (m)
+      byteEqBy (n) (p) (m.data)
       : false )
 
 
 // ------------------ Channel Voice Messages -----------------------
 
 export let isChannelVoiceMessageOfType = (t) =>
-  both (either (seemsMIDIMessageArray) (seemsMIDIMessage))
+  both (seemsMIDIMessage)
        (dataEqBy 
          (p => includes (t, [8, 9, 10, 11, 14]) ?
                  length(p) === 3 && p[0] >> 4 === t
@@ -183,7 +186,7 @@ export let isChannelVoice =
 // -------------------- RPN & NRPN predicates ----------------------
 
 export let isRPN =
-  allPass ([either (seemsMIDIMessage) (seemsMIDIMessageArray),
+  allPass ([seemsMIDIMessage,
             byteEq (1) (101),
             byteEq (4) (100),
             byteEq (7) (6),
@@ -193,7 +196,7 @@ export let isRPN =
             byteEq (-1) (127)])
 
 export let isNRPN =
-  allPass ([either (seemsMIDIMessage) (seemsMIDIMessageArray),
+  allPass ([seemsMIDIMessage,
             byteEq (1) (99),
             byteEq (4) (98),
             byteEq (7) (6),
@@ -216,52 +219,49 @@ export let isOnChannels = (chs) =>
 // =============== System Common message predicates ================
 
 export let isSystemExclusive = 
-  allPass ([either (seemsMIDIMessage) (seemsMIDIMessageArray),
+  allPass ([seemsMIDIMessage,
             byteEq (0) (240),
             byteEq (-1) (247)])
 
 export let isMIDITimeCodeQuarterFrame =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray)) 
-       (byteEq (0) (241))
+  both (seemsMIDIMessage) (byteEq (0) (241))
 
 export let isSongPositionPointer =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray)) 
-       (byteEq (0) (242))
+  both (seemsMIDIMessage) (byteEq (0) (242))
 
 export let isSongSelect =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
-       (byteEq (0) (243))
+  both (seemsMIDIMessage) (byteEq (0) (243))
 
 export let isTuneRequest =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
-       (dataEq ([246]))
+  both (seemsMIDIMessage) (dataEq ([246]))
 
 export let isEndOfExclusive =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray)) 
-       (dataEq ([247]))
+  both (seemsMIDIMessage) (dataEq ([247]))
 
 // ============= System Real Time message predicates ===============
 
 export let isMIDIClock =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray)) 
-       (dataEq ([248]))
+  both (seemsMIDIMessage) (dataEq ([248]))
 
 export let isStart =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
-       (dataEq ([250]))
+  both (seemsMIDIMessage) (dataEq ([250]))
 
 export let isContinue =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
-       (dataEq ([251]))
+  both (seemsMIDIMessage) (dataEq ([251]))
 
 export let isStop =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
-       (dataEq ([252]))
+  both (seemsMIDIMessage) (dataEq ([252]))
 
 export let isActiveSensing =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
-       (dataEq ([254]))
+  both (seemsMIDIMessage) (dataEq ([254]))
 
+// Reset and MIDI File Meta Events have the same value on
+// their first byte: 0xFF.
+// Reset message is just one byte long and MIDI File Meta
+// Events are several bytes long. It's not possible to
+// differentiate them based on first byte, it's the
+// programmer responsability to only use isReset outside
+// MIDI Files and seemsMIDIMetaEvent inside MIDI Files.
 export let isReset =
   both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
        (dataEq ([255]))
@@ -269,11 +269,28 @@ export let isReset =
 
 // ============== MIDI File Meta Events predicates =================
 
-export let seemsMIDIMetaEvent =
+// TODO: Check that length is correct !!!
+export let seemsMIDIMetaEventArray =
+  allPass ([is (Array),
+            complement (isEmpty),
+            all (is (Number)),
+            pathEq ([0]) (255)])
+
+export let seemsMIDIMetaEventObject =
   allPass ([is (Object),
             propEq ('type', 'metaevent'),
             has ('metaType'),
-            propIs (Array, 'data')])
+            propSatisfies (seemsMIDIMessageArray, 'data')])
+
+export let seemsMIDIMetaEvent =
+  either (seemsMIDIMetaEventArray) (seemsMIDIMetaEventObject)
+
+export let metaTypeEq = curry((t, m) => 
+  seemsMIDIMetaEventArray (m) ?
+    pathEq ([1]) (t) (m)
+    : seemsMIDIMetaEventObject (m) ?
+      metaTypeEq (t, m.data) 
+      : false)
 
 export let isTempoChange = 
-  both (seemsMIDIMetaEvent) (propEq ('metaType', 81))
+  both (seemsMIDIMetaEvent) (metaTypeEq (81))

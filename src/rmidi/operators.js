@@ -1,34 +1,23 @@
+import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
+import * as T from './transformers.js'
 
-// =========== MIDI Message transformers =============
-// ------ Channel transformation (Rx Operators) ------
-// Every channel message will change its channel to ch
-let changeToChannel = (d, ch) => { 
-	d.data[0] = (d.data[0] & 0xF0) + ch 
-	return d
-}
-let toChannel = ch =>
-	rxo.map(d => isChannelMessage(d) ? 
-					changeToChannel(d, ch) 
-					: d)
-// Maps every channel message on chin channel to 
-// chout channel
-let mapChannel = (chin, chout) => 
-	rxo.map(d => isOnChannel(d, chin) ?		
-					changeToChannel(d, chout) 
-					: d)
-// Maps every channel message in chin array of 
-// channels to chout array of channels
-let mapChannels = (chsin, chsout) => 
-	rxo.mergeMap(d => 
-		isOnChannels(d, chsin) ? 
-			rx.from(chsout.map(ch => 
-				changeToChannel(copy(d), ch)))
-			: rx.of(d))
-let asMIDIMessage = () => rxo.map(d => copy(d))
+// ------------------ Channel transformation  ----------------------
+
+export let toChannel = (ch) =>
+  rxo.map (T.channel (ch))
+
+export let mapToChannel = (chin, chout) => 
+  rxo.map (T.mapChannel (chin, chout))
+
+export let mapToChannels = (chsin, chsout) => 
+  rxo.mergeMap (v => rx.from (T.mapChannels (chsin) (chsout) (v)))
+
+export let asMIDIMessage = () => rxo.map(d => copy(d))
+
 // ---- Controller mapping ----
 // TODO: Add transformation curves to values
-let mapController =	(ccin, ccout) => 
+export let mapController =	(ccin, ccout) => 
 	rxo.map(d => {
 		if (isControlChange(d) && d.data[1] === ccin) {
 			d.data[1] = ccout
@@ -36,19 +25,10 @@ let mapController =	(ccin, ccout) =>
 		return d
 	})
 // ---- Note mapping ----
-let transpose = i => 
+export let transpose = i => 
 	rxo.map(d => { 
 		if (hasNote(d)) {
 			d.data[1] = d.data[1] + i
 		}
 		return d
 	})
-
-export {
-	toChannel,
-	mapChannel,
-	mapChannels,
-	asMIDIMessage,
-	mapController,
-	transpose
-}

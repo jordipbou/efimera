@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "@beyonk/svelte-notifications": "^2.0.3",
-    "browser-or-node": "^1.2.1",
     "codemirror": "^5.54.0",
     "flyd": "^0.2.8",
     "fork-awesome": "^1.1.7",
@@ -38,8 +37,8 @@
     "uuid": "^7.0.3"
   },
   "ava": {
-	"require": [
-		"esm"
-	]
+    "require": [
+      "esm"
+    ]
   }
 }

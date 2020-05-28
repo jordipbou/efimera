@@ -5,7 +5,7 @@ let msg = (data) =>
   ({ type: 'midimessage', data: data })
 
 let meta = (t, data = []) => 
-  ({ type: 'metaevent', metaType: t, data: data })
+  ({ type: 'metaevent', metaType: t, data: [255, t, ...data] })
 
 test ('seemsMIDIMessageArray', t => {
   t.false (P.seemsMIDIMessageArray (null))
@@ -378,5 +378,6 @@ test ('isNRPN', t => {
 // ------------------ MIDI File Meta Events ------------------------
 
 test ('isTempoChange', t => {
+  t.true (P.isTempoChange ([255, 81]))
   t.true (P.isTempoChange (meta (81)))
 })
