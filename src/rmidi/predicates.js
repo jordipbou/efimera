@@ -8,42 +8,42 @@ import {
 
 // ================= MIDI Messages predicates ======================
 
-export let seemsMIDIMessageArray =
+export let seemsMIDIMessageAsArray =
   allPass ([is (Array),
             complement (isEmpty),
             all (is (Number))])
 
-export let seemsMIDIMessageObject =
+export let seemsMIDIMessageAsObject =
   allPass ([is (Object),
             propEq ('type', 'midimessage'),
-            propSatisfies (seemsMIDIMessageArray, 'data')])
+            propSatisfies (seemsMIDIMessageAsArray, 'data')])
 
 export let seemsMIDIMessage = 
-  either (seemsMIDIMessageArray) (seemsMIDIMessageObject)
+  either (seemsMIDIMessageAsArray) (seemsMIDIMessageAsObject)
 
 export let dataEq = curry ((d, m) =>
-  seemsMIDIMessageArray (m) ?
+  seemsMIDIMessageAsArray (m) ?
     equals (d) (m)
     : seemsMIDIMessage (m) ?
       dataEq (d) (m.data)
       : false )
 
 export let byteEq = curry ((n, d, m) =>
-  seemsMIDIMessageArray (m) ?
+  seemsMIDIMessageAsArray (m) ?
     pathEq ([n]) (d) (m)
     : seemsMIDIMessage (m) ?
       byteEq (n) (d) (m.data)
       : false )
 
 export let dataEqBy = curry ((p, m) =>
-  seemsMIDIMessageArray (m) ?
+  seemsMIDIMessageAsArray (m) ?
     p (m)
     : seemsMIDIMessage (m) ?
       dataEqBy (p) (m.data)
       : false )
 
 export let byteEqBy = curry ((n, p, m) =>
-  seemsMIDIMessageArray (m) ?
+  seemsMIDIMessageAsArray (m) ?
     p (path ([n]) (m))
     : seemsMIDIMessage (m) ?
       byteEqBy (n) (p) (m.data)
@@ -111,6 +111,9 @@ export let programEq = (p) =>
 
 export let isChannelPressure = 
   isChannelVoiceMessageOfType (13)
+
+export let hasPressure =
+  either (isPolyPressure) (isChannelPressure)
 
 export let pressureEq = (p) =>
   cond ([
@@ -263,7 +266,7 @@ export let isActiveSensing =
 // programmer responsability to only use isReset outside
 // MIDI Files and seemsMIDIMetaEvent inside MIDI Files.
 export let isReset =
-  both (either (seemsMIDIMessage) (seemsMIDIMessageArray))
+  both (either (seemsMIDIMessage) (seemsMIDIMessageAsArray))
        (dataEq ([255]))
 
 
@@ -280,7 +283,7 @@ export let seemsMIDIMetaEventObject =
   allPass ([is (Object),
             propEq ('type', 'metaevent'),
             has ('metaType'),
-            propSatisfies (seemsMIDIMessageArray, 'data')])
+            propSatisfies (seemsMIDIMessageAsArray, 'data')])
 
 export let seemsMIDIMetaEvent =
   either (seemsMIDIMetaEventArray) (seemsMIDIMetaEventObject)

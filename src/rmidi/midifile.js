@@ -1,4 +1,11 @@
-import * as R from 'ramda'
+import { from } from './messages.js'
+
+import {
+  __, addIndex, always, allPass, append, assoc, concat, either,
+  evolve, filter, has, head, is, isNil,
+  map, mergeLeft, objOf, pipe, propIs, reduce, scan, sort, tail,
+  unless
+} from 'ramda'
 import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
 
@@ -35,38 +42,65 @@ export let loadMidiFile =
 		return promise
 	}
 
+// ------------------------- Predicates ----------------------------
+
+export let seemsMIDIFile = 
+  allPass ([is (Object),
+            has ('formatType'),
+            has ('timeDivision'),
+            has ('tracks'),
+            has ('track'),
+            propIs (Array, 'track')])
+
+// -------------------------- Helpers ------------------------------
+
 export let withAbsoluteDeltaTimes =
-	R.evolve({
-		track: R.map(
-			R.evolve({
-				event: R.pipe(
-					R.scan(([current_tick, _], v) => [current_tick + v.deltaTime, v], [0, null]),
-					R.map(([tick, v]) => R.mergeLeft({ absoluteDeltaTime: tick }, v)),
-					R.tail)}))})
+	evolve ({
+		track: map (
+			evolve ({
+				event: pipe (
+					scan 
+            (([tick, _], msg) => [tick + msg.deltaTime, msg])
+            ([0, null]),
+					map
+            (([tick, msg]) => 
+              msg !== null ?
+                from (mergeLeft ({ absoluteDeltaTime: tick }, msg))
+                : null),
+					tail)}))})
 
 export let mergeTracks =
-	R.evolve({
-		tracks: R.always(1),
-		track: R.pipe(
-			R.reduce((acc, v) => R.concat(acc, v.event), []),
-			R.objOf('event'),
-			R.append(R.__, []))})
+	evolve ({
+		tracks: always (1),
+		track: pipe (
+			reduce ((acc, v) => concat(acc, v.event), []),
+      map (v => from (v)),
+			objOf ('event'),
+			append (__, []))})
 
 export let sortEvents = 
-    R.evolve({
-		track: R.pipe(
-			R.map(v => R.sort((a, b) => a.absoluteDeltaTime - b.absoluteDeltaTime, v.event)),
-			R.head,
-			R.objOf('event'),
-			R.append(R.__, []))})
+    evolve ({
+		track: pipe (
+			map (v => 
+        pipe (
+          sort ((a, b) => a.absoluteDeltaTime - b.absoluteDeltaTime),
+          map (v => from (v))
+        )(v.event)),
+			head,
+			objOf ('event'),
+			append (__, []))})
 
-let filterIndexed = R.addIndex(R.filter)
+let filterIndexed = 
+  addIndex (filter)
 
-export let filterTracks =
-	(tracks, midiFile) => 
-		R.evolve({
+export let filterTracks =	(tracks, midiFile) => 
+		evolve ({
 			tracks: () => tracks.length,
-			track: filterIndexed((v, k) => tracks.includes(k))
+			track: pipe (
+        filterIndexed ((v, k) => tracks.includes (k)),
+        map (v => map (from, v.event)),
+        objOf ('event'),
+        append (__, []))
 		}, midiFile)
 
 // TODO
@@ -85,7 +119,7 @@ export let createMidiFile =
 			timeDivision: timeDivision,
 			track: [{ event: track }]}}
 
-export let createLoop =	(midiFile) => R.assoc('loop', true, midiFile)
+export let createLoop =	(midiFile) => assoc('loop', true, midiFile)
 
 export let MIDIPlayer = midiFile => {
   let midiFileSubject = new rx.BehaviorSubject(midiFile)
@@ -117,21 +151,21 @@ export let MIDIPlayer = midiFile => {
         return rx.of(o)
       }
       
-      let events = R.head(
-        R.reduce(
+      let events = head(
+        reduce(
           ([events, found_tempo_change], mc) => {
             if (!found_tempo_change) {
-              let tick_events = R.pipe(
-                R.filter(e => 
+              let tick_events = pipe(
+                filter(e => 
                   e.absoluteDeltaTime === tick 
                   || (loop ? 
                       (e.absoluteDeltaTime === (tick % maxTick)) 
                       : false)),
-                R.map(e => { e.timeStamp = mc.timeStamp; return e; })
+                map(e => { e.timeStamp = mc.timeStamp; return e; })
               )(track)
               tick = (loop && (tick + 1 > maxTick)) ? (tick + 1) % maxTick : tick + 1
 
-              return [R.concat(events, tick_events), R.length(R.filter(isTempoChange, tick_events)) > 0]
+              return [concat(events, tick_events), length(filter(isTempoChange, tick_events)) > 0]
             } else {
               return [events, found_tempo_change]
             }

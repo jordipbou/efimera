@@ -7,16 +7,26 @@ let msg = (data) =>
 let meta = (t, data = []) => 
   ({ type: 'metaevent', metaType: t, data: [255, t, ...data] })
 
-test ('seemsMIDIMessageArray', t => {
-  t.false (P.seemsMIDIMessageArray (null))
-  t.false (P.seemsMIDIMessageArray (undefined))
-  t.false (P.seemsMIDIMessageArray ({}))
-  t.false (P.seemsMIDIMessageArray ([{}]))
-  t.false (P.seemsMIDIMessageArray (['test']))
-  t.false (P.seemsMIDIMessageArray ([248, 'test']))
-  t.false (P.seemsMIDIMessageArray ([248, {}]))
-  t.true (P.seemsMIDIMessageArray ([248]))
-  t.true (P.seemsMIDIMessageArray ([144, 64, 96]))
+test ('seemsMIDIMessageAsArray', t => {
+  t.false (P.seemsMIDIMessageAsArray (null))
+  t.false (P.seemsMIDIMessageAsArray (undefined))
+  t.false (P.seemsMIDIMessageAsArray ({}))
+  t.false (P.seemsMIDIMessageAsArray ([{}]))
+  t.false (P.seemsMIDIMessageAsArray (['test']))
+  t.false (P.seemsMIDIMessageAsArray ([248, 'test']))
+  t.false (P.seemsMIDIMessageAsArray ([248, {}]))
+  t.true (P.seemsMIDIMessageAsArray ([248]))
+  t.true (P.seemsMIDIMessageAsArray ([144, 64, 96]))
+})
+
+test ('seemsMIDIMessageAsObject', t => {
+  t.false (P.seemsMIDIMessageAsObject (null))
+  t.false (P.seemsMIDIMessageAsObject (undefined))
+  t.false (P.seemsMIDIMessageAsObject ([]))
+  t.false (P.seemsMIDIMessageAsObject ({}))
+  t.false (P.seemsMIDIMessageAsObject ([128, 64, 96]))
+  t.true (P.seemsMIDIMessageAsObject (msg ([248])))
+  t.true (P.seemsMIDIMessageAsObject (msg ([128, 64, 96])))
 })
 
 test ('seemsMIDIMessage', t => {
@@ -218,6 +228,12 @@ test ('isChannelPressure', t => {
   t.true (P.isChannelPressure (msg ([208, 96])))
   t.true (P.isChannelPressure ([223, 96]))
   t.false (P.isChannelPressure (msg ([224, 96])))
+})
+
+test ('hasPressure', t => {
+  t.false (P.hasPressure (msg ([128, 64, 96])))
+  t.true (P.hasPressure ([160, 64, 96]))
+  t.true (P.hasPressure (msg ([208, 96])))
 })
 
 test ('pressureEq', t => {

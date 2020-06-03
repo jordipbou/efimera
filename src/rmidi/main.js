@@ -2,11 +2,12 @@ import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
 import * as R from 'ramda'
 
-export * from './messages.js'
+import { from } from './messages.js'
+
 export * from './predicates.js'
-export * from './operators.js'
-import { asMIDIMessage } from './operators.js'
-export * from './getters.js'
+export * from './messages.js'
+export * from './lenses.js'
+export * from './clock.js'
 
 let midiAccess
 
@@ -38,7 +39,9 @@ export let input = n =>
 			R.map(v => {
 				let input = rx.fromEvent(
 								v[1], 'midimessage'
-							).pipe(asMIDIMessage())
+							).pipe(
+                rxo.map(from)
+              )
 				input.name = v[1].name
 				input.id = v[1].id
 				input.manufacturer = v[1].manufacturer

@@ -4,7 +4,7 @@ import { create } from 'rxjs-spy'
 
 export * as RMidi from './rmidi/main.js'
 //export * as RMidiClock from './rmidi/clock.js'
-//export * as RMidiFile from './rmidi/midifile.js'
+export * as RMidiFile from './rmidi/midifile.js'
 //export * as RMusic from './rmusic.js'
 //export * as RMusic_Defs from './rmusic_defs.js'
 //export * as LinnStrumentJS from './linnstrument.js'
