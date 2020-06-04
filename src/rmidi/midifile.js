@@ -1,13 +1,13 @@
+import { isTempoChange } from './predicates.js'
 import { from } from './messages.js'
+import { timeStamp } from './lenses.js'
 
 import {
-  __, addIndex, always, allPass, append, assoc, concat, either,
-  evolve, filter, has, head, is, isNil,
-  map, mergeLeft, objOf, pipe, propIs, reduce, scan, sort, tail,
-  unless
+  __, addIndex, always, allPass, append, assoc, both, concat, 
+  either, evolve, filter, has, head, is, isEmpty, isNil, last,
+  map, mergeLeft, objOf, pipe, prop, propIs, propEq, reduce, 
+  reduceWhile, scan, set, slice, sort, tail, unless
 } from 'ramda'
-import * as rx from 'rxjs'
-import * as rxo from 'rxjs/operators'
 
 export let loadMidiFile =
 	(sel = '#preview') => {
@@ -51,6 +51,10 @@ export let seemsMIDIFile =
             has ('tracks'),
             has ('track'),
             propIs (Array, 'track')])
+
+export let seemsMIDILoop =
+  both (seemsMIDIFile)
+       (propEq ('loop', true))
 
 // -------------------------- Helpers ------------------------------
 
@@ -98,9 +102,8 @@ export let filterTracks =	(tracks, midiFile) =>
 			tracks: () => tracks.length,
 			track: pipe (
         filterIndexed ((v, k) => tracks.includes (k)),
-        map (v => map (from, v.event)),
-        objOf ('event'),
-        append (__, []))
+        map (v => objOf ('event', map (from, v.event)))
+      )
 		}, midiFile)
 
 // TODO
@@ -112,94 +115,55 @@ export let filterTracks =	(tracks, midiFile) =>
 // TODO
 // export let commonTimeDivision = (midiFile1, midiFile2, ...) => 
 
-export let createMidiFile =
-	(track, timeDivision = 24) => {
-		return {
-			tracks: 1,
-			timeDivision: timeDivision,
-			track: [{ event: track }]}}
+export let createMIDIFile =	(track, timeDivision = 24) => ({
+  formatType: 1,
+	tracks: 1,
+	timeDivision: timeDivision,
+	track: [{ event: map (from, track) }]
+})
 
-export let createLoop =	(midiFile) => assoc('loop', true, midiFile)
+export let createLoop =	(midifile) => ({
+  ...midifile,
+  loop: true,
+  track: map (
+    pipe (
+      prop ('event'),
+      map (from),
+      objOf ('event')
+    )
+  ) (midifile.track)
+})
 
-export let MIDIPlayer = midiFile => {
-  let midiFileSubject = new rx.BehaviorSubject(midiFile)
-  
-  let operator = rx.pipe(
-    rxo.withLatestFrom(
-      midiFileSubject.pipe(
-        rxo.map(mf => R.pipe(
-          withAbsoluteDeltaTimes,
-          mergeTracks,
-          sortEvents)(mf)))),
-    rxo.scan(([tick, _], [o, playable]) => {
-      let track = playable.track[0].event
-      let loop = playable.loop
-      let maxTick = R.last(track).absoluteDeltaTime
-      
-      let midi_clocks = []
-      if (R.is(rx.Observable, o)) {
-        o.subscribe(mc => midi_clocks.push(mc))
-      } else if (isMidiClock(o)) {
-        midi_clocks.push(o)
-      } else if (isStart(o)) {
-        return [0, rx.empty()]
-      } else if (isContinue(o)) {
-        return [tick, rx.empty()]
-      } else if (isStop(o)) {
-        return [tick, rx.empty()]
-      } else if (isMidiMessage(o)) {
-        return rx.of(o)
-      }
-      
-      let events = head(
-        reduce(
-          ([events, found_tempo_change], mc) => {
-            if (!found_tempo_change) {
-              let tick_events = pipe(
-                filter(e => 
-                  e.absoluteDeltaTime === tick 
-                  || (loop ? 
-                      (e.absoluteDeltaTime === (tick % maxTick)) 
-                      : false)),
-                map(e => { e.timeStamp = mc.timeStamp; return e; })
-              )(track)
-              tick = (loop && (tick + 1 > maxTick)) ? (tick + 1) % maxTick : tick + 1
+export let MIDIPlayer = (midifile) => {
+  let playable = pipe (
+    withAbsoluteDeltaTimes,
+    mergeTracks,
+    sortEvents
+  ) (midifile)
 
-              return [concat(events, tick_events), length(filter(isTempoChange, tick_events)) > 0]
-            } else {
-              return [events, found_tempo_change]
-            }
-      	  }, [[], false], midi_clocks))
-      
-      return [tick, rx.from(events)]
-    }, [0, null]),
-    rxo.switchMap(([_, events]) => events)
-  )
-  
-  operator.changeMidiFile = mf => midiFileSubject.next(mf)
-  
-  return operator
+  let track = playable.track [0].event
+  let loop = playable.loop
+  let maxTick = last (track).absoluteDeltaTime
+
+  return (tick, midi_clocks) => 
+    slice 
+      (0, 2)
+      (reduceWhile 
+        (([events, tick, bpm_not_found], midi_clock) => bpm_not_found)
+        (([events, tick, bpm_not_found], midi_clock) => {
+          let tick_events = pipe (
+            filter (e => 
+              e.absoluteDeltaTime === tick ||
+              (loop &&  e.absoluteDeltaTime === (tick % maxTick))),
+            map (set (timeStamp) (midi_clock.timeStamp)),
+          ) (track)
+
+          return [
+            concat (events, tick_events), 
+            loop ? (tick + 1) % maxTick : tick + 1,
+            isEmpty (filter (isTempoChange) (tick_events))
+          ]
+        })
+        ([[], tick, true])
+        (midi_clocks))
 }
-
-export let tempoChangeListener = (transport$) =>
-	rxo.tap(v => { if (v.type === 'metaevent' && v.metaType === 81) { transport$.bpm(60000000 / v.data) } })
-
-export let createPlayer =
-	(midiFile) => {
-		let clock$ = createClock(midiFile.timeDivision)
-
-		let player$ = clock$.pipe(
-			MIDIPlayer(midiFile),
-			tempoChangeListener(clock$)
-		)
-
-		player$.start = clock$.start
-		player$.pause = clock$.pause
-		player$.stop = clock$.stop
-		player$.next = clock$.next
-		player$.nextOn = clock$.nextOn
-		player$.prev = clock$.prev
-		player$.bpm = clock$.bpm
-
-		return player$
-	}

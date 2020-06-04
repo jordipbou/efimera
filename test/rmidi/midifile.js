@@ -3,16 +3,21 @@ const {
   isNoteOn, isNoteOff,
   seemsMIDIMessage 
 } = require ('../../src/rmidi/predicates.js')
-const { on, off } = require ('../../src/rmidi/messages.js')
-const { deltaTime, note } = require ('../../src/rmidi/lenses.js')
+const { on, off, mc } = require ('../../src/rmidi/messages.js')
 const { 
+  deltaTime, note, timeStamp
+} = require ('../../src/rmidi/lenses.js')
+const { 
+  createMIDIFile,
+  createLoop,
   filterTracks,
   mergeTracks,
+  MIDIPlayer,
   seemsMIDIFile,
   sortEvents,
   withAbsoluteDeltaTimes
 } = require ('../../src/rmidi/midifile.js')
-const { identical, set, view } = require ('ramda')
+const { identical, is, set, view } = require ('ramda')
 
 let midifile = {
   formatType: 1,
@@ -144,6 +149,8 @@ test ('filterTracks', t => {
   t.not (modified.track [0], midifile.track [1])
   t.not (modified.track [0].event, midifile.track [1].event)
 
+  t.is (modified.tracks, 1)
+
   let track = modified.track [0].event
   let original_track = midifile.track [1].event
 
@@ -152,4 +159,91 @@ test ('filterTracks', t => {
   t.false (identical (track [0], original_track [0]))
   t.is (track [1].deltaTime, 8)
   t.false (identical (track [1], original_track [1]))
+})
+
+test ('createMIDIFile', t => {
+  let track = [
+    set (deltaTime) (0) (on (64)),
+    set (deltaTime) (1) (off (64)),
+    set (deltaTime) (0) (on (67)),
+    set (deltaTime) (2) (off (67)),
+    set (deltaTime) (1) (on (71)),
+    set (deltaTime) (3) (off (71))
+  ]
+  let newfile = createMIDIFile (track)
+
+  t.true (seemsMIDIFile (newfile))
+  t.deepEqual (track[0], newfile.track [0].event [0])
+  t.false (identical (track [0], newfile.track [0].event [0]))
+  t.deepEqual (track[1], newfile.track [0].event [1])
+  t.false (identical (track [1], newfile.track [0].event [1]))
+  t.deepEqual (track[2], newfile.track [0].event [2])
+  t.false (identical (track [2], newfile.track [0].event [2]))
+  t.deepEqual (track[3], newfile.track [0].event [3])
+  t.false (identical (track [3], newfile.track [0].event [3]))
+  t.deepEqual (track[4], newfile.track [0].event [4])
+  t.false (identical (track [4], newfile.track [0].event [4]))
+  t.deepEqual (track[5], newfile.track [0].event [5])
+  t.false (identical (track [5], newfile.track [0].event [5]))
+})
+
+test ('createLoop', t => {
+  let loop = createLoop (midifile)
+
+  t.true (loop.loop)
+  t.false (identical (loop, midifile))
+  t.false (identical (loop.track, midifile.track))
+  t.not (loop.track [0], midifile.track [1])
+  t.not (loop.track [0].event, midifile.track [1].event)
+
+  t.is (loop.tracks, midifile.tracks)
+  t.is (loop.track.length, midifile.track.length)
+  t.is (loop.track [0].event.length, midifile.track [0].event.length)
+  t.is (loop.track [1].event.length, midifile.track [1].event.length)
+})
+
+test ('MIDIPlayer', t => {
+  let player = MIDIPlayer (midifile)
+
+  let mc1 = set (timeStamp) (10.5) (mc ())
+  let [events1, tick1] = player (0, [mc1])
+
+  t.is (tick1, 1)
+  t.is (events1.length, 2)
+  t.deepEqual (events1 [0].data, on (64).data)
+  t.is (events1 [0].timeStamp, 10.5)
+  t.deepEqual (events1 [1].data, on (32).data)
+  t.is (events1 [1].timeStamp, 10.5)
+
+  let mc2 = set (timeStamp) (11.5) (mc ())
+  let mc3 = set (timeStamp) (12.5) (mc ())
+
+  let [events, tick] = player (0, [mc1, mc2, mc3])
+  t.is (tick, 3)
+  t.is (events.length, 4)
+
+  let [events2, tick2] = player (8, [mc1])
+
+  t.is (tick2, 9)
+  t.is (events2.length, 1)
+  t.deepEqual (events2 [0].data, off (32).data)
+  t.is (events2 [0].timeStamp, 10.5)
+})
+
+test ('looped MIDIPlayer', t => {
+  let loop = createLoop (midifile)
+  let player = MIDIPlayer (loop)
+
+  let mc1 = set (timeStamp) (10.5) (mc ())
+  let [events, tick] = player (8, [mc1])
+
+  t.is (tick, 1)
+  t.is (events.length, 3)
+
+  t.deepEqual (events [0].data, on (64).data)
+  t.is (events [0].timeStamp, 10.5)
+  t.deepEqual (events [1].data, on (32).data)
+  t.is (events [1].timeStamp, 10.5)
+  t.deepEqual (events [2].data, off (32).data)
+  t.is (events [2].timeStamp, 10.5)
 })
