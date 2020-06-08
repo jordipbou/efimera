@@ -1,5 +1,5 @@
 <script>
-import { init } from './rmidi/main.js'
+import { initialize } from './frMIDI/io.js'
 import { NotificationDisplay, notifier } from '@beyonk/svelte-notifications'
 import { createEventDispatcher } from 'svelte';
 const dispatch = createEventDispatcher();
@@ -11,10 +11,10 @@ function changeViewMode() {	dispatch('changeViewMode', undefined); }
 function openFileBrowser() { dispatch('openFileBrowser', undefined); }
 function openFileSaveDialog() { dispatch('openFileSaveDialog', undefined); }
 function initMidiWithSysex() { 
-	init(true)
+	initialize(true)
 		.then(() => notifier.success('WebMidi API initialized (with Sysex)'))
 		.catch(() => {
-			init(false)
+			initialize(false)
 				.then(() => notifier.warning('WebMidi API initialized (without Sysex)'))
 				.catch(() => notifier.danger('WebMidi could not be initialized'))
 		})

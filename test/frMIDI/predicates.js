@@ -1,5 +1,5 @@
 const test = require ('ava')
-const P = require ('../../src/rmidi/predicates.js')
+const P = require ('../../src/frMIDI/predicates.js')
 
 let msg = (data) => 
   ({ type: 'midimessage', data: data })
@@ -42,6 +42,40 @@ test ('seemsMIDIMessage', t => {
   t.false (P.seemsMIDIMessage ([248, {}]))
   t.true (P.seemsMIDIMessage (msg ([248])))
   t.true (P.seemsMIDIMessage (msg ([144, 64, 96])))
+})
+
+test ('seemsArrayOfMIDIMessagesAsArrays', t => {
+  let seq = [
+    [144, 64, 96],
+    [144, 67, 96],
+    [128, 67, 65],
+    [128, 64, 30]
+  ]
+
+  let seq2 = [
+    { type: 'midimessage', data: [144, 64, 96] },
+    { type: 'midimessage', data: [128, 64, 96] }
+  ]
+
+  t.false (P.seemsArrayOfMIDIMessagesAsArrays (seq2))
+  t.true (P.seemsArrayOfMIDIMessagesAsArrays (seq))
+})
+
+test ('seemsArrayOfMIDIMessagesAsObjects', t => {
+  let seq = [
+    [144, 64, 96],
+    [144, 67, 96],
+    [128, 67, 65],
+    [128, 64, 30]
+  ]
+
+  let seq2 = [
+    { type: 'midimessage', data: [144, 64, 96] },
+    { type: 'midimessage', data: [128, 64, 96] }
+  ]
+
+  t.false (P.seemsArrayOfMIDIMessagesAsObjects (seq))
+  t.true (P.seemsArrayOfMIDIMessagesAsObjects (seq2))
 })
 
 test ('dataEq', t => {

@@ -9,7 +9,7 @@ import {
 // ================= MIDI Messages predicates ======================
 
 export let seemsMIDIMessageAsArray =
-  allPass ([is (Array),
+  allPass ([either (is (Array)) (is (Uint8Array)),
             complement (isEmpty),
             all (is (Number))])
 
@@ -20,6 +20,14 @@ export let seemsMIDIMessageAsObject =
 
 export let seemsMIDIMessage = 
   either (seemsMIDIMessageAsArray) (seemsMIDIMessageAsObject)
+
+export let seemsArrayOfMIDIMessagesAsArrays =
+  both (is (Array))
+       (all (seemsMIDIMessageAsArray))
+
+export let seemsArrayOfMIDIMessagesAsObjects = 
+  both (is (Array))
+       (all (seemsMIDIMessageAsObject))
 
 export let dataEq = curry ((d, m) =>
   seemsMIDIMessageAsArray (m) ?
@@ -283,7 +291,7 @@ export let seemsMIDIMetaEventObject =
   allPass ([is (Object),
             propEq ('type', 'metaevent'),
             has ('metaType'),
-            propSatisfies (seemsMIDIMessageAsArray, 'data')])
+            has ('data')])
 
 export let seemsMIDIMetaEvent =
   either (seemsMIDIMetaEventArray) (seemsMIDIMetaEventObject)

@@ -9,39 +9,6 @@ import {
   reduceWhile, scan, set, slice, sort, tail, unless
 } from 'ramda'
 
-export let loadMidiFile =
-	(sel = '#preview') => {
-		let id = 'local-midi-file-browser'
-		var e = document.querySelector(sel)
-		e.innerHTML = e.innerHTML + '<input type="file" id="' + id + '" style="display: none">'
-		let promise = 
-			new Promise((s, r) => 
-				MidiParser.parse(document.querySelector('#' + id), o => { 
-					document.querySelector('#' + id).remove()
-					// Convert data from each event to a format compatible
-					// with rest of library
-					for (let t of o.track) {
-						for (let e of t.event) {
-							e.timeStamp = 0
-							if (e.type > 7 && e.type < 14) {
-								if (e.data instanceof Array) {
-									e.data = [(e.type << 4) + e.channel, ...e.data]
-								} else {
-									e.data = [(e.type << 4) + e.channel, e.data]
-								}
-								e.type = 'midimessage'
-							} else if (e.type === 255) {
-								e.type = 'metaevent'
-							}
-						}
-					}
-
-					return s(o)
-				}))
-		document.querySelector('#' + id).click()
-		return promise
-	}
-
 // ------------------------- Predicates ----------------------------
 
 export let seemsMIDIFile = 
@@ -134,7 +101,9 @@ export let createLoop =	(midifile) => ({
   ) (midifile.track)
 })
 
-export let MIDIPlayer = (midifile) => {
+// TODO: MIDIPlayer should have state, extract inner function
+// to be easily testeable.
+export let MIDIFilePlayer = (midifile, tick, midi_clocks) => {
   let playable = pipe (
     withAbsoluteDeltaTimes,
     mergeTracks,
@@ -145,7 +114,7 @@ export let MIDIPlayer = (midifile) => {
   let loop = playable.loop
   let maxTick = last (track).absoluteDeltaTime
 
-  return (tick, midi_clocks) => 
+  let func = (tick, midi_clocks) => 
     slice 
       (0, 2)
       (reduceWhile 
@@ -166,4 +135,9 @@ export let MIDIPlayer = (midifile) => {
         })
         ([[], tick, true])
         (midi_clocks))
+
+    if (tick === undefined || midi_clocks === undefined) 
+      return func
+    else
+      return func (tick, midi_clocks)
 }

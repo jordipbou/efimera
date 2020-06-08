@@ -53,9 +53,11 @@
 		for (let p in efimera.RMusic_Defs) 
 			window[p] = efimera.RMusic_Defs[p]
 
-		window.R = efimera.ramda
+		//window.R = efimera.ramda
+		for (let p in efimera.ramda)
+			window [p] = efimera.ramda [p]
 
-		window.F = efimera.flyd.default
+		//window.F = efimera.flyd.default
 
 		window.rx = efimera.rxjs
 		window.rxo = efimera.rxjs_operators

@@ -5,7 +5,7 @@ import { curry, set } from 'ramda'
 // ----------------- MIDI Clock message generation -----------------
 
 export let lookAheadClock = 
-  curry ((time_division, bpm, look_ahead, now, last_tick_time) => {
+  curry ((time_division, bpm, last_tick_time, now, look_ahead) => {
     let ms_per_tick = 60000 / (bpm * time_division)
     let look_ahead_end = now + look_ahead
 

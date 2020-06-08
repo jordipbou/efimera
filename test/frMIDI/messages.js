@@ -2,7 +2,7 @@ const test = require ('ava')
 const {
   as, cc, cont, cp, from, mc, msg, nrpn, off, on, 
   pb, pc, pp, rpn, rst, spp, ss, start, stop, tc, tun, syx
-} = require ('../../src/rmidi/messages.js')
+} = require ('../../src/frMIDI/messages.js')
 const {
   controlEq, isActiveSensing,
   isContinue, isControlChange, isChannelPressure, 
@@ -12,8 +12,8 @@ const {
   isSongSelect, isStart, isStop,
   isSystemExclusive, isTuneRequest,
   noteEq, pitchBendEq, pressureEq, programEq, valueEq, velocityEq
-} = require ('../../src/rmidi/predicates.js')
-const { channel } = require ('../../src/rmidi/lenses.js')
+} = require ('../../src/frMIDI/predicates.js')
+const { channel } = require ('../../src/frMIDI/lenses.js')
 const { allPass, both, set } = require ('ramda')
 
 // =================== MIDI Message creation =======================

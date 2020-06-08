@@ -2,21 +2,21 @@ const test = require ('ava')
 const { 
   isNoteOn, isNoteOff,
   seemsMIDIMessage 
-} = require ('../../src/rmidi/predicates.js')
-const { on, off, mc } = require ('../../src/rmidi/messages.js')
+} = require ('../../src/frMIDI/predicates.js')
+const { on, off, mc } = require ('../../src/frMIDI/messages.js')
 const { 
   deltaTime, note, timeStamp
-} = require ('../../src/rmidi/lenses.js')
+} = require ('../../src/frMIDI/lenses.js')
 const { 
   createMIDIFile,
   createLoop,
   filterTracks,
   mergeTracks,
-  MIDIPlayer,
+  MIDIFilePlayer,
   seemsMIDIFile,
   sortEvents,
   withAbsoluteDeltaTimes
-} = require ('../../src/rmidi/midifile.js')
+} = require ('../../src/frMIDI/midifile.js')
 const { identical, is, set, view } = require ('ramda')
 
 let midifile = {
@@ -202,10 +202,20 @@ test ('createLoop', t => {
   t.is (loop.track [1].event.length, midifile.track [1].event.length)
 })
 
-test ('MIDIPlayer', t => {
-  let player = MIDIPlayer (midifile)
-
+test ('MIDIFilePlayer', t => {
   let mc1 = set (timeStamp) (10.5) (mc ())
+
+  let [events, tick] = MIDIFilePlayer (midifile, 0, [mc1])
+
+  t.is (tick, 1)
+  t.is (events.length, 2)
+  t.deepEqual (events [0].data, on (64).data)
+  t.is (events [0].timeStamp, 10.5)
+  t.deepEqual (events [1].data, on (32).data)
+  t.is (events [1].timeStamp, 10.5)
+
+  let player = MIDIFilePlayer (midifile)
+
   let [events1, tick1] = player (0, [mc1])
 
   t.is (tick1, 1)
@@ -218,21 +228,21 @@ test ('MIDIPlayer', t => {
   let mc2 = set (timeStamp) (11.5) (mc ())
   let mc3 = set (timeStamp) (12.5) (mc ())
 
-  let [events, tick] = player (0, [mc1, mc2, mc3])
-  t.is (tick, 3)
-  t.is (events.length, 4)
+  let [events2, tick2] = player (0, [mc1, mc2, mc3])
+  t.is (tick2, 3)
+  t.is (events2.length, 4)
 
-  let [events2, tick2] = player (8, [mc1])
+  let [events3, tick3] = player (8, [mc1])
 
-  t.is (tick2, 9)
-  t.is (events2.length, 1)
-  t.deepEqual (events2 [0].data, off (32).data)
-  t.is (events2 [0].timeStamp, 10.5)
+  t.is (tick3, 9)
+  t.is (events3.length, 1)
+  t.deepEqual (events3 [0].data, off (32).data)
+  t.is (events3 [0].timeStamp, 10.5)
 })
 
-test ('looped MIDIPlayer', t => {
+test ('looped MIDIFilePlayer', t => {
   let loop = createLoop (midifile)
-  let player = MIDIPlayer (loop)
+  let player = MIDIFilePlayer (loop)
 
   let mc1 = set (timeStamp) (10.5) (mc ())
   let [events, tick] = player (8, [mc1])

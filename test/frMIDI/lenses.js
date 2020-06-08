@@ -2,10 +2,10 @@ const test = require ('ava')
 const { add, view, set, over } = require ('ramda')
 const { 
   cc, cp, mc, off, on, pp 
-} = require ('../../src/rmidi/messages.js')
+} = require ('../../src/frMIDI/messages.js')
 const { 
   channel, control, deltaTime, note, pressure, timeStamp, velocity
-} = require ('../../src/rmidi/lenses.js')
+} = require ('../../src/frMIDI/lenses.js')
 
 test ('timeStamp lens', t => {
   t.is (view (timeStamp) (on (64)), 0)
