@@ -9,7 +9,7 @@ export * as RMidi from './frMIDI/main.js'
 
 export * as ramda from 'ramda'
 
-export * as flyd from 'flyd'
+export * as tone from 'tone'
 
 export * as rxjs from 'rxjs'
 export * as rxjs_operators from 'rxjs/operators'

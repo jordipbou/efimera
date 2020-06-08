@@ -28,12 +28,12 @@
   "dependencies": {
     "@beyonk/svelte-notifications": "^2.0.3",
     "codemirror": "^5.54.0",
-    "flyd": "^0.2.8",
     "fork-awesome": "^1.1.7",
     "midi-parser-js": "^4.0.4",
     "ramda": "^0.27.0",
     "rxjs": "^6.5.5",
     "sirv-cli": "^0.4.4",
+    "tone": "^13.8.25",
     "uuid": "^7.0.3"
   },
   "ava": {
