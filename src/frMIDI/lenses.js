@@ -5,7 +5,8 @@ import {
   seemsMIDIMessageAsArray, seemsMIDIMessageAsObject
 } from './predicates.js'
 import { 
-  assoc, curry, ifElse, lens, lensProp, lensPath, prop, slice 
+  assoc, clone, curry, ifElse, lens, lensProp, lensPath, 
+  prop, slice 
 } from 'ramda'
 
 // ------------- Generic property modification helpers -------------
@@ -19,7 +20,9 @@ export let getByte = curry ((n, msg) =>
 export let setByte = curry ((n, v, msg) => 
   seemsMIDIMessageAsArray (msg) ?
     [...slice (0, n, msg), v, ...slice (n + 1, Infinity, msg)]
-    : { ...msg, data: setByte (n, v, msg.data) }
+    : assoc ('data')
+            (setByte (n, v, msg.data))
+            (clone (msg))
 )
 
 

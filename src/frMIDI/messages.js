@@ -1,5 +1,10 @@
-import { curry, flatten, head, is, map, prop, tail } from 'ramda'
-import { isChannelMessage } from './predicates.js'
+import { 
+    assoc, clone, curry, flatten, head, is, 
+    map, prop, tail
+  } from 'ramda'
+import { 
+    isChannelMessage 
+  } from './predicates.js'
 
 // =================== MIDI Message creation =======================
 
@@ -15,14 +20,10 @@ export let msg = (data, timeStamp = 0, deltaTime = 0) =>
 
 export let from = (msg) =>
   is (Array, msg) ?
-    { 
-      ...head (msg),
-      data: flatten (map (prop ('data'), msg)) 
-    }
-    : {
-        ...msg,
-        data: [ ...msg.data ]
-      }
+    assoc ('data')
+          (flatten (map (prop ('data'), msg)))
+          (clone (head (msg)))
+    : clone (msg)
 
 // =================== MIDI Messages definition ====================
 
