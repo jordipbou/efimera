@@ -1,6 +1,5 @@
-import App from './App.svelte';
+//import App from './App.svelte';
 import './main.css';
-import { create } from 'rxjs-spy'
 
 export * as RMidi from './frMIDI/main.js'
 //export * as RMusic from './rmusic.js'
@@ -14,20 +13,15 @@ export * as tone from 'tone'
 export * as rxjs from 'rxjs'
 export * as rxjs_operators from 'rxjs/operators'
 
+export * as hybrids from 'hybrids'
 
-//export const spy = create()
-//export * as rxjs_spy from 'rxjs-spy'
+import './App.js'
+//import { define } from 'hybrids'
 
-export const efimera = new App({
-	target: document.body,
-	props: {
-	}
-});
+//define ('e-app', App)
 
-// Unit tests
-//import main_tests from './rxmidi/main.test.js'
-//import messages_tests from './rxmidi/messages.test.js'
-//import predicates_tests from './rxmidi/predicates.test.js'
-//main_tests()
-//messages_tests()
-//predicates_tests()
+//export const efimera = new App({
+//	target: document.body,
+//	props: {
+//	}
+//});

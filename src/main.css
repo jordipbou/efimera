@@ -1,8 +1,20 @@
-@import "tailwindcss/base";
-
-@import "tailwindcss/components";
-
-@import "tailwindcss/utilities";
-
 @import "fork-awesome/css/fork-awesome.css";
+
+@import "pretty-print-json/dist/pretty-print-json.css";
+
+@import "monofur.css";
+
+* {
+font-family: 'monofur';
+}
+
+body {
+/* background-color: rgb(44, 49, 60); */
+background-color: rgb(34, 48, 57);
+margin: 5px;
+}
+
+.cm-focused, .cm-focused:focus {
+outline-width: 0px !important;
+}
 

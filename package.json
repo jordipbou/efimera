@@ -1,6 +1,11 @@
 {
   "name": "efimera",
   "version": "1.0.0",
+  "author": {
+    "email": "jordipbou@protonmail.com",
+    "name": "Jordi P. Bou",
+    "url": "https://jordipbou.github.com"
+  },
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
@@ -8,22 +13,24 @@
     "test": "ava --watch"
   },
   "devDependencies": {
+    "@codemirror/next": "^0.7.0",
     "@rollup/plugin-commonjs": "^11.1.0",
     "@rollup/plugin-node-resolve": "^7.1.3",
     "autoprefixer": "^9.8.0",
     "ava": "^3.8.2",
+    "consono": "^1.4.1",
     "esm": "^3.2.25",
-    "postcss": "^7.0.30",
+    "hybrids": "^4.2.1",
+    "postcss": "^7.0.32",
     "postcss-import": "^12.0.1",
+    "postcss-load-config": "^2.1.0",
+    "pretty-print-json": "^0.2.1",
     "rollup": "^1.32.1",
     "rollup-plugin-copy": "^3.3.0",
     "rollup-plugin-livereload": "^1.3.0",
     "rollup-plugin-postcss": "^2.9.0",
-    "rollup-plugin-svelte": "^5.2.2",
     "rollup-plugin-terser": "^5.3.0",
-    "rxjs-spy": "^7.5.1",
-    "svelte": "^3.22.3",
-    "tailwindcss": "^1.4.6"
+    "sirv-cli": "^0.4.6"
   },
   "dependencies": {
     "@beyonk/svelte-notifications": "^2.0.3",
@@ -32,7 +39,6 @@
     "midi-parser-js": "^4.0.4",
     "ramda": "^0.27.0",
     "rxjs": "^6.5.5",
-    "sirv-cli": "^0.4.4",
     "tone": "^13.8.25",
     "uuid": "^7.0.3"
   },
