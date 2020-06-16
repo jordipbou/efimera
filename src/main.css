@@ -1,20 +1,20 @@
 @import "fork-awesome/css/fork-awesome.css";
-
 @import "pretty-print-json/dist/pretty-print-json.css";
-
 @import "monofur.css";
 
-* {
-font-family: 'monofur';
+e-app {
+	font-family: 'monofur';
 }
 
 body {
-/* background-color: rgb(44, 49, 60); */
-background-color: rgb(34, 48, 57);
-margin: 5px;
+	background-color: rgb(34, 48, 57);
+	margin: 5px;
 }
 
 .cm-focused, .cm-focused:focus {
-outline-width: 0px !important;
+	outline-width: 0px !important;
 }
 
+#_debug_ > div:nth-child(1) > div:nth-child(3) > div {
+	height: calc(96%) !important;
+}

@@ -28,8 +28,6 @@ const customKeymap =
               && i.key !== 'Delete')
          (defaultKeymap)
 
-console.log (customKeymap)
-
 import { searchKeymap } from "@codemirror/next/search"
 import { commentKeymap } from "@codemirror/next/comment"
 import { gotoLine } from "@codemirror/next/goto-line"
@@ -69,7 +67,7 @@ const evaluate_code = (host, code) => {
 const hostEvent = (host, evt_name) => {
   host.dispatchEvent (
     new CustomEvent (evt_name,
-                    { data: host }))
+                    { detail: host }))
 
   return true
 }

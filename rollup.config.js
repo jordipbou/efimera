@@ -20,12 +20,11 @@ export default {
 	plugins: [
 		postcss({
 			extract: true,
-      //modules: true
 		}),
-		resolve({
-			browser: true,
-			dedupe: [] 
-		}),
+    resolve({
+      browser: true,
+      dedupe: []
+    }),
 		commonjs(),
 
 		!production && serve(),
