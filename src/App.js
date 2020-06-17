@@ -55,6 +55,15 @@ const focusAdjacentBlock = (d) => (host, evt) => {
     : null
 }
 
+const scrollToEnd = (host, evt) => {
+  console.log ('on scrollToEnd')
+  if (!propEq ('uuid') (evt.detail.uuid) (last (host.blocks))) {
+    console.log ('is last block, scrolling')
+    let container = host.querySelector ('e-app')
+    container.scrollTop = container.scrollHeight
+  }
+}
+
 export const App = {
   blocks: [ createBlock () ],
   render: render (
@@ -68,14 +77,11 @@ export const App = {
                    oncreateblockiflast=${createBlockIfLast}
                    ondeleteblock=${deleteBlock}
                    onnextblock=${focusAdjacentBlock (1)}
-                   onprevblock=${focusAdjacentBlock (-1)}>
+                   onprevblock=${focusAdjacentBlock (-1)}
+                   onscrolltoend=${scrollToEnd}>
           </e-block>
         `.key (block.uuid),
         blocks )}
-    <div id="console-container">
-      <div id="console">
-      </div>
-    </div>
     `,
     { shadowRoot: false })
 }

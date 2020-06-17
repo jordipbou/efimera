@@ -43,6 +43,14 @@ const pretty_print = (data) =>
     'undefined'
     : prettyPrintJson.toHtml (data)
   
+const hostEvent = (host, evt_name) => {
+  host.dispatchEvent (
+    new CustomEvent (evt_name,
+                    { detail: host }))
+
+  return true
+}
+
 const evaluate_code = (host, code) => {
   // TODO: Add hack to use import as if it was (pikaImport)
   // let hack...to be able to use let with global variables
@@ -61,15 +69,12 @@ const evaluate_code = (host, code) => {
   // TODO: Pretty print has problems with functions as result
   // (only can be seen in the console)
 
-  host.result = pretty_print (result)
-}
+  hostEvent (host, 'scrolltoend')
 
-const hostEvent = (host, evt_name) => {
-  host.dispatchEvent (
-    new CustomEvent (evt_name,
-                    { detail: host }))
-
-  return true
+  host.result = 
+    result === undefined ?
+    `<div class="undefined-block"></div>`
+    : pretty_print (result)
 }
 
 const isBeginningOfBlock = (view) => {

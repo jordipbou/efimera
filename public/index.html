@@ -30,7 +30,7 @@
       width: 532,
       zoom: 1,
       position: 'se',
-      adjX: 10,
+      adjX: 25,
       adjY: 10,
       fontSize: 12,
     //  fontFamily: 'monofur',  // LEDs are not shown with monofur
@@ -61,6 +61,7 @@
     window.console.assert = (p, msg) => { if (!p) dbg.log.e (msg) }
     window.console.clear = dbg.log.clear
     // window.console.count = ...
+    // window.console.countReset = ...
     window.console.debug = dbg.log.d
     window.console.error = dbg.log.e
     // window.console.group = ...
@@ -69,7 +70,6 @@
     window.console.info = dbg.log.i
     window.console.log = dbg.log
     window.console.warn = dbg.log.w
-
   </script>
   <script>
 		window.pikaImport = (pkg, ns, d = false) => {
