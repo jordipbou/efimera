@@ -21,6 +21,8 @@ const deleteBlock = (host, evt) => {
     }
     host.blocks = filter ((b) => b.uuid !== evt.detail.uuid)
                          (host.blocks)
+  } else {
+    evt.detail.result = ''
   }
 }
 

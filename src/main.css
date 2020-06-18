@@ -2,6 +2,19 @@
 @import "pretty-print-json/dist/pretty-print-json.css";
 @import "monofur.css";
 
+:root {
+	--primary: #37474f;
+	--primary-light: #62727b;
+	--primary-dark: #102027;
+	--secondary: #e64a19;
+	--secondary-light: #ff7d47;
+	--secondary-dark: #ac0800;
+	--text: #fafafa;
+	--text-weak: #f9dd9f;
+	--text-dark: #212121;
+	--text-dark-weak: #006064;
+}
+
 html {
 	width: 100vw;
 	height: 100vh;
@@ -13,7 +26,8 @@ html {
 body {
 	width: 100%;
 	height: 100%;
-	background-color: rgb(34, 48, 57);
+	/* background-color: rgb(14, 34, 47); */
+	background-color: var(--primary);
 	overflow: hidden;
 	margin: 0px;
 	padding-top: 5px;
@@ -28,6 +42,10 @@ e-app {
 	overflow-y: auto;
 }
 
+.cm-scroller {
+	font-family: 'monofur' !important;
+}
+
 .cm-focused, .cm-focused:focus {
 	outline-width: 0px !important;
 }
@@ -38,12 +56,16 @@ e-app {
 
 .undefined-block {
 	width: 100%;
-	height: 5px;
-	background-color: #f1c40f;
-    background-image: linear-gradient(90deg, rgba(255,255,255,.07) 50%, transparent 50%),
-    linear-gradient(90deg, rgba(255,255,255,.13) 50%, transparent 50%),
-    linear-gradient(90deg, transparent 50%, rgba(255,255,255,.17) 50%),
-    linear-gradient(90deg, transparent 50%, rgba(255,255,255,.19) 50%);
-    background-size: 13px, 29px, 37px, 53px;
+	height: 3px;
+	background-color: var(--secondary-dark);
 	opacity: 0.25;
 }
+
+.result { 
+	color: var(--text-weak); 
+	padding-left: 10px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+.pp-number .label {	color: var(--text-dark); }
