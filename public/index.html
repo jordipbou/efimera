@@ -7,70 +7,9 @@
 	<title>Efimera - JS Live Coding Environment</title>
 
 	<link rel=icon type=image/png href=./favicon.png>
-	<link rel=stylesheet href=./build/bundle.css>
+	<link rel=stylesheet href=./bundle.css>
 
-	<script defer type=module src=./build/bundle.js></script>
-  <script src=./libs/debug.js></script>
-  <script>
-    let options = {
-      visible: true,
-      keyAssign: {
-        key: 113,
-        ctrl: true
-      },
-      focusOnShow: false,
-      autoPopup: {
-        scriptError: true,
-        loadError: true,
-        error: true,
-        fatal: true
-      },
-      lines: 25,
-      bufSize: 300,
-      width: 532,
-      zoom: 1,
-      position: 'se',
-      adjX: 25,
-      adjY: 10,
-      fontSize: 12,
-    //  fontFamily: 'monofur',  // LEDs are not shown with monofur
-      opacity: 0.25,
-      showLineNums: true,
-      showTimeStamp: false,
-      useClock: false,
-      useClearButton: false,
-      useSuspendLogButton: false,
-      usePinButton: false,
-      useWinCtrlButton: false,
-      useStopwatch: false,
-      useDeviceInfo: false,
-      useLed: true,
-      useTools: false,
-      useMsgDisplay: false,
-      useScreenMeasure: false,
-      useSystemInfo: false,
-      useHtmlSrc: false,
-      useElementInfo: false,
-      useJsEditor: false,
-      useCommandLine: false,
-      useLogFilter: false
-    }
-
-    dbg.init (options)
-
-    //window.console.assert = (p, msg) => { if (!p) dbg.log.e (msg) }
-    //window.console.clear = dbg.log.clear
-    //// window.console.count = ...
-    //// window.console.countReset = ...
-    //window.console.debug = dbg.log.d
-    //window.console.error = dbg.log.e
-    //// window.console.group = ...
-    //// window.console.groupCollapsed = ...
-    //// window.console.groupEnd = ...
-    //window.console.info = dbg.log.i
-    //window.console.log = dbg.log
-    //window.console.warn = dbg.log.w
-  </script>
+	<script defer type=module src=./bundle.js></script>
   <script>
 		window.pikaImport = (pkg, ns, d = false) => {
 			if (ns === undefined) ns = pkg;

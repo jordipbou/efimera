@@ -1,57 +1,42 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import postcss from 'rollup-plugin-postcss';
+import livereload from 'rollup-plugin-livereload';
+import serve from 'rollup-plugin-serve'
+
+// PostCSS
+import tailwindcss from 'tailwindcss'
 
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
-	input: [ 'src/main.js' ],
+	input: 'src/main.js',
 	output: {
-		sourcemap: true,
+		file: 'public/bundle.js',
 		format: 'umd',
-		name: 'efimera',
-		file: 'public/build/bundle.js'
+		sourcemap: true,
+		name: 'efimera'
 	},
-	external: [
-		'/fonts/forkawesome-webfont.woff2'
-	],
 	plugins: [
-		postcss({
-			extract: true,
-		}),
-    resolve({
-      browser: true,
-      dedupe: []
-    }),
-		commonjs(),
+    resolve (),
+    commonjs (),
 
-		!production && serve(),
-		!production && livereload('public'),
+		postcss ({
+      extract: true,
+      modules: true,
+      plugins: [
+        tailwindcss ()
+      ]
+		}),
+
+		!production && serve ({
+      contentBase: [ 'public' ],
+      host: 'localhost',
+      port: 10001
+    }),
+		!production && livereload ('public'),
 
 		production && terser(),
-
-	],
-	watch: {
-		clearScreen: false
-	}
+	]
 };
-
-function serve () {
-  let started = false;
-
-  return {
-    writeBundle () {
-      if (!started) {
-        started = true;
-
-        require ('child_process').spawn ('npm', ['run', 'start', '--', '--dev'], {
-          stdio: ['ignore', 'inherit', 'inherit'],
-          shell: true
-        });
-      }
-    }
-  };
-}
-

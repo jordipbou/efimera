@@ -1,71 +1,39 @@
-@import "fork-awesome/css/fork-awesome.css";
-@import "pretty-print-json/dist/pretty-print-json.css";
+/* @import "fork-awesome/css/fork-awesome.css"; */
 @import "monofur.css";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Solarized colors */
 :root {
-	--primary: #37474f;
-	--primary-light: #62727b;
-	--primary-dark: #102027;
-	--secondary: #e64a19;
-	--secondary-light: #ff7d47;
-	--secondary-dark: #ac0800;
-	--text: #fafafa;
-	--text-weak: #f9dd9f;
-	--text-dark: #212121;
-	--text-dark-weak: #006064;
+	--base03:    #002b36;
+	--base02:    #073642;
+	--base01:    #586e75;
+	--base00:    #657b83;
+	--base0:     #839496;
+	--base1:     #93a1a1;
+	--base2:     #eee8d5;
+	--base3:     #fdf6e3;
+	--yellow:    #b58900;
+	--orange:    #cb4b16;
+	--red:       #dc322f;
+	--magenta:   #d33682;
+	--violet:    #6c71c4;
+	--blue:      #268bd2;
+	--cyan:      #2aa198;
+	--green:     #859900;
 }
 
-html {
+html, body {
 	width: 100vw;
 	height: 100vh;
-	overflow: hidden;
 	margin: 0px;
 	padding: 0px;
 }
 
 body {
-	width: 100%;
-	height: 100%;
-	/* background-color: rgb(14, 34, 47); */
-	background-color: var(--primary);
-	overflow: hidden;
-	margin: 0px;
-	padding-top: 5px;
-	padding-left: 5px;
-}
-
-e-app {
-	display: block;
+	background-color: var(--base03);
+	color: var(--base0);
 	font-family: 'monofur';
-	width: calc(100% - 10px);
-	height: calc(100% - 10px);
-	overflow-y: auto;
 }
-
-.cm-scroller {
-	font-family: 'monofur' !important;
-}
-
-.cm-focused, .cm-focused:focus {
-	outline-width: 0px !important;
-}
-
-#_debug_ > div:nth-child(1) > div:nth-child(3) > div {
-	height: calc(96%) !important;
-}
-
-.undefined-block {
-	width: 100%;
-	height: 3px;
-	background-color: var(--secondary-dark);
-	opacity: 0.25;
-}
-
-.result { 
-	color: var(--text-weak); 
-	padding-left: 10px;
-	padding-top: 2px;
-	padding-bottom: 2px;
-}
-
-.pp-number .label {	color: var(--text-dark); }

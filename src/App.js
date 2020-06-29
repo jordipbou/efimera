@@ -1,91 +1,99 @@
 import { html, define, render } from 'hybrids'
-import { 
-  add, append, curry, filter, findIndex, insert, 
-  length, map, prop, propEq 
-  } from 'ramda'
-import { v4 as uuidv4 } from 'uuid'
+import { Term } from './Term.js'
+import { evolve, filter, has, map, pipe } from 'ramda'
 
-import './Block.js'
+const styles = html`
+  <style>
+    e-app { width: 100%;
+            height: 100%;
+            display: block; }
+  </style>
+`
 
-const insertAfter = curry((predicate, element, list) =>
-  insert (add (1) (findIndex (predicate) (list)))
-         (element)
-         (list))
-
-const deleteBlock = (host, evt) => {
-  if (!propEq ('uuid') (evt.detail.uuid) (head (host.blocks))) {
-    if (!propEq ('uuid') (evt.detail.uuid) (last (host.blocks))) {
-      focusAdjacentBlock (1) (host, evt)
+const moveCaretTo = (host, line, x, y) => {
+  if (x !== undefined) {
+    if (x >= line.value.length) {
+      line.x = line.value.length - 1
+    } else if (x < 0) {
+      line.x = 0
     } else {
-      focusAdjacentBlock (-1) (host, evt)
+      line.x = x
     }
-    host.blocks = filter ((b) => b.uuid !== evt.detail.uuid)
-                         (host.blocks)
-  } else {
-    evt.detail.result = ''
-  }
-}
 
-const createBlock = (host, evt) => {
-  let new_block = {
-    uuid: uuidv4 (),
-    doc: '',
-    result: ''
+    // TODO: Modify line !!!
   }
 
-  if (host === undefined && evt === undefined) {
-    return new_block
-  } else {
-    host.blocks = insertAfter (propEq ('uuid') (evt.detail.uuid))
-                              (new_block)
-                              (host.blocks)
-  }
+  // TODO: Modify x position depending on y (for lines spanning
+  // multiple lines)
+
+  let line_selector = '.line:nth-child(' + (line.n + 1) + ')'
+  let caret_selector = line_selector + ' .caret'
+  let editable_selector = line_selector + ' .editable .content'
+
+  // TODO: This fails if content is bigger than screen width 
+  // and wraps to next line on div !!!
+  // It's needed to check div width and adapt y of caret.
+  let caret_element = host.querySelector (caret_selector)
+
+  caret_element.style.left = (line.x * 0.5) + 'em'
+
+  let editable_element = host.querySelector (editable_selector)
+
+  editable_element.focus ()
 }
 
-const createBlockIfLast = (host, evt) =>
-  propEq ('uuid') (evt.detail.uuid) (last (host.blocks)) ?
-    createBlock (host, evt)
-    : null
+const selectLine = (host, evt) => {
+  let line = evt.detail.line
+  let caret = evt.detail.caret
 
-const focusAdjacentBlock = (d) => (host, evt) => {
-  let bs = document.getElementsByTagName ('e-block')
-  let index = 
-    add (d) 
-        (findIndex (propEq ('uuid') (evt.detail.uuid)) (bs))
-  index >= 0 && index < length (bs) ?
-    bs [index].editor.focus ()  
-    : null
+  host.doc = 
+    map ((l) => evolve ({ focused: (v) => l.n === line.n}) (l)) 
+        (host.doc)
+
+  if (line.n !== -1) moveCaretTo (host, line, caret[0], caret[1])
 }
 
-const scrollToEnd = (host, evt) => {
-  console.log ('on scrollToEnd')
-  if (!propEq ('uuid') (evt.detail.uuid) (last (host.blocks))) {
-    console.log ('is last block, scrolling')
-    let container = host.querySelector ('e-app')
-    container.scrollTop = container.scrollHeight
-  }
+const deselectLines = (host) => {
+  selectLine (host, { detail: { line: { n: -1 }}})
 }
+
+const goToNextLine = (host, evt) => {
+  console.log ('jumping to next line')
+}
+
+const moveCaretLeft = (host, evt) => {
+  host.doc = 
+    map ((l) => {
+            if (l.focused && l.x > 0) {
+              l.x = l.x - 1
+              moveCaretTo (host, l)
+            }
+            return l
+          })
+        (host.doc)
+}
+
+// Types:
+//  system -> system messages
+//  input -> input from user
+//  output -> div accessible to user as @view (@1, @50, ...)
+//  result -> result of evaluating user input
 
 export const App = {
-  blocks: [ createBlock () ],
+  doc: [
+    { n: 0, type: 'system', value: 'Welcome to Efimera.js v0.0.1.' },
+    { n: 1, type: 'input', value: 'Arr', focused: false, x: 0, completion: 'ay' }
+  ],
   render: render (
-    ({ blocks, console }) => html`
-      ${addIndex (map) ((block, index) => html`
-          <e-block doc=${block.doc} 
-                   index=${index}
-                   uuid=${block.uuid}
-                   data-uuid=${block.uuid}
-                   oncreateblock=${createBlock}
-                   oncreateblockiflast=${createBlockIfLast}
-                   ondeleteblock=${deleteBlock}
-                   onnextblock=${focusAdjacentBlock (1)}
-                   onprevblock=${focusAdjacentBlock (-1)}
-                   onscrolltoend=${scrollToEnd}>
-          </e-block>
-        `.key (block.uuid),
-        blocks )}
-    `,
-    { shadowRoot: false })
+    ({ doc }) => html`
+      <e-term buffer=${doc}
+              onclick=${deselectLines}
+              onselectline=${selectLine}
+              ongotonextline=${goToNextLine}
+              onmovecaretleft=${moveCaretLeft}>
+      </e-term>
+      ${styles}
+    `, { shadowRoot: false })
 }
 
 define ('e-app', App)
