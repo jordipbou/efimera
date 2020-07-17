@@ -1,5 +1,4 @@
-//import App from './App.svelte';
-import './main.css';
+import './main.css'
 
 export * as RMidi from './frMIDI/main.js'
 //export * as RMusic from './rmusic.js'
@@ -16,12 +15,4 @@ export * as rxjs_operators from 'rxjs/operators'
 export * as hybrids from 'hybrids'
 
 import './App.js'
-//import { define } from 'hybrids'
 
-//define ('e-app', App)
-
-//export const efimera = new App({
-//	target: document.body,
-//	props: {
-//	}
-//});

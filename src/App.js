@@ -13,16 +13,16 @@ const insertAfter = curry((predicate, element, list) =>
          (list))
 
 const deleteBlock = (host, evt) => {
-  if (!propEq ('uuid') (evt.detail.uuid) (head (host.blocks))) {
-    if (!propEq ('uuid') (evt.detail.uuid) (last (host.blocks))) {
+  if (!propEq ('uuid') (evt.target.uuid) (head (host.blocks))) {
+    if (!propEq ('uuid') (evt.target.uuid) (last (host.blocks))) {
       focusAdjacentBlock (1) (host, evt)
     } else {
       focusAdjacentBlock (-1) (host, evt)
     }
-    host.blocks = filter ((b) => b.uuid !== evt.detail.uuid)
+    host.blocks = filter ((b) => b.uuid !== evt.target.uuid)
                          (host.blocks)
   } else {
-    evt.detail.result = ''
+    evt.target.result = ''
   }
 }
 
@@ -30,39 +30,37 @@ const createBlock = (host, evt) => {
   let new_block = {
     uuid: uuidv4 (),
     doc: '',
-    result: ''
+    result: '',
+    multiline: false
   }
 
-  if (host === undefined && evt === undefined) {
+  if (host === undefined) {
     return new_block
   } else {
-    host.blocks = insertAfter (propEq ('uuid') (evt.detail.uuid))
+    host.blocks = insertAfter (propEq ('uuid') (evt.target.uuid))
                               (new_block)
                               (host.blocks)
   }
 }
 
 const createBlockIfLast = (host, evt) =>
-  propEq ('uuid') (evt.detail.uuid) (last (host.blocks)) ?
-    createBlock (host, evt)
+  propEq ('uuid') (evt.target.uuid) (last (host.blocks)) ?
+    createBlock  (host, evt)
     : null
 
 const focusAdjacentBlock = (d) => (host, evt) => {
   let bs = document.getElementsByTagName ('e-block')
   let index = 
     add (d) 
-        (findIndex (propEq ('uuid') (evt.detail.uuid)) (bs))
+        (findIndex (propEq ('uuid') (evt.target.uuid)) (bs))
   index >= 0 && index < length (bs) ?
     bs [index].editor.focus ()  
     : null
 }
 
 const scrollToEnd = (host, evt) => {
-  console.log ('on scrollToEnd')
-  if (!propEq ('uuid') (evt.detail.uuid) (last (host.blocks))) {
-    console.log ('is last block, scrolling')
-    let container = host.querySelector ('e-app')
-    container.scrollTop = container.scrollHeight
+  if (!propEq ('uuid') (evt.target.uuid) (last (host.blocks))) {
+    host.scrollTop = host.scrollHeight
   }
 }
 
@@ -70,20 +68,23 @@ export const App = {
   blocks: [ createBlock () ],
   render: render (
     ({ blocks, console }) => html`
-      ${addIndex (map) ((block, index) => html`
-          <e-block doc=${block.doc} 
-                   index=${index}
-                   uuid=${block.uuid}
-                   data-uuid=${block.uuid}
-                   oncreateblock=${createBlock}
-                   oncreateblockiflast=${createBlockIfLast}
-                   ondeleteblock=${deleteBlock}
-                   onnextblock=${focusAdjacentBlock (1)}
-                   onprevblock=${focusAdjacentBlock (-1)}
-                   onscrolltoend=${scrollToEnd}>
-          </e-block>
-        `.key (block.uuid),
-        blocks )}
+      <div id="app-container">
+        ${addIndex (map) ((block, index) => html`
+            <e-block doc=${block.doc} 
+                     index=${index}
+                     uuid=${block.uuid}
+                     data-uuid=${block.uuid}
+                     oncreateblock=${createBlock}
+                     oncreateblockiflast=${createBlockIfLast}
+                     ondeleteblock=${deleteBlock}
+                     onnextblock=${focusAdjacentBlock (1)}
+                     onprevblock=${focusAdjacentBlock (-1)}
+                     onscrolltoend=${scrollToEnd}>
+            </e-block>
+          `.key (block.uuid),
+          blocks )}
+        <div id="preview" class="hidden"></div>
+      </div>
     `,
     { shadowRoot: false })
 }
