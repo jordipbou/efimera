@@ -98,6 +98,15 @@ export const customKeymap = (host) => [
       isEndOfBlock (view) ?
         dispatch (host, 'nextblock')
         : cursorPageDown (view)
-    }
+    },
+  { key: "Ctrl-s",
+    run: (view) => {
+      dispatch (host, 'savesession')
+      return true
+    }},
+  { key: "Ctrl-Shift-s",
+    run: (view) =>
+      dispatch (host, 'saveblock')
+    },
 ]
 

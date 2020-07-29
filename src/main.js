@@ -14,5 +14,9 @@ export * as rxjs_operators from 'rxjs/operators'
 
 export * as hybrids from 'hybrids'
 
+import { token } from './Gists.js'
+import { Octokit } from '@octokit/rest'
+export const octokit = new Octokit ({ auth: token })
+
 import './App.js'
 

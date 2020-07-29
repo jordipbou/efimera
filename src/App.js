@@ -6,6 +6,7 @@ import {
 import { v4 as uuidv4 } from 'uuid'
 
 import './Block.js'
+import './SaveBlock.js'
 
 const insertAfter = curry((predicate, element, list) =>
   insert (add (1) (findIndex (predicate) (list)))
@@ -65,9 +66,10 @@ const scrollToEnd = (host, evt) => {
 }
 
 export const App = {
+  saveBlock: false,
   blocks: [ createBlock () ],
   render: render (
-    ({ blocks, console }) => html`
+    ({ saveBlock, blocks, console }) => html`
       <div id="app-container">
         ${addIndex (map) ((block, index) => html`
             <e-block doc=${block.doc} 
@@ -79,14 +81,19 @@ export const App = {
                      ondeleteblock=${deleteBlock}
                      onnextblock=${focusAdjacentBlock (1)}
                      onprevblock=${focusAdjacentBlock (-1)}
-                     onscrolltoend=${scrollToEnd}>
+                     onscrolltoend=${scrollToEnd}
+                     onsaveblock=${(host) => { host.saveBlock = true }}>
             </e-block>
           `.key (block.uuid),
           blocks )}
         <div id="preview" class="hidden"></div>
       </div>
+      ${saveBlock && html`
+      <e-save-block onclose="${(h, e) => {h.saveBlock = false }}" 
+                    block="let a = 5" />
+      `}
     `,
     { shadowRoot: false })
 }
 
-define ('e-app', App)
+define ('e-app', App)      
