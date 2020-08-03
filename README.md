@@ -6,7 +6,9 @@ Browser based Javascript live coding environment.
 
 There are three possible panes, term, logs and preview.
 
-Term is made up of blocks. Each block has a preview box. Only one preview box can be set as a full pane.
+Term is made up of blocks. 
+Each block has a preview box. 
+Only one preview box can be set as a full pane.
 
 # Architecture
 
@@ -15,14 +17,16 @@ Term is made up of blocks. Each block has a preview box. Only one preview box ca
 Session
   + Document
     + Block
-	  + History
+	  + Line
+	    + History (optional)
 
 ## Views
 
 SessionView
   + PaneView
-    + TermView
+    + TermView -> displays a document
       + InputView -> displays a block
+		+-> uses a BlockRenderer for displaying
       + OutputView -> displays the result of evaluate input block code
       + RenderView -> space for real time rendering from any block
     + RenderView

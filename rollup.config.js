@@ -7,7 +7,6 @@ import serve from 'rollup-plugin-serve'
 
 // PostCSS
 import atImport from 'postcss-import'
-import tailwindcss from 'tailwindcss'
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -28,7 +27,6 @@ export default {
       modules: false,
       plugins: [
         atImport (),
-        tailwindcss ()
       ]
 		}),
 

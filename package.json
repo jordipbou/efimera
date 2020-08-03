@@ -13,6 +13,7 @@
     "test": "ava --watch"
   },
   "devDependencies": {
+    "@ava/babel": "^1.0.1",
     "@octokit/rest": "^18.0.3",
     "@rollup/plugin-commonjs": "^11.1.0",
     "@rollup/plugin-node-resolve": "^7.1.3",
@@ -35,6 +36,7 @@
   "ava": {
     "require": [
       "esm"
-    ]
+    ],
+	"babel": true
   }
 }
