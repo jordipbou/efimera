@@ -25,9 +25,10 @@ Session
 SessionView
   + PaneView
     + TermView -> displays a document
-      + InputView -> displays a block
-		+-> uses a BlockRenderer for displaying
-      + OutputView -> displays the result of evaluate input block code
-      + RenderView -> space for real time rendering from any block
+	  + BlockView -> displays a input / output block
+        + InputView -> renders and gets input of a block
+	      +-> uses a BlockRenderer for displaying
+        + OutputView -> displays the result of evaluate input block code
+        + RenderView -> space for real time rendering from any block
     + RenderView
     + LogsView

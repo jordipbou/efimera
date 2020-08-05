@@ -1,5 +1,11 @@
 import { is, isNil, not } from 'ramda'
 
+export const init = (p, f) => ({
+  get: (host, lastValue) => lastValue,
+  set: (host, value, lastValue) => value,
+  connect: (host, key, invalidate) => { host [p] = f (host, key, invalidate) }
+})
+
 export const ref = 
   (query) => 
     ({ render }) => 

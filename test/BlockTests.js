@@ -1,6 +1,6 @@
 const test = require ('ava')
 import { 
-  caret, createBlock, insertText, 
+  caret, createBlock, insertText, insertLine,
   moveCursorDown, moveCursorLeft, moveCursorRight, moveCursorUp,
   removeText 
   } from '../src/Block.js'
@@ -130,113 +130,98 @@ test ('Move cursor left', (t) => {
   t.deepEqual (c.cursor, [0, 3])
 })
 
+test ('Complex cursor movements', (t) => {
+  let b = createBlock (['123', '456789'])
+  b.cursor = [6, 1]
+  let c = moveCursorUp (b)
+  t.deepEqual (c.cursor, [6, 0])
+  c = moveCursorLeft (c)
+  t.deepEqual (c.cursor, [2, 0])
+})
+
 // --------------------------------------------------------- Text modification
 
-//test ('Insert text into block at cursor position', (t) => {
-//  let b = createBlock ()
-//  let c = insertText ('let a = 5') (b)
-//  t.deepEqual (c.lines [0], 'let a = 5')
-//
-//  b.lines = ['first line', 'second line']
-//  b.cursor = [7, 1]
-//  c = insertText ('after first ') (b)
-//  t.deepEqual (c.lines [0], 'first line')
-//  t.deepEqual (c.lines [1], 'second after first line')
-//
-//  b.cursor = [10, 0]
-//  c = insertText (' forever') (b)
-//  t.deepEqual (c.lines [0], 'first line forever')
-//  t.deepEqual (c.lines [1], 'second line')
-//})
-//
-//test ('Remove text to the left of the cursor', (t) => {
-//  let b = createBlock ('let a = 5')
-//  b.cursor = [9, 0]
-//  let c = removeText (1) (b)
-//  t.deepEqual (c.lines [0], 'let a = ')
-//  t.deepEqual (c.cursor, [8, 0])
-//
-//  b.cursor = [0, 0]
-//  c = removeText (1) (b)
-//  t.deepEqual (c.lines [0], 'let a = 5')
-//  t.deepEqual (c.cursor, [0, 0])
-//
-//  b.lines = ['let a = 5', '']
-//  b.cursor = [0, 1]
-//  c = removeText (1) (b)
-//  t.deepEqual (c.lines, ['let a = 5'])
-//  t.deepEqual (c.cursor, [9, 0])
-//
-//  b.lines = ['let a = 5', 'let b = 10', 'a + b']
-//  b.cursor = [10, 1]
-//  c = removeText (11) (b)
-//  t.deepEqual (c.lines, ['let a = 5', 'a + b'])
-//  t.deepEqual (c.cursor, [9, 0])
-//
-//  b.cursor = [1, 1]
-//  c = removeText (2) (b)
-//  t.deepEqual (c.lines, ['let a = 5et b = 10', 'a + b'])
-//  t.deepEqual (c.cursor, [9, 0])
-//
-//  b.lines = ['']
-//  b.cursor = [0, 0]
-//  c = removeText (15) (b)
-//  t.deepEqual (c.lines, [''])
-//  t.deepEqual (c.cursor, [0, 0])
-//})
-//
-//test ('Move cursor to the left', (t) => {
-//  let b = createBlock ('let a = 5')
-//  let c = moveCursorLeft (1) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [0, 0])
-//
-//  b.cursor = [5, 0]
-//  c = moveCursorLeft (3) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [2, 0])
-//
-//  b.cursor = [5, 0]
-//  c = moveCursorLeft (10) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [0, 0])
-//})
-//
-//test ('Move cursor to the right', (t) => {
-//  let b = createBlock ('let a = 5')
-//  let c = moveCursorRight (1) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [1, 0])
-//
-//  b.cursor = [0, 0]
-//  c = moveCursorRight (50) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [length (b.lines [0]), 0])
-//})
-//
-//test ('Move cursor up', (t) => {
-//  let b = createBlock ('let a = 5', 'let b = 10', '', 'a + b')
-//  let c = moveCursorUp (1) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [0, 0])
-//
-//  b.cursor = [2, 1]
-//  c = moveCursorUp (1) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [2, 0])
-//
-//  b.cursor = [2, 1]
-//  c = moveCursorUp (50) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [2, 0])
-//  
-//  b.cursor = [10, 1]
-//  c = moveCursorUp (1) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [9, 0])
-//
-//  b.cursor = [5, 3]
-//  c = moveCursorUp (1) (b)
-//  t.deepEqual (c.lines, b.lines)
-//  t.deepEqual (c.cursor, [0, 2])
-//})
+test ('Insert text into block at cursor position', (t) => {
+  let b = createBlock ()
+  let c = insertText (['let a = 5']) (b)
+  t.deepEqual (c.lines [0], 'let a = 5')
+
+  b.lines = ['first line', 'second line']
+  b.cursor = [7, 1]
+  c = insertText ('after first ') (b)
+  t.deepEqual (c.lines [0], 'first line')
+  t.deepEqual (c.lines [1], 'second after first line')
+
+  b.cursor = [10, 0]
+  c = insertText (' forever') (b)
+  t.deepEqual (c.lines [0], 'first line forever')
+  t.deepEqual (c.lines [1], 'second line')
+})
+
+test ('Remove text to the left of the cursor', (t) => {
+  let b = createBlock (['let a = 5'])
+  b.cursor = [9, 0]
+  let c = removeText (1) (b)
+  t.deepEqual (c.lines [0], 'let a = ')
+  t.deepEqual (c.cursor, [8, 0])
+
+  b.cursor = [0, 0]
+  c = removeText (1) (b)
+  t.deepEqual (c.lines [0], 'let a = 5')
+  t.deepEqual (c.cursor, [0, 0])
+
+  b.lines = ['let a = 5', '']
+  b.cursor = [0, 1]
+  c = removeText (1) (b)
+  t.deepEqual (c.lines, ['let a = 5'])
+  t.deepEqual (c.cursor, [9, 0])
+
+  b.lines = ['let a = 5', 'let b = 10', 'a + b']
+  b.cursor = [10, 1]
+  c = removeText (11) (b)
+  t.deepEqual (c.lines, ['let a = 5', 'a + b'])
+  t.deepEqual (c.cursor, [9, 0])
+
+  b.cursor = [1, 1]
+  c = removeText (2) (b)
+  t.deepEqual (c.lines, ['let a = 5et b = 10', 'a + b'])
+  t.deepEqual (c.cursor, [9, 0])
+
+  b.lines = ['']
+  b.cursor = [0, 0]
+  c = removeText (15) (b)
+  t.deepEqual (c.lines, [''])
+  t.deepEqual (c.cursor, [0, 0])
+})
+
+test ('Insert new line after cursor current line', (t) => {
+  let b = createBlock (['let a = 5', 'let b = 10', 'a + b'])
+  b.cursor = [3, 1]
+  let c = insertLine (b)
+  t.deepEqual (c.lines, ['let a = 5', 'let b = 10', '', 'a + b'])
+  t.deepEqual (c.cursor, [0, 2])
+})
+
+test ('Complex inserting and removal', (t) => {
+  let b = createBlock (['let a = 5', 'let b = 10'])
+  b.cursor = [10, 1]
+  let c = insertLine (b)
+  t.deepEqual (c.cursor, [0, 2])
+  c = insertText ('a + b') (c)
+  t.deepEqual (c.cursor, [5, 2])
+  c = removeText (1) (c)
+  t.deepEqual (c.lines, ['let a = 5', 'let b = 10', 'a + '])
+  t.deepEqual (c.cursor, [4, 2])
+
+  b = createBlock (['let a = 5', 'a'])
+  b.cursor = [1, 1]
+  c = removeText (1) (b)
+  t.deepEqual (c.lines, ['let a = 5', ''])
+  t.deepEqual (c.cursor, [0, 1])
+  c = removeText (1) (c)
+  t.deepEqual (c.lines, ['let a = 5'])
+  t.deepEqual (c.cursor, [9, 0])
+  c = removeText (1) (c)
+  t.deepEqual (c.lines, ['let a = '])
+  t.deepEqual (c.cursor, [8, 0])
+})

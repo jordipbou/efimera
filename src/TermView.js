@@ -1,8 +1,9 @@
 import { define, html } from 'hybrids'
+import './InputView.js'
 
 export const TermView = {
   render: () => html`
-    Term view !
+    <e-input></e-input> 
   `
 }
 

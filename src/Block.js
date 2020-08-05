@@ -38,12 +38,12 @@ export const moveCursorRight = (block) =>
                           min (length (block.lines [block.cursor [1]]))))
   }) (block)
 
-export const moveCursorLeft = 
+export const moveCursorLeft = (block) => 
   evolve ({
-    cursor: adjust (0)
-                   (pipe (subtract (__, 1),
-                          max (0)))
-  })
+    cursor: update (0)
+                   (min (max (0, block.cursor [0] - 1))
+                        (length (block.lines [block.cursor [1]]) - 1))
+  }) (block)
 
 // -------------------------- Text modification ------------------------------
 
@@ -55,7 +55,8 @@ export const insertText = (text) => (block) =>
                    (insert (1) 
                            (text) 
                            (splitAt (block.cursor [0]) 
-                           (block.lines [block.cursor [1]])))) 
+                           (block.lines [block.cursor [1]])))),
+    cursor: adjust (0) (add (length (text)))
   }) (block)
 
 export const removeText = (n) => (block) => 
@@ -85,6 +86,12 @@ export const removeText = (n) => (block) =>
                                        block.cursor [1] - 1])
                     }) (block))
         : removeText (n - block.cursor [0]) (removeText (block.cursor [0]) (block))
+
+export const insertLine = (block) =>
+  evolve ({
+    lines: insert (block.cursor [1] + 1) (''),
+    cursor: pipe (update (0) (0), adjust (1) (add (1)))
+  }) (block)
 
 // ------------------------------ Block creation ------------------------------
 
