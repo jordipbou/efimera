@@ -3,20 +3,25 @@
 
 import { html } from 'hybrids'
 import { caret } from './Block.js'
-import { addIndex, isNil, length, map } from 'ramda'
+import { addIndex, isNil, join, length, map, slice } from 'ramda'
 
 const styles = `
 .line {
-  height: 1em;
+  line-height: 1;
   padding: 0em;
   margin: 0em;
 }
 
 .caret {
-  display: inline-block;
-  background-color: red;
-  width: 0.5em;
-  height: 1.5em;
+  min-width: 0.5em;
+  animation: blink .75s step-end infinite;
+}
+
+@keyframes blink {
+  from, to { background-color: white; 
+             color: black; }
+  50% { background-color: black;
+        color: white; }
 }
 `
 
@@ -26,18 +31,17 @@ const renderNoCaretLine = (line) => html`
   </div>
 `
 
-const renderCaretLine = (line, caret) => html`
-  <div class="line">
-    ${addIndex (map)
-               ((ch, idx) => idx === caret [0] ?
-                               html`<span class="caret">${ch}</span>`
-                               : ch)
-               (line)}
-    ${caret [0] === length (line) ?
-       html`<span class="caret"></span>`
-       : ''}
-  </div>
-`
+const renderCaretLine = (l, c) => 
+  length (l) <= c [0] ?
+    html`
+      <div class="line">
+        ${slice (0) (c [0]) (l)}<span class="caret">&nbsp;</span>
+      </div>`
+    : html`
+        <div class="line">
+          ${slice (0) (c [0]) (l)}<span class="caret">${l [c [0]] }</span>${slice (c [0] + 1) (Infinity) (l)}
+         </div>`
+
 
 const renderLines = (block) => 
   addIndex (map)

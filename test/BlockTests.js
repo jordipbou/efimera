@@ -198,8 +198,13 @@ test ('Insert new line after cursor current line', (t) => {
   let b = createBlock (['let a = 5', 'let b = 10', 'a + b'])
   b.cursor = [3, 1]
   let c = insertLine (b)
-  t.deepEqual (c.lines, ['let a = 5', 'let b = 10', '', 'a + b'])
+  t.deepEqual (c.lines, ['let a = 5', 'let', ' b = 10', 'a + b'])
   t.deepEqual (c.cursor, [0, 2])
+
+  b.cursor = [9, 0]
+  c = insertLine (b)
+  t.deepEqual (c.lines, ['let a = 5', '', 'let b = 10', 'a + b'])
+  t.deepEqual (c.cursor, [0, 1])
 })
 
 test ('Complex inserting and removal', (t) => {
@@ -224,4 +229,16 @@ test ('Complex inserting and removal', (t) => {
   c = removeText (1) (c)
   t.deepEqual (c.lines, ['let a = '])
   t.deepEqual (c.cursor, [8, 0])
+})
+
+test ('Complex movement and removal', (t) => {
+  let b = createBlock (['let a = 5', 'let b = 10', 'a + b'])
+  b.cursor = [10, 1]
+  let c = moveCursorDown (b)
+  t.deepEqual (c.cursor, [10, 2])
+  t.deepEqual (caret (c), [5, 2])
+  c = removeText (1) (c)
+  t.deepEqual (c.lines [2], 'a + ')
+  t.deepEqual (c.cursor, [4, 2])
+  t.deepEqual (caret (c), [4, 2])
 })

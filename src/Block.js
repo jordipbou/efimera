@@ -60,36 +60,41 @@ export const insertText = (text) => (block) =>
   }) (block)
 
 export const removeText = (n) => (block) => 
-  (block.cursor [0] === 0 && block.cursor [1] === 0) || n === 0 ?
+  (caret (block) [0] === 0 && caret (block) [1] === 0) || n === 0 ?
     block
-    : n <= block.cursor [0] ?
+    : n <= caret (block) [0] ?
       evolve ({
         lines: 
           update
-            (block.cursor [1])
+            (caret (block) [1])
             (join ('')
-              ([slice (0, block.cursor [0] - n, block.lines [block.cursor [1]]),
-                slice (block.cursor [0], Infinity, block.lines [block.cursor [1]])])),
-        cursor: always ([block.cursor [0] - n, block.cursor [1]])
+              ([slice (0, caret (block) [0] - n, block.lines [caret (block) [1]]),
+                slice (caret (block) [0], Infinity, block.lines [caret (block) [1]])])),
+        cursor: always ([caret (block) [0] - n, caret (block) [1]])
       }) (block)
-      : block.cursor [0] === 0 ?
+      : caret (block) [0] === 0 ?
         removeText (n - 1)
                    (evolve ({
                       lines: 
                         always (
-                          remove (block.cursor [1], 1)
-                                 (update (block.cursor [1] - 1)
-                                         (concat (block.lines [block.cursor [1] - 1])
-                                                 (block.lines [block.cursor [1]]))
+                          remove (caret (block) [1], 1)
+                                 (update (caret (block) [1] - 1)
+                                         (concat (block.lines [caret (block) [1] - 1])
+                                                 (block.lines [caret (block) [1]]))
                                          (block.lines))),
-                      cursor: always ([length (block.lines [block.cursor [1] - 1]),
-                                       block.cursor [1] - 1])
+                      cursor: always ([length (block.lines [caret (block) [1] - 1]),
+                                       caret (block) [1] - 1])
                     }) (block))
-        : removeText (n - block.cursor [0]) (removeText (block.cursor [0]) (block))
+        : removeText (n - caret (block) [0]) (removeText (caret (block) [0]) (block))
 
 export const insertLine = (block) =>
   evolve ({
-    lines: insert (block.cursor [1] + 1) (''),
+    lines: pipe (insert (block.cursor [1] + 1) 
+                        (block.lines [block.cursor [1]]),
+                 adjust (block.cursor [1] + 1)
+                        (slice (block.cursor [0]) (Infinity)),
+                 adjust (block.cursor [1]) 
+                        (slice (0) (block.cursor [0]))),
     cursor: pipe (update (0) (0), adjust (1) (add (1)))
   }) (block)
 
