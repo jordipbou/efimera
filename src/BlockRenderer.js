@@ -1,9 +1,13 @@
 // A block renderer renders a block content and possibly
 // added content (like autocompletions) to HTML
 
+// TODO:
+// * Ignore auto completion and syntax highlighting (at least for now)
+//   -- the important part is that they belong to the renderer, so
+//      if necessary a new render can be created --
+
 import { html } from 'hybrids'
-import { caret } from './Block.js'
-import { addIndex, isNil, join, length, map, slice } from 'ramda'
+import { renderLines } from './RendererUtils.js'
 
 const styles = `
 .line {
@@ -18,40 +22,13 @@ const styles = `
 }
 
 @keyframes blink {
-  from, to { background-color: white; 
-             color: black; }
-  50% { background-color: black;
-        color: white; }
+  from, to { background-color: black; 
+             color: white; }
+  50% { background-color: white;
+        color: black; }
 }
 `
 
-const renderNoCaretLine = (line) => html`
-  <div class="line">
-    ${line}
-  </div>
-`
-
-const renderCaretLine = (l, c) => 
-  length (l) <= c [0] ?
-    html`
-      <div class="line">
-        ${slice (0) (c [0]) (l)}<span class="caret">&nbsp;</span>
-      </div>`
-    : html`
-        <div class="line">
-          ${slice (0) (c [0]) (l)}<span class="caret">${l [c [0]] }</span>${slice (c [0] + 1) (Infinity) (l)}
-         </div>`
-
-
-const renderLines = (block) => 
-  addIndex (map)
-           ((line, idx) => idx === block.cursor [1] ?
-                             renderCaretLine (line, caret (block))
-                             : renderNoCaretLine (line))
-           (block.lines)
-
 export const createRenderer = () => ({
-  render: (block) => html`
-    ${renderLines (block)}
-  `.style (styles)
+  render: (block) => html (renderLines (block)).style (styles)
 })

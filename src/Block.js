@@ -5,17 +5,17 @@ import {
   pair, path, paths, pipe, remove, slice, splitAt, subtract, update 
   } from 'ramda'
 
-// ------------------------------- Caret -------------------------------------
+// ----------------------------- Caret -----------------------------------
 
-const getYCaret = (block) =>
-  Math.min (Math.max (block.cursor [1], 0), length (block.lines) - 1)
+export const caret = (block) => {
+  let cursor = block.cursor
+  let lines = block.lines
+  let y = Math.min (Math.max (cursor [1], 0), length (lines) - 1)
 
-export const caret = (block) =>
-  [ Math.min (Math.max (block.cursor [0], 0), 
-              length (block.lines [getYCaret (block)])),
-    getYCaret (block)]
+  return [ Math.min (Math.max (cursor [0], 0), length (lines [y])), y ]
+}
 
-// -------------------------- Cursor movement --------------------------------
+// ------------------------ Cursor movement ------------------------------
 
 export const moveCursorDown = (block) =>
   evolve ({
@@ -45,7 +45,7 @@ export const moveCursorLeft = (block) =>
                         (length (block.lines [block.cursor [1]]) - 1))
   }) (block)
 
-// -------------------------- Text modification ------------------------------
+// ------------------------ Text modification ----------------------------
 
 export const insertText = (text) => (block) =>
   evolve ({
@@ -86,6 +86,39 @@ export const removeText = (n) => (block) =>
                                        caret (block) [1] - 1])
                     }) (block))
         : removeText (n - caret (block) [0]) (removeText (caret (block) [0]) (block))
+
+export const deleteText = (n) => (block) => {
+  let cursor = caret (block)
+  let height = length (block.lines)
+  let width = length (block.lines [cursor [1]])
+  let line = block.lines [cursor [1]]
+  let next_line = block.lines [cursor [1] + 1]
+
+  return (cursor [1] === height && cursor [0] === width) || n === 0 ?
+           block
+           : n <= width - cursor [0] ?
+             evolve ({ lines: update (cursor [1])
+                                     (join 
+                                        ('') 
+                                        (remove (cursor [0]) 
+                                                (n) 
+                                                (line))),
+                       cursor: always (cursor)})
+                    (block)
+             : cursor [0] === width ?
+               deleteText (n - 1)
+                          (evolve ({
+                             lines: 
+                               pipe (
+                                 update (cursor [1])
+                                        (line + next_line),
+                                 remove (cursor [1] + 1) (1)),
+                             cursor: always (cursor)}) (block))
+                 : deleteText (n - (width - cursor [0]))
+                              (deleteText (width - cursor [0])
+                                          (block))
+                                       
+}
 
 export const insertLine = (block) =>
   evolve ({

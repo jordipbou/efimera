@@ -1,6 +1,6 @@
 import { dispatch } from 'hybrids'
 import { 
-  insertText, insertLine, 
+  deleteText, insertText, insertLine,
   moveCursorLeft, moveCursorRight, moveCursorUp, moveCursorDown,
   removeText 
   } from './Block.js'
@@ -9,7 +9,10 @@ export const createListener = () => ({
   onkeydown: (host, evt) => {
     if (evt.key === 'Backspace') {
       host.block = removeText (1) (host.block)
+    } else if (evt.key === 'Delete') {
+      host.block = deleteText (1) (host.block)
     } else if (evt.key === 'Enter') {
+      // Evaluate !!!!
       host.block = insertLine (host.block)
     } else if (evt.key === 'ArrowLeft') {
       host.block = moveCursorLeft (host.block)

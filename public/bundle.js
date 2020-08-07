@@ -3439,6 +3439,37 @@
   });
 
   /**
+   * Replace a substring or regex match in a string with a replacement.
+   *
+   * The first two parameters correspond to the parameters of the
+   * `String.prototype.replace()` function, so the second parameter can also be a
+   * function.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.7.0
+   * @category String
+   * @sig RegExp|String -> String -> String -> String
+   * @param {RegExp|String} pattern A regular expression or a substring to match.
+   * @param {String} replacement The string to replace the matches with.
+   * @param {String} str The String to do the search and replacement in.
+   * @return {String} The result.
+   * @example
+   *
+   *      R.replace('foo', 'bar', 'foo foo foo'); //=> 'bar foo foo'
+   *      R.replace(/foo/, 'bar', 'foo foo foo'); //=> 'bar foo foo'
+   *
+   *      // Use the "g" (global) flag to replace all occurrences:
+   *      R.replace(/foo/g, 'bar', 'foo foo foo'); //=> 'bar bar bar'
+   */
+
+  var replace =
+  /*#__PURE__*/
+  _curry3(function replace(regex, replacement, str) {
+    return str.replace(regex, replacement);
+  });
+
+  /**
    * Splits a given list or string at a given index.
    *
    * @func
@@ -3501,17 +3532,17 @@
 
   // A block is a single/multiline text with editing capabilities.
 
-  // ------------------------------- Caret -------------------------------------
+  // ----------------------------- Caret -----------------------------------
 
-  const getYCaret = (block) =>
-    Math.min (Math.max (block.cursor [1], 0), length (block.lines) - 1);
+  const caret = (block) => {
+    let cursor = block.cursor;
+    let lines = block.lines;
+    let y = Math.min (Math.max (cursor [1], 0), length (lines) - 1);
 
-  const caret = (block) =>
-    [ Math.min (Math.max (block.cursor [0], 0), 
-                length (block.lines [getYCaret (block)])),
-      getYCaret (block)];
+    return [ Math.min (Math.max (cursor [0], 0), length (lines [y])), y ]
+  };
 
-  // -------------------------- Cursor movement --------------------------------
+  // ------------------------ Cursor movement ------------------------------
 
   const moveCursorDown = (block) =>
     evolve ({
@@ -3541,7 +3572,7 @@
                           (length (block.lines [block.cursor [1]]) - 1))
     }) (block);
 
-  // -------------------------- Text modification ------------------------------
+  // ------------------------ Text modification ----------------------------
 
   const insertText = (text) => (block) =>
     evolve ({
@@ -3583,6 +3614,39 @@
                       }) (block))
           : removeText (n - caret (block) [0]) (removeText (caret (block) [0]) (block));
 
+  const deleteText = (n) => (block) => {
+    let cursor = caret (block);
+    let height = length (block.lines);
+    let width = length (block.lines [cursor [1]]);
+    let line = block.lines [cursor [1]];
+    let next_line = block.lines [cursor [1] + 1];
+
+    return (cursor [1] === height && cursor [0] === width) || n === 0 ?
+             block
+             : n <= width - cursor [0] ?
+               evolve ({ lines: update (cursor [1])
+                                       (join 
+                                          ('') 
+                                          (remove (cursor [0]) 
+                                                  (n) 
+                                                  (line))),
+                         cursor: always (cursor)})
+                      (block)
+               : cursor [0] === width ?
+                 deleteText (n - 1)
+                            (evolve ({
+                               lines: 
+                                 pipe (
+                                   update (cursor [1])
+                                          (line + next_line),
+                                   remove (cursor [1] + 1) (1)),
+                               cursor: always (cursor)}) (block))
+                   : deleteText (n - (width - cursor [0]))
+                                (deleteText (width - cursor [0])
+                                            (block))
+                                         
+  };
+
   const insertLine = (block) =>
     evolve ({
       lines: pipe (insert (block.cursor [1] + 1) 
@@ -3601,6 +3665,34 @@
     cursor: [0, 0], // x -position on current line-, y -number of current line-
   });
 
+  // Extracting this functions from BlockRenderer and not importing
+  // html from hybrids here allows testing without a window object
+
+  const htmlSpaces = replace (/ /g) ('&nbsp;');
+
+  const renderLine = (line) =>
+    `<div class="line">${htmlSpaces (line)}</div>`;
+
+  const renderCaret = (character) =>
+    `<span class="caret">${htmlSpaces (character)}</span>`;
+
+  const renderCaretLine = (line, caret) =>
+    length (line) <= caret [0] ?
+      `<div class="line">${htmlSpaces (line)}${renderCaret (' ')}</div>`  
+      : '<div class="line">' +
+        htmlSpaces (slice (0) (caret [0]) (line)) +
+        renderCaret (line [caret [0]]) +
+        htmlSpaces (slice (caret [0] + 1) (Infinity) (line)) +
+        '</div>';
+
+  const renderLines = (block) =>
+    addIndex 
+      (map$1)
+      ((line, idx) => idx === block.cursor [1] ?
+                        renderCaretLine (line, caret (block))
+                        : renderLine (line))
+      (block.lines);
+
   // A block renderer renders a block content and possibly
 
   const styles = `
@@ -3616,49 +3708,25 @@
 }
 
 @keyframes blink {
-  from, to { background-color: white; 
-             color: black; }
-  50% { background-color: black;
-        color: white; }
+  from, to { background-color: black; 
+             color: white; }
+  50% { background-color: white;
+        color: black; }
 }
 `;
 
-  const renderNoCaretLine = (line) => html`
-  <div class="line">
-    ${line}
-  </div>
-`;
-
-  const renderCaretLine = (l, c) => 
-    length (l) <= c [0] ?
-      html`
-      <div class="line">
-        ${slice (0) (c [0]) (l)}<span class="caret">&nbsp;</span>
-      </div>`
-      : html`
-        <div class="line">
-          ${slice (0) (c [0]) (l)}<span class="caret">${l [c [0]] }</span>${slice (c [0] + 1) (Infinity) (l)}
-         </div>`;
-
-
-  const renderLines = (block) => 
-    addIndex (map$1)
-             ((line, idx) => idx === block.cursor [1] ?
-                               renderCaretLine (line, caret (block))
-                               : renderNoCaretLine (line))
-             (block.lines);
-
   const createRenderer = () => ({
-    render: (block) => html`
-    ${renderLines (block)}
-  `.style (styles)
+    render: (block) => html (renderLines (block)).style (styles)
   });
 
   const createListener = () => ({
     onkeydown: (host, evt) => {
       if (evt.key === 'Backspace') {
         host.block = removeText (1) (host.block);
+      } else if (evt.key === 'Delete') {
+        host.block = deleteText (1) (host.block);
       } else if (evt.key === 'Enter') {
+        // Evaluate !!!!
         host.block = insertLine (host.block);
       } else if (evt.key === 'ArrowLeft') {
         host.block = moveCursorLeft (host.block);

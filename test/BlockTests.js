@@ -1,6 +1,6 @@
 const test = require ('ava')
 import { 
-  caret, createBlock, insertText, insertLine,
+  caret, createBlock, deleteText, insertText, insertLine,
   moveCursorDown, moveCursorLeft, moveCursorRight, moveCursorUp,
   removeText 
   } from '../src/Block.js'
@@ -192,6 +192,32 @@ test ('Remove text to the left of the cursor', (t) => {
   c = removeText (15) (b)
   t.deepEqual (c.lines, [''])
   t.deepEqual (c.cursor, [0, 0])
+})
+
+test ('Delete text on and right of the cursor', (t) => {
+  let b = createBlock (['let a = 5', 'let b = 10', 'a + b'])
+  b.cursor = [3, 1]
+  let c = deleteText (1) (b)
+  t.deepEqual (c.lines, ['let a = 5', 'letb = 10', 'a + b'])
+  t.deepEqual (c.cursor, [3, 1])
+  
+  c = deleteText (6) (c)
+  t.deepEqual (c.lines, ['let a = 5', 'let', 'a + b'])
+  t.deepEqual (c.cursor, [3, 1])
+
+  c = deleteText (1) (c)
+  t.deepEqual (c.lines, ['let a = 5', 'leta + b'])
+  t.deepEqual (c.cursor, [3, 1])
+
+  b.cursor = [5, 2]
+  c = deleteText (10) (b)
+  t.deepEqual (c.lines, ['let a = 5', 'let b = 10', 'a + b'])
+  t.deepEqual (c.cursor, [5, 2])
+
+  b.cursor = [5, 0]
+  c = deleteText (10) (b)
+  t.deepEqual (c.lines, ['let a = 10', 'a + b'])
+  t.deepEqual (c.cursor, [5, 0])
 })
 
 test ('Insert new line after cursor current line', (t) => {
