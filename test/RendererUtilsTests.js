@@ -45,10 +45,19 @@ test ('Render caret line', (t) => {
 })
 
 test ('Render lines', (t) => {
-  let b = createBlock (['let f = () =>', '  return 5'])
+  let b = createBlock (['let f = () =>', '  5'])
 
   t.deepEqual (
     renderLines (b),
     ['<div class="line"><span class="caret">l</span>et&nbsp;f&nbsp;=&nbsp;()&nbsp;=></div>',
-     '<div class="line">&nbsp;&nbsp;return&nbsp;5</div>'])
+     '<div class="line">&nbsp;&nbsp;5</div>'])
+})
+
+test ('Render unfocused block', (t) => {
+  let b = createBlock (['let f = () =>', '  5'])
+
+  t.deepEqual (
+    renderLines (b, false),
+    ['<div class="line">let&nbsp;f&nbsp;=&nbsp;()&nbsp;=></div>',
+     '<div class="line">&nbsp;&nbsp;5</div>'])
 })

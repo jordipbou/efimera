@@ -1,26 +1,27 @@
 import { dispatch } from 'hybrids'
 import { map } from 'ramda'
 
-import { toHTML } from './PrettyPrint.js'
+//import { toHTML } from './PrettyPrint.js'
 
 export const evaluate_code = (host, code) => {
+  return window.eval (code)
   // TODO: Add hack to use import as if it was (pikaImport)
   // let hack...to be able to use let with global variables
-  let modified = 
-    map ((line) => 
-      line.replace (/^let/, 'var')
-          .replace (/^const/, 'var')
-          .replace (/@view/, 
-                   'document.querySelector (\'[data-uuid="' + host.uuid + '"] .view\')')
-          .replace (/@block/,
-                   'document.querySelector (\'[data-uuid="' + host.uuid + '"]\')'))
-        (code)
+  //let modified = 
+  //  map ((line) => 
+  //    line.replace (/^let/, 'var')
+  //        .replace (/^const/, 'var'))
+  //        .replace (/@view/, 
+  //                 'document.querySelector (\'[data-uuid="' + host.uuid + '"] .view\')')
+  //        .replace (/@block/,
+  //                 'document.querySelector (\'[data-uuid="' + host.uuid + '"]\')'))
+  //      (code)
 
-  let strcode = modified.join('\n')
+  //let strcode = modified.join('\n')
 
-  let result = window.eval (strcode)
+  //return window.eval (strcode)
 
-  dispatch (host, 'scrolltoend')
+  //dispatch (host, 'scrolltoend')
 
-  host.result = toHTML (result)
+  //host.result = toHTML (result)
 }

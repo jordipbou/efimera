@@ -23,13 +23,15 @@ export const renderCaretLine = (line, caret) =>
       htmlSpaces (slice (caret [0] + 1) (Infinity) (line)) +
       '</div>'
 
-export const renderLines = (block) =>
-  addIndex 
-    (map)
-    ((line, idx) => idx === block.cursor [1] ?
-                      renderCaretLine (line, caret (block))
-                      : renderLine (line))
-    (block.lines)
+export const renderLines = (block, focus = true) =>
+  focus ?
+    addIndex 
+      (map)
+      ((line, idx) => idx === block.cursor [1] ?
+                        renderCaretLine (line, caret (block))
+                        : renderLine (line))
+      (block.lines)
+    : map (renderLine) (block.lines)
 
 
 

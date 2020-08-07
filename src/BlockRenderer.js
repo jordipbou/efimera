@@ -11,6 +11,8 @@ import { renderLines } from './RendererUtils.js'
 
 const styles = `
 .line {
+  background-color: gray;
+  min-height: 1em;
   line-height: 1;
   padding: 0em;
   margin: 0em;
@@ -30,5 +32,6 @@ const styles = `
 `
 
 export const createRenderer = () => ({
-  render: (block) => html (renderLines (block)).style (styles)
+  render: (block, focused) => 
+    html (renderLines (block, focused)).style (styles)
 })

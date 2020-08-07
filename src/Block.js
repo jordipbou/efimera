@@ -131,9 +131,10 @@ export const insertLine = (block) =>
     cursor: pipe (update (0) (0), adjust (1) (add (1)))
   }) (block)
 
-// ------------------------------ Block creation ------------------------------
+// --------------------------- Block creation ----------------------------
 
 export const createBlock = (text = ['']) => ({
   lines: text === null ? [''] : text,
-  cursor: [0, 0], // x -position on current line-, y -number of current line-
+  cursor: [0, 0] // x -position on current line-
+                 // y -number of current line-
 })

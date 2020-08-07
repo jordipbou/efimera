@@ -139,7 +139,7 @@ test ('Complex cursor movements', (t) => {
   t.deepEqual (c.cursor, [2, 0])
 })
 
-// --------------------------------------------------------- Text modification
+// ----------------------------------------------------- Text modification
 
 test ('Insert text into block at cursor position', (t) => {
   let b = createBlock ()
@@ -156,6 +156,12 @@ test ('Insert text into block at cursor position', (t) => {
   c = insertText (' forever') (b)
   t.deepEqual (c.lines [0], 'first line forever')
   t.deepEqual (c.lines [1], 'second line')
+
+  b.lines = ['b1']
+  b.cursor = [0, 0]
+  c = insertText ('beta') (b)
+  t.deepEqual (c.lines, ['betab1'])
+  t.deepEqual (c.cursor, [4, 0])
 })
 
 test ('Remove text to the left of the cursor', (t) => {
