@@ -13,8 +13,10 @@ const onUpdateBlock = (idx) => (host, evt) => {
 }
 
 const blockEvaluated = (idx) => (host, evt) => {
+  host.results = update (idx) (evt.detail) (host.results)
   if (idx === length (host.doc.blocks) - 1) {
     host.doc = appendBlock () (host.doc)
+    host.results = append (undefined) (host.results)
     //focusLastBlock (host)
   } else {
     // TODO: Jump to next block?
@@ -33,7 +35,8 @@ export const TermView = {
   doc: { 
     connect: (host, key, invalidate) => { host.doc = createDocument () }
   },
-  render: ({ doc }) => html`
+  results: [undefined],
+  render: ({ doc, results }) => html`
     ${addIndex (map) 
                ((b, idx) => 
                   html`
@@ -42,7 +45,8 @@ export const TermView = {
                              onblockevaluated=${blockEvaluated (idx)}
                              onblocktop=${blockTop}
                              onblockbottom=${blockBottom}
-                             focused=${doc.focused === idx}>
+                             focused=${doc.focused === idx}
+                             result=${results [idx]}>
                     </e-block>`) 
                (doc.blocks)}
   `

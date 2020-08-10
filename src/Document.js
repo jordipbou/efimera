@@ -1,4 +1,5 @@
 // A document is made up of single/multiline blocks of text.
+
 import { createBlock } from './Block.js'
 import { 
   __, add, always, append, cond, gte, length, evolve, 

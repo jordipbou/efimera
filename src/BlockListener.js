@@ -6,6 +6,7 @@ import {
   } from './Block.js'
 import * as acorn from 'acorn'
 import { equals, join, length } from 'ramda'
+import { is_evaluable, evaluate_code } from './Eval.js'
 
 const update = (host) => (detail) =>
   dispatch (host,
@@ -21,27 +22,19 @@ export const createListener = () => ({
     } else if (evt.key === 'Delete') {
       update (host) (deleteText (1) (host.block))
     } else if (evt.key === 'Enter') {
-      let valid_code = true
-      let source_code = join ('\n') (host.block.lines)
-      try {
-        acorn.parse (source_code) 
-      } catch (error) {
-        valid_code = false
-      }
+      let singleline = length (host.block.lines) === 1
+      let valid_code = is_evaluable (host.block.lines)
+      let do_evaluate = evt.ctrlKey || (singleline && valid_code)
 
-      if (evt.shiftKey 
-       || !(evt.ctrlKey || 
-            (length (host.block.lines) === 1 && valid_code))) {
+      if (evt.shiftKey || !do_evaluate) {
         update (host) (insertLine (host.block))
       } else {
-        try {
-          console.log (window.eval (source_code))
-          dispatch (host, 
-                    'blockevaluated', 
-                    { bubbles: true, composed: true })
-        } catch (error) {
-          console.error (error)
-        }
+        let result = evaluate_code (host.block.lines)
+        dispatch (host, 
+                  'blockevaluated', 
+                  { detail: result, 
+                    bubbles: true, 
+                    composed: true })
       }
     } else if (evt.key === 'ArrowLeft') {
       update (host) (moveCursorLeft (host.block))
