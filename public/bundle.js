@@ -1,10 +1,9 @@
 
 (function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(window.document);
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('uuid')) :
-  typeof define === 'function' && define.amd ? define(['uuid'], factory) :
-  (global = global || self, factory(global.uuid));
-}(this, (function (uuid) { 'use strict';
+(function (factory) {
+  typeof define === 'function' && define.amd ? define(factory) :
+  factory();
+}((function () { 'use strict';
 
   function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -3711,6 +3710,13 @@
     return Number(a) - Number(b);
   });
 
+  const ref = 
+    (query) => 
+      ({ render }) => 
+        is (Function, render) ? 
+          render ().querySelector (query) 
+          : null;
+
   // A block is a single/multiline text with editing capabilities.
 
   // ----------------------------- Caret -----------------------------------
@@ -3843,6 +3849,7 @@
 
   const createBlock = (text = ['']) => ({
     lines: text === null ? [''] : text,
+    history: [],
     cursor: [0, 0] // x -position on current line-
                    // y -number of current line-
   });
@@ -3874,13 +3881,6 @@
     blocks: blocks,
     focused: length (blocks) - 1
   });
-
-  const ref = 
-    (query) => 
-      ({ render }) => 
-        is (Function, render) ? 
-          render ().querySelector (query) 
-          : null;
 
   // Extracting this functions from BlockRenderer and not importing
   // html from hybrids here allows testing without a window object
@@ -9113,6 +9113,10 @@
         } else {
           update$1 (host) (moveCursorDown (host.block));
         }
+      } else if ((evt.key === 's' || evt.key === 'S') && evt.ctrlKey) {
+        dispatch (host, 'save', { bubbles: true, composed: true });
+      } else if ((evt.key === 'l' || evt.key === 'L') && evt.ctrlKey) {
+        dispatch (host, 'load', { bubbles: true, composed: true });
       } else {
         return true
       }
@@ -9161,6 +9165,75 @@
   };
 
   define ('e-input', InputView);
+
+  // Unique ID creation requires a high quality random # generator. In the browser we therefore
+  // require the crypto API and do not support built-in fallback to lower quality random number
+  // generators (like Math.random()).
+  // getRandomValues needs to be invoked in a context where "this" is a Crypto implementation. Also,
+  // find the complete implementation of crypto (msCrypto) on IE11.
+  var getRandomValues = typeof crypto !== 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto) || typeof msCrypto !== 'undefined' && typeof msCrypto.getRandomValues === 'function' && msCrypto.getRandomValues.bind(msCrypto);
+  var rnds8 = new Uint8Array(16);
+  function rng() {
+    if (!getRandomValues) {
+      throw new Error('crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported');
+    }
+
+    return getRandomValues(rnds8);
+  }
+
+  var REGEX = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
+
+  function validate(uuid) {
+    return typeof uuid === 'string' && REGEX.test(uuid);
+  }
+
+  /**
+   * Convert array of 16 byte values to UUID string format of the form:
+   * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+   */
+
+  var byteToHex = [];
+
+  for (var i = 0; i < 256; ++i) {
+    byteToHex.push((i + 0x100).toString(16).substr(1));
+  }
+
+  function stringify(arr) {
+    var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    // Note: Be careful editing this code!  It's been tuned for performance
+    // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+    var uuid = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase(); // Consistency check for valid UUID.  If this throws, it's likely due to one
+    // of the following:
+    // - One or more input array values don't map to a hex octet (leading to
+    // "undefined" in the uuid)
+    // - Invalid input values for the RFC `version` or `variant` fields
+
+    if (!validate(uuid)) {
+      throw TypeError('Stringified UUID is invalid');
+    }
+
+    return uuid;
+  }
+
+  function v4(options, buf, offset) {
+    options = options || {};
+    var rnds = options.random || (options.rng || rng)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+
+    rnds[6] = rnds[6] & 0x0f | 0x40;
+    rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
+
+    if (buf) {
+      offset = offset || 0;
+
+      for (var i = 0; i < 16; ++i) {
+        buf[offset + i] = rnds[i];
+      }
+
+      return buf;
+    }
+
+    return stringify(rnds);
+  }
 
   const toggle = (e) =>
     join (' ')
@@ -9215,23 +9288,23 @@
   </span>`;
 
   const HTMLPromise = (p) => {
-    let uuid$1 = 'U' + uuid.v4();
+    let uuid = 'U' + v4();
 
     p.then ((value) => 
       document
-        .querySelector ('#' + uuid$1)
+        .querySelector ('#' + uuid)
         .innerHTML = `
         <span class="resolved">[[Resolved]]</span>
         <span class="value">${ toHTML (value) }</span>`
     ).catch ((error) =>
       document
-        .querySelector ('#' + uuid$1)
+        .querySelector ('#' + uuid)
         .innerHTML = `
         <span class="rejected">[[Rejected]]</span>
         <span class="error">${ toHTML (error) }</span>`
     );
 
-    return `<span id="${ uuid$1 }" class="pp-promise">
+    return `<span id="${ uuid }" class="pp-promise">
     <span class="pending">[[Pending]]</span>
   </span>`
   };
@@ -9284,10 +9357,15 @@
 
   define ('e-output', OutputView);
 
+  const inputRefocus = (host) => {
+    host.input.focused = true;
+  };
+
   const BlockView = {
     block: {},
     result: undefined,
     focused: false,
+    input: ref ('e-input'),
     render: ({ block, result, focused }) => html`
     <e-input block=${block}
              focused=${focused}>
@@ -9319,6 +9397,13 @@
     host.doc = focusNextBlock (host.doc);
   };
 
+  const termRefocus = (host, evt) => {
+    inputRefocus (
+      host
+        .render ()
+        .querySelector ('e-block:nth-child(' + (host.doc.focused + 1) + ')'));
+  };
+
   const TermView = {
     doc: { 
       connect: (host, key, invalidate) => { host.doc = createDocument (); }
@@ -9342,13 +9427,130 @@
 
   define ('e-term', TermView);
 
+  const onclose = (host) => (evt) =>
+    dispatch (host, 'refocus', { bubbles: true, composed: true });
+
+  const showExportDialog = (json) => (host) => {
+    host.dialog.removeEventListener ('close',
+                                     onclose (host));
+    host.dialog.addEventListener ('close',
+                                  onclose (host));
+    host.json = json;
+    host.dialog.showModal ();
+  };
+
+  const copyToClipboard = (host, evt) => {
+    navigator.clipboard.writeText (host.json);
+    host.dialog.close ();
+  };
+
+  const styles$2 = `
+.json { width: 80vw; }
+`;
+
+  const ExportJSONView = {
+    json: '',
+    dialog: ref ('dialog'),
+    render: ({ json }) => html`
+    <dialog>
+      <h3>Export to JSON</h3>
+      <div class="json">${json}</div>
+      <div>
+        <button onclick=${copyToClipboard}>Copy</button>
+      </div>
+    </dialog>
+  `.style (styles$2)
+  };
+
+  define ('e-export-json', ExportJSONView);
+
+  const onclose$1 = (host) => (evt) =>
+    dispatch (host, 'refocus', { bubbles: true, composed: true });
+
+  const showImportDialog = (host) => {
+    host.dialog.removeEventListener ('close',
+                                     onclose$1 (host));
+    host.dialog.addEventListener ('close',
+                                  onclose$1 (host));
+    host.dialog.showModal ();
+  };
+
+  const hideImportDialog = (host) =>
+    host.dialog.close ();
+
+  const showClipboardError = (host) => () =>
+    host.error.innerHTML = 'You need to grant permission for clipboard access';
+
+  const importFromJSON = (host, evt) =>
+    navigator
+      .permissions
+      .query ({name: 'clipboard-read'})
+      .then ((result) => 
+        result.state === 'granted' || result.state === 'prompt' ?
+          navigator
+            .clipboard
+            .readText ()
+            .then (json =>
+              dispatch (host, 
+                        'import', 
+                        { detail: json,
+                          bubbles: true, 
+                          composed: true }))
+            .catch (showClipboardError (host))
+          : showClipboardError (host) ());
+
+  const styles$3 = `
+textarea { width: 80vw; }
+p { color: red }
+`;
+
+  const ImportJSONView = {
+    textarea: ref ('textarea'),
+    dialog: ref ('dialog'),
+    error: ref ('p'),
+    render: ({ json }) => html`
+    <dialog>
+      <h3>Import from JSON</h3>
+      <p></p>
+      <div>
+        <button onclick=${importFromJSON}>Import from clipboard</button>
+      </div>
+    </dialog>
+  `.style (styles$3)
+  };
+
+  define ('e-import-json', ImportJSONView);
+
+  const save = (host, evt) => {
+    let json = JSON.stringify (host.term.doc);
+    showExportDialog (json) (host.export_dialog);
+  };
+
+  const load = (host, evt) => 
+    showImportDialog (host.import_dialog);
+
+  const importJSON = (host, evt) => {
+    host.term.doc = JSON.parse (evt.detail);
+    hideImportDialog (host.import_dialog);
+  };
+
+  const refocus = (host, evt) => 
+    termRefocus (host.term);
+
   const SessionView = {
+    term: ref ('e-term'),
+    export_dialog: ref ('e-export-json'),
+    import_dialog: ref ('e-import-json'),
     render: () => html`
     <e-pane>
       <span slot="content">
-        <e-term />
+        <e-term onsave=${save} onload=${load}></e-term>
       </slot>
     </e-pane>
+    <e-export-json onrefocus=${refocus}></e-export-json>
+    <e-import-json onimport=${importJSON}
+                   onrefocus=${refocus}>
+    </e-import-json>
   ` 
   };
 

@@ -2,8 +2,8 @@
 
 import { createBlock } from './Block.js'
 import { 
-  __, add, always, append, cond, gte, length, evolve, 
-  identity, max, min, subtract, remove, T, update
+  __, add, always, append, concat, cond, gte, length, evolve, 
+  identity, join, map, max, min, subtract, remove, T, update
   } from 'ramda'
 
 export const appendBlock = (block = createBlock ()) => (doc) =>

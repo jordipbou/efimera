@@ -1,12 +1,12 @@
 const test = require ('ava')
 import { 
-  caret, createBlock, deleteText, insertText, insertLine,
+  caret, changeBlock, createBlock, deleteText, insertText, insertLine,
   moveCursorDown, moveCursorLeft, moveCursorRight, moveCursorUp,
-  removeText 
+  removeText, undoChangeBlock
   } from '../src/Block.js'
 import { has, length } from 'ramda'
 
-// ------------------------------------------------------------ Block creation
+// -------------------------------------------------------- Block creation
 
 test ('Block creation', (t) => {
   let b = createBlock ()
@@ -27,7 +27,7 @@ test ('Block creation', (t) => {
   t.deepEqual (b.lines, [''])
 })
 
-// --------------------------------------------------- Cursor / caret movement
+// ----------------------------------------------- Cursor / caret movement
 
 test ('Caret from cursor', (t) => {
   let b = createBlock (['let a = 5', 'let b = 10', '', 'a + b'])
@@ -137,6 +137,37 @@ test ('Complex cursor movements', (t) => {
   t.deepEqual (c.cursor, [6, 0])
   c = moveCursorLeft (c)
   t.deepEqual (c.cursor, [2, 0])
+})
+
+// --------------------------------------------------------------- History
+
+test ('Change history on text modification', (t) => {
+  let b = createBlock ()
+  t.deepEqual (b.lines, [''])
+  t.deepEqual (b.history, [])
+  let b1 = changeBlock (b) (['let a = 5'])
+  t.deepEqual (b1.lines, ['let a = 5'])
+  t.deepEqual (b1.history, [['']])
+  let b2 = changeBlock (b1) (['let a = 5', 'let b = 10'])
+  t.deepEqual (b2.lines, ['let a = 5', 'let b = 10'])
+  t.deepEqual (b2.history, [['let a = 5'], ['']])
+  let b3 = changeBlock (b2) (['let a = 5', 'let b = 10', 'a + b'])
+  t.deepEqual (b3.lines, ['let a = 5', 'let b = 10', 'a + b'])
+  t.deepEqual (b3.history, [['let a = 5', 'let b = 10'], 
+                            ['let a = 5'], 
+                            ['']])
+})
+
+test ('Undo change history', (t) => {
+  let b = createBlock ()
+  b.lines = ['let a = 5', 'let b = 10', 'a + b']
+  b.history = [['let a = 5', 'let b = 10'], ['let a = 5'], ['']]
+  let b1 = undoChangeBlock (b)
+  t.deepEqual (b1.lines, ['let a = 5', 'let b = 10'])
+  t.deepEqual (b1.history, [['let a = 5'], ['']])
+  let b2 = undoChangeBlock (b1)
+  t.deepEqual (b2.lines, ['let a = 5'])
+  t.deepEqual (b2.history, [['']])
 })
 
 // ----------------------------------------------------- Text modification

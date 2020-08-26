@@ -2,7 +2,8 @@
 import { 
   __, add, adjust, always, apply, concat, curry, evolve, 
   insert, intersperse, is, join, length, max, min, nth,
-  pair, path, paths, pipe, remove, slice, splitAt, subtract, update 
+  pair, path, paths, pipe, prepend, remove, 
+  slice, splitAt, subtract, tail, update 
   } from 'ramda'
 
 // ----------------------------- Caret -----------------------------------
@@ -44,6 +45,24 @@ export const moveCursorLeft = (block) =>
                    (min (max (0, block.cursor [0] - 1))
                         (length (block.lines [block.cursor [1]]) - 1))
   }) (block)
+
+// ----------------------------- History ---------------------------------
+
+// TODO: Use a maximum number of history changes ?!?!
+
+export const changeBlock = (block) => (lines) =>
+  evolve ({
+    lines: always (lines),
+    history: prepend (block.lines)
+  }) (block)
+
+export const undoChangeBlock = (block) =>
+  length (block.history) > 0 ?
+    evolve ({
+      lines: always (block.history [0]),
+      history: tail
+    }) (block)
+    : block
 
 // ------------------------ Text modification ----------------------------
 
@@ -135,6 +154,7 @@ export const insertLine = (block) =>
 
 export const createBlock = (text = ['']) => ({
   lines: text === null ? [''] : text,
+  history: [],
   cursor: [0, 0] // x -position on current line-
                  // y -number of current line-
 })

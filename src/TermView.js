@@ -1,11 +1,12 @@
 import { define, html } from 'hybrids'
+import { ref } from './HybridsUtils.js'
 import { 
   createDocument, focusNextBlock, focusPreviousBlock, 
   updateBlock, appendBlock 
   } from './Document.js'
-import './BlockView.js'
+import { inputRefocus } from './BlockView.js'
 import { 
-  addIndex, append, evolve, F, map, length, T, update 
+  addIndex, always, append, evolve, F, map, length, T, update 
   } from 'ramda'
 
 const onUpdateBlock = (idx) => (host, evt) => {
@@ -29,6 +30,13 @@ const blockTop = (host, evt) => {
 
 const blockBottom = (host, evt) => {
   host.doc = focusNextBlock (host.doc)
+}
+
+export const termRefocus = (host, evt) => {
+  inputRefocus (
+    host
+      .render ()
+      .querySelector ('e-block:nth-child(' + (host.doc.focused + 1) + ')'))
 }
 
 export const TermView = {

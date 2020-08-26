@@ -54,6 +54,10 @@ export const createListener = () => ({
       } else {
         update (host) (moveCursorDown (host.block))
       }
+    } else if ((evt.key === 's' || evt.key === 'S') && evt.ctrlKey) {
+      dispatch (host, 'save', { bubbles: true, composed: true })
+    } else if ((evt.key === 'l' || evt.key === 'L') && evt.ctrlKey) {
+      dispatch (host, 'load', { bubbles: true, composed: true })
     } else {
       return true
     }

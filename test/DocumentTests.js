@@ -1,6 +1,7 @@
 const test = require ('ava')
 import { 
-  appendBlock, createDocument, focusNextBlock, focusPreviousBlock,
+  appendBlock, createDocument, documentToGist,
+  focusNextBlock, focusPreviousBlock,
   removeBlock, updateBlock
   } from '../src/Document.js'
 import { createBlock, insertText } from '../src/Block.js'
