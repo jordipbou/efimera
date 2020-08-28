@@ -8,7 +8,8 @@
 
 	<link rel=icon type=image/png href=./favicon.png>
 	<link rel=stylesheet href=./bundle.css>
-	<script defer type=module src=./bundle.js></script>
+  <script src="https://unpkg.com/uuid@latest/dist/umd/uuidv4.min.js"></script>
+  <script defer type=module src=./bundle.js></script>
   <script type=module>
     let populateWindowNamespace = (module) => {
       for (let p in module) window[p] = module[p]
@@ -39,9 +40,13 @@
       // from package namespace will be populated into
       // window namespace.
       if (pkg === 'frmidi') {
-        return window.unpkgImport ('frmidi', ns)
+        return unpkgImport ('frmidi', ns)
       } else if (pkg === 'ramda') {
-        return window.skypackImport ('ramda', ns)
+        return skypackImport ('ramda', ns)
+      } else if (pkg === 'hybrids') {
+        return unpkgImport ('hybrids', ns)
+      } else {
+        return unpkgImport (pkg, ns)
       }
     }
 	</script>

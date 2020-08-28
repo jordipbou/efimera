@@ -1,25 +1,44 @@
 import { 
-  always, append, cond, equals, includes, is, isNil, 
-  keys, T, type 
+  always, append, cond, equals, filter, head, includes, init, is, isNil, 
+  join, keys, last, length, map, T, type, without
   } from 'ramda'
 import { v4 as uuidv4 } from 'uuid'
+import { html } from 'hybrids'
 
-const toggle = (e) =>
-  join (' ')
-       (includes ('collapsed') (e.classList) ?
-         append ('expanded') 
-                (without ('collapsed') (e.classList))
-         : append ('collapsed')  
-                  (without ('expanded') (e.classList)))
+export const styles = `
+.collapsed .expanded {
+  display: none;
+}
 
-const toggleOnClick = 
-  `onclick="this.classList = (${ toggle })(this)"`
+.expanded .collapsed {
+  display: none;
+}
+`
 
-const HTMLUndefined = () => 
-  `<div class="undefined-block"></div>`
+export const toggle = (host, evt) => {
+  let e = 
+    head 
+      (filter 
+        ((e) => e.classList ? 
+                  includes ('expandable') (e.classList) 
+                  : false)
+        (evt.path))
 
-const HTMLNumber = (n) =>
-  `<span class="pp-number collapsed text-orange-700" ${toggleOnClick}>
+  e.classList = 
+    join (' ')
+      (includes ('collapsed') (e.classList) ?
+        append ('expanded') 
+               (without ('collapsed') (e.classList))
+        : append ('collapsed')  
+                 (without ('expanded') (e.classList)))
+}
+
+const HTMLUndefined = () => html`
+  <div class="undefined-block"></div>`
+
+const HTMLNumber = (n) => html`
+  <span class="pp-number expandable collapsed text-orange-700" 
+        onclick=${ toggle }>
     <span class="collapsed">
       <span class="decimal">${n}</span>
     </span>
@@ -33,29 +52,27 @@ const HTMLNumber = (n) =>
     </span>
   </span>`
 
-const HTMLString = (s) =>
-  `<span class="pp-string collapsed text-green-600"
-         ${ toggleOnClick }>
+const HTMLString = (s) => html`
+  <span class="pp-string expandable collapsed text-green-600" 
+        onclick=${ toggle }>
     <span class="collapsed leading-tight h-4 w-11/12 truncate inline-block">"${s}"</span>
     <span class="expanded">"${s}"</span>
   </span>`
 
-const HTMLArrayElement = (e) =>
-  `<span>${ toHTML (e) }</span>`
+const HTMLArrayElement = (last) => (e) => html`
+  <span>${ toHTML (e) }${ !last ? `,` : `` }</span>`
 
-const HTMLArrayElements = (a) =>
-  join 
-    (', ')
-    (map (HTMLArrayElement) (a))
-
-const HTMLArray = (a) =>
-  `<span>
+const HTMLArray = (a) => html`
+  <span>
     <span class="text-blue-700">[Array]</span>
     <span class="text-red-700">[</span>
-    ${ HTMLArrayElements (a) }
+    ${ map (HTMLArrayElement (false)) (init (a)) }
+    ${ HTMLArrayElement (true) (last (a)) }
     <span class="text-red-700">]</span>
-  </span>`
+  </span>
+`
 
+// TODO: Use html.resolve instead of assigning a UUID to find it later
 const HTMLPromise = (p) => {
   let uuid = 'U' + uuidv4()
 
@@ -107,7 +124,7 @@ const HTMLObject = (o) =>
 const HTMLBoolean = (b) =>
   `<span class="text-purple-600">${b}</span>`
 
-export const toHTML =
+export const toHTML = 
   cond ([
     [isNil,           HTMLUndefined],
     [is (Number),     HTMLNumber],
