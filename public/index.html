@@ -9,6 +9,42 @@
 	<link rel=icon type=image/png href=./favicon.png>
 	<link rel=stylesheet href=./bundle.css>
 	<script defer type=module src=./bundle.js></script>
+  <script type=module>
+    let populateWindowNamespace = (module) => {
+      for (let p in module) window[p] = module[p]
+    }
+
+    let ownNamespace = (namespace, d) => (module) =>
+      window[namespace] = d ? module.default : module
+
+    let populateOn = (namespace, d) =>
+      namespace === null ?
+        populateWindowNamespace
+        : ownNamespace (namespace, d)
+
+		window.pikaImport = (pkg, ns, d = false) =>
+			import ('https://cdn.pika.dev/' + pkg)
+				.then (populateOn (ns !== undefined ? ns : pkg, d))
+
+		window.unpkgImport = (pkg, ns, d = false) =>
+			import ('https://unpkg.com/' + pkg)
+				.then (populateOn (ns !== undefined ? ns : pkg, d))
+
+    window.skypackImport = (pkg, ns, d = false) =>
+      import ('https://cdn.skypack.dev/' + pkg)
+        .then (populateOn (ns !== undefined ? ns : pkg, d))
+
+    window.npmImport = (pkg, ns) => {
+      // By using null as namespace, all names
+      // from package namespace will be populated into
+      // window namespace.
+      if (pkg === 'frmidi') {
+        return window.unpkgImport ('frmidi', ns)
+      } else if (pkg === 'ramda') {
+        return window.skypackImport ('ramda', ns)
+      }
+    }
+	</script>
 </head>
 <body>
   <e-session></e-session>

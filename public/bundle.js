@@ -9032,10 +9032,44 @@
     return Parser.parse(input, options)
   }
 
+  //import { dispatch } from 'hybrids'
+
   //import { toHTML } from './PrettyPrint.js'
 
+  // import '<package>'
+  const regex1 = /import\s*['|"](?<package>.*)['|"]/;
+  const subst1 = "npmImport ('$<package>')";
+  // import * from '<package>'
+  const regex2 = /import\s*\*\s*from\s*['|"](?<package>.*)['|"]/;
+  const subst2 = "npmImport ('$<package>', null)";
+  // import { <exports> } from '<package>'
+  const regex3 = /import\s*{(?<exports>.*)}\s*from\s*['|"](?<package>.*)['|"]/;
+  const subst3 = "npmImport ('$<package>').then (m => '$<exports>'.split (',').map ((s) => { let p = s.trim (); window[p] = m[p] }))";
+
+  const replaceImports = (line) =>
+    line.replace (regex1, subst1)
+        .replace (regex2, subst2)
+        .replace (regex3, subst3);
+
+  const replaceLet = (line) =>
+    line.replace (/^let/, 'var');
+
+  const replaceConst = (line) =>
+    line.replace (/^const/, 'var');
+
+  const applyReplacements = 
+    map$2 (
+      pipe (replaceImports,
+            replaceLet,
+            replaceConst));
+
+  // ----------------------- Check if code is evaluable --------------------
+  // It's used on block listener to know if enter means evaluate or
+  // add new line (when code is still not evaluable)
+
   const is_evaluable = (code) => {
-    let source_code = join$1 ('\n') (code);
+    let modified = applyReplacements (code);
+    let source_code = join$1 ('\n') (modified);
     try {
       parse (source_code); 
       return true
@@ -9045,13 +9079,7 @@
   };
 
   const evaluate_code = (code) => {
-    // TODO: Add hack to use import as if it was (pikaImport)
-    // let hack...to be able to use let with global variables
-    let modified = 
-      map$2 ((line) => 
-        line.replace (/^let/, 'var')
-            .replace (/^const/, 'var'))
-          (code);
+    let modified = applyReplacements (code);
     //        .replace (/@view/, 
     //                 'document.querySelector (\'[data-uuid="' + host.uuid + '"] .view\')')
     //        .replace (/@block/,
@@ -9059,6 +9087,8 @@
     //      (code)
 
     let strcode = join$1 ('\n') (modified);
+
+    console.log (strcode);
 
     return window.eval (strcode)
 
