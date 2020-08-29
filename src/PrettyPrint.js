@@ -6,13 +6,9 @@ import { v4 as uuidv4 } from 'uuid'
 import { html } from 'hybrids'
 
 export const styles = `
-.collapsed .expanded {
-  display: none;
-}
-
-.expanded .collapsed {
-  display: none;
-}
+.collapsed .expanded { display: none; }
+.expanded .collapsed { display: none; }
+.pp-undefined { height: 3px; background-color: red; }
 `
 
 export const toggle = (host, evt) => {
@@ -34,10 +30,10 @@ export const toggle = (host, evt) => {
 }
 
 const HTMLUndefined = () => html`
-  <div class="undefined-block"></div>`
+  <div class="pp-undefined"></div>`.style (styles)
 
 const HTMLNumber = (n) => html`
-  <span class="pp-number expandable collapsed text-orange-700" 
+  <span class="pp-number expandable collapsed" 
         onclick=${ toggle }>
     <span class="collapsed">
       <span class="decimal">${n}</span>
@@ -50,79 +46,68 @@ const HTMLNumber = (n) => html`
       <span class="label binary">BIN</span>
       <span class="binary">${n.toString (2)}</span>
     </span>
-  </span>`
+  </span>`.style (styles)
 
 const HTMLString = (s) => html`
-  <span class="pp-string expandable collapsed text-green-600" 
+  <span class="pp-string expandable collapsed" 
         onclick=${ toggle }>
-    <span class="collapsed leading-tight h-4 w-11/12 truncate inline-block">"${s}"</span>
+    <span class="collapsed">"${s}"</span>
     <span class="expanded">"${s}"</span>
-  </span>`
+  </span>`.style (styles)
 
 const HTMLArrayElement = (last) => (e) => html`
   <span>${ toHTML (e) }${ !last ? `,` : `` }</span>`
 
 const HTMLArray = (a) => html`
-  <span>
-    <span class="text-blue-700">[Array]</span>
-    <span class="text-red-700">[</span>
+  <span class="pp-array">
+    <span class="">[Array]</span>
+    <span class="">[</span>
     ${ map (HTMLArrayElement (false)) (init (a)) }
     ${ HTMLArrayElement (true) (last (a)) }
-    <span class="text-red-700">]</span>
-  </span>
-`
+    <span class="">]</span>
+  </span>`.style (styles)
 
-// TODO: Use html.resolve instead of assigning a UUID to find it later
-const HTMLPromise = (p) => {
-  let uuid = 'U' + uuidv4()
+const HTMLPromise = (p) =>
+  html.resolve(
+    p.then ((value) => html`
+              <span class="pp-promise">
+                <span class="resolved">[[Resolved]]</span>
+                <span class="value">${ toHTML (value) }</span>
+              </span>`.style (styles))
+     .catch ((error) => html`
+               <span class="pp-promise">
+                 <span class="rejected">[[Rejected]]</span>
+                 <span class="error">${ toHTML (error) }</span>
+               </span>`.style (styles)),
+    html`<span class="pp-promise">
+           <span class="pending">[[Pending]]</span>
+         </span>`.style (styles))
 
-  p.then ((value) => 
-    document
-      .querySelector ('#' + uuid)
-      .innerHTML = `
-        <span class="resolved">[[Resolved]]</span>
-        <span class="value">${ toHTML (value) }</span>`
-  ).catch ((error) =>
-    document
-      .querySelector ('#' + uuid)
-      .innerHTML = `
-        <span class="rejected">[[Rejected]]</span>
-        <span class="error">${ toHTML (error) }</span>`
-  )
 
-  return `<span id="${ uuid }" class="pp-promise">
-    <span class="pending">[[Pending]]</span>
-  </span>`
-}
-
-const HTMLObjectProperty = (p, v) =>
-  `<span class="block -mt-2">
-    <span>${ p }</span>
+const HTMLObjectProperty = (last) => (p) => (v) => html`
+  <span class="pp-object-property">
+    <span class="pp-object-property-name">${ p }</span>
     <span>:</span>
-    <span>${ toHTML (v) }</span>
+    <span class="pp-object-property-value">${ toHTML (v) }</span>
+    ${ !last ? `,` : `` }
   </span>`
 
-const HTMLObjectProperties = (o) =>
-  join 
-    ('')
-    (map
-      ((k) => HTMLObjectProperty (k, o[k]))
-      (keys (o)))
-
-const HTMLObject = (o) => 
-  `<span class="">
+const HTMLObject = (o) => html`
+  <span class="pp-object">
     <span class="">
-      <span class="text-blue-700">[Object]</span>
-      <span class="test-red-700">{</span>
+      <span class="">[Object]</span>
+      <span class="">{</span>
     </span>
-    <span class="block pl-4">
-      ${ HTMLObjectProperties (o) }
+    <span class="">
+      ${ map ((k) => HTMLObjectProperty (false) (k) (o[k])) 
+             (init (keys (o))) }
+      ${ HTMLObjectProperty (true) (last (keys (o))) (o[last (keys (o))]) }
     </span>
-    <span class="block test-red-700">}</span>
-  </span>`
+    <span class="">}</span>
+  </span>`.style (styles)
 
-const HTMLBoolean = (b) =>
-  `<span class="text-purple-600">${b}</span>`
+const HTMLBoolean = (b) => html`
+  <span class="pp-boolean">${b}</span>`.style (styles)
 
 export const toHTML = 
   cond ([

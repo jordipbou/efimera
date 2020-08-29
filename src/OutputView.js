@@ -1,10 +1,9 @@
 import { define, html } from 'hybrids'
-import { toHTML, styles } from './PrettyPrint.js'
+import { toHTML } from './PrettyPrint.js'
 
 export const OutputView = {
   result: undefined,
-  //render: ({ result }) => html ([toHTML (toggle) (result)])
-  render: ({ result }) => toHTML (result).style (styles)
+  render: ({ result }) => toHTML (result)
 }
 
 define ('e-output', OutputView)

@@ -9368,83 +9368,10 @@
 
   define ('e-input', InputView);
 
-  // Unique ID creation requires a high quality random # generator. In the browser we therefore
-  // require the crypto API and do not support built-in fallback to lower quality random number
-  // generators (like Math.random()).
-  // getRandomValues needs to be invoked in a context where "this" is a Crypto implementation. Also,
-  // find the complete implementation of crypto (msCrypto) on IE11.
-  var getRandomValues = typeof crypto !== 'undefined' && crypto.getRandomValues && crypto.getRandomValues.bind(crypto) || typeof msCrypto !== 'undefined' && typeof msCrypto.getRandomValues === 'function' && msCrypto.getRandomValues.bind(msCrypto);
-  var rnds8 = new Uint8Array(16);
-  function rng() {
-    if (!getRandomValues) {
-      throw new Error('crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported');
-    }
-
-    return getRandomValues(rnds8);
-  }
-
-  var REGEX = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
-
-  function validate(uuid) {
-    return typeof uuid === 'string' && REGEX.test(uuid);
-  }
-
-  /**
-   * Convert array of 16 byte values to UUID string format of the form:
-   * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-   */
-
-  var byteToHex = [];
-
-  for (var i = 0; i < 256; ++i) {
-    byteToHex.push((i + 0x100).toString(16).substr(1));
-  }
-
-  function stringify(arr) {
-    var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    // Note: Be careful editing this code!  It's been tuned for performance
-    // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
-    var uuid = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase(); // Consistency check for valid UUID.  If this throws, it's likely due to one
-    // of the following:
-    // - One or more input array values don't map to a hex octet (leading to
-    // "undefined" in the uuid)
-    // - Invalid input values for the RFC `version` or `variant` fields
-
-    if (!validate(uuid)) {
-      throw TypeError('Stringified UUID is invalid');
-    }
-
-    return uuid;
-  }
-
-  function v4(options, buf, offset) {
-    options = options || {};
-    var rnds = options.random || (options.rng || rng)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-
-    rnds[6] = rnds[6] & 0x0f | 0x40;
-    rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
-
-    if (buf) {
-      offset = offset || 0;
-
-      for (var i = 0; i < 16; ++i) {
-        buf[offset + i] = rnds[i];
-      }
-
-      return buf;
-    }
-
-    return stringify(rnds);
-  }
-
   const styles$2 = `
-.collapsed .expanded {
-  display: none;
-}
-
-.expanded .collapsed {
-  display: none;
-}
+.collapsed .expanded { display: none; }
+.expanded .collapsed { display: none; }
+.pp-undefined { height: 3px; background-color: red; }
 `;
 
   const toggle = (host, evt) => {
@@ -9466,10 +9393,10 @@
   };
 
   const HTMLUndefined = () => html`
-  <div class="undefined-block"></div>`;
+  <div class="pp-undefined"></div>`.style (styles$2);
 
   const HTMLNumber = (n) => html`
-  <span class="pp-number expandable collapsed text-orange-700" 
+  <span class="pp-number expandable collapsed" 
         onclick=${ toggle }>
     <span class="collapsed">
       <span class="decimal">${n}</span>
@@ -9482,79 +9409,68 @@
       <span class="label binary">BIN</span>
       <span class="binary">${n.toString (2)}</span>
     </span>
-  </span>`;
+  </span>`.style (styles$2);
 
   const HTMLString = (s) => html`
-  <span class="pp-string expandable collapsed text-green-600" 
+  <span class="pp-string expandable collapsed" 
         onclick=${ toggle }>
-    <span class="collapsed leading-tight h-4 w-11/12 truncate inline-block">"${s}"</span>
+    <span class="collapsed">"${s}"</span>
     <span class="expanded">"${s}"</span>
-  </span>`;
+  </span>`.style (styles$2);
 
   const HTMLArrayElement = (last) => (e) => html`
   <span>${ toHTML (e) }${ !last ? `,` : `` }</span>`;
 
   const HTMLArray = (a) => html`
-  <span>
-    <span class="text-blue-700">[Array]</span>
-    <span class="text-red-700">[</span>
+  <span class="pp-array">
+    <span class="">[Array]</span>
+    <span class="">[</span>
     ${ map$1 (HTMLArrayElement (false)) (init (a)) }
     ${ HTMLArrayElement (true) (last (a)) }
-    <span class="text-red-700">]</span>
-  </span>
-`;
+    <span class="">]</span>
+  </span>`.style (styles$2);
 
-  // TODO: Use html.resolve instead of assigning a UUID to find it later
-  const HTMLPromise = (p) => {
-    let uuid = 'U' + v4();
+  const HTMLPromise = (p) =>
+    html.resolve(
+      p.then ((value) => html`
+              <span class="pp-promise">
+                <span class="resolved">[[Resolved]]</span>
+                <span class="value">${ toHTML (value) }</span>
+              </span>`.style (styles$2))
+       .catch ((error) => html`
+               <span class="pp-promise">
+                 <span class="rejected">[[Rejected]]</span>
+                 <span class="error">${ toHTML (error) }</span>
+               </span>`.style (styles$2)),
+      html`<span class="pp-promise">
+           <span class="pending">[[Pending]]</span>
+         </span>`.style (styles$2));
 
-    p.then ((value) => 
-      document
-        .querySelector ('#' + uuid)
-        .innerHTML = `
-        <span class="resolved">[[Resolved]]</span>
-        <span class="value">${ toHTML (value) }</span>`
-    ).catch ((error) =>
-      document
-        .querySelector ('#' + uuid)
-        .innerHTML = `
-        <span class="rejected">[[Rejected]]</span>
-        <span class="error">${ toHTML (error) }</span>`
-    );
 
-    return `<span id="${ uuid }" class="pp-promise">
-    <span class="pending">[[Pending]]</span>
-  </span>`
-  };
-
-  const HTMLObjectProperty = (p, v) =>
-    `<span class="block -mt-2">
-    <span>${ p }</span>
+  const HTMLObjectProperty = (last) => (p) => (v) => html`
+  <span class="pp-object-property">
+    <span class="pp-object-property-name">${ p }</span>
     <span>:</span>
-    <span>${ toHTML (v) }</span>
+    <span class="pp-object-property-value">${ toHTML (v) }</span>
+    ${ !last ? `,` : `` }
   </span>`;
 
-  const HTMLObjectProperties = (o) =>
-    join 
-      ('')
-      (map$1
-        ((k) => HTMLObjectProperty (k, o[k]))
-        (keys (o)));
-
-  const HTMLObject = (o) => 
-    `<span class="">
+  const HTMLObject = (o) => html`
+  <span class="pp-object">
     <span class="">
-      <span class="text-blue-700">[Object]</span>
-      <span class="test-red-700">{</span>
+      <span class="">[Object]</span>
+      <span class="">{</span>
     </span>
-    <span class="block pl-4">
-      ${ HTMLObjectProperties (o) }
+    <span class="">
+      ${ map$1 ((k) => HTMLObjectProperty (false) (k) (o[k])) 
+             (init (keys (o))) }
+      ${ HTMLObjectProperty (true) (last (keys (o))) (o[last (keys (o))]) }
     </span>
-    <span class="block test-red-700">}</span>
-  </span>`;
+    <span class="">}</span>
+  </span>`.style (styles$2);
 
-  const HTMLBoolean = (b) =>
-    `<span class="text-purple-600">${b}</span>`;
+  const HTMLBoolean = (b) => html`
+  <span class="pp-boolean">${b}</span>`.style (styles$2);
 
   const toHTML = 
     cond ([
@@ -9570,8 +9486,7 @@
 
   const OutputView = {
     result: undefined,
-    //render: ({ result }) => html ([toHTML (toggle) (result)])
-    render: ({ result }) => toHTML (result).style (styles$2)
+    render: ({ result }) => toHTML (result)
   };
 
   define ('e-output', OutputView);
