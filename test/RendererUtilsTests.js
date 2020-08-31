@@ -18,30 +18,55 @@ test ('Render no caret line', (t) => {
 
 test ('Render caret', (t) => {
   t.deepEqual (
-    renderCaret (' '),
+    renderCaret ('') (''),
     '<span class="caret">&nbsp;</span>')
 
   t.deepEqual (
-    renderCaret ('t'),
+    renderCaret (' ') (''),
+    '<span class="caret">&nbsp;</span>')
+
+  t.deepEqual (
+    renderCaret ('t') (''),
     '<span class="caret">t</span>')
+
+  t.deepEqual (
+    renderCaret ('') ('rray'),
+    '<span class="autocompletion"><span class="caret">r</span>ray</span>')
+
+  t.deepEqual (
+    renderCaret (' ') ('rray'),
+    '<span class="autocompletion"><span class="caret">r</span>ray</span>')
+
+  t.deepEqual (
+    renderCaret ('h') ('rray'),
+    '<span class="caret">h</span>')
 })
 
 test ('Render caret line', (t) => {
-  let b = createBlock (['  let a = 5'])
+  let b = createBlock (['A  let a = 5'])
 
   t.deepEqual (
-    renderCaretLine (b.lines [0], caret (b)),
-    '<div class="line"><span class="caret">&nbsp;</span>&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
+    renderCaretLine (b.lines [0]) (caret (b)) (''),
+    '<div class="line"><span class="caret">A</span>&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
+
+  t.deepEqual (
+    renderCaretLine (b.lines [0]) (caret (b)) ('Array'),
+    '<div class="line"><span class="caret">A</span>&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
+
+  b.cursor = [1, 0]
+  t.deepEqual (
+    renderCaretLine (b.lines [0]) (caret (b)) ('rray'),
+    '<div class="line">A<span class="autocompletion"><span class="caret">r</span>ray</span>&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
 
   b.cursor = [2, 0]
   t.deepEqual (
-    renderCaretLine (b.lines [0], caret (b)),
-    '<div class="line">&nbsp;&nbsp;<span class="caret">l</span>et&nbsp;a&nbsp;=&nbsp;5</div>')
+    renderCaretLine (b.lines [0]) (caret (b)) (''),
+    '<div class="line">A&nbsp;<span class="caret">&nbsp;</span>let&nbsp;a&nbsp;=&nbsp;5</div>')
 
   b.cursor = [50, 0]
   t.deepEqual (
-    renderCaretLine (b.lines [0], caret (b)),
-    '<div class="line">&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5<span class="caret">&nbsp;</span></div>')
+    renderCaretLine (b.lines [0]) (caret (b)) (''),
+    '<div class="line">A&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5<span class="caret">&nbsp;</span></div>')
 })
 
 test ('Render lines', (t) => {

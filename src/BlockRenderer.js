@@ -23,6 +23,10 @@ const styles = `
   animation: blink .75s step-end infinite;
 }
 
+.autocompletion {
+  color: green;
+}
+
 @keyframes blink {
   from, to { background-color: black; 
              color: white; }

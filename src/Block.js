@@ -155,6 +155,7 @@ export const insertLine = (block) =>
 export const createBlock = (text = ['']) => ({
   lines: text === null ? [''] : text,
   history: [],
+  autocompletion: '',
   cursor: [0, 0] // x -position on current line-
                  // y -number of current line-
 })

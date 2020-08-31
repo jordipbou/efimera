@@ -6,11 +6,20 @@ import {
   } from './Document.js'
 import { inputRefocus } from './BlockView.js'
 import { 
-  addIndex, always, append, evolve, F, map, length, T, update 
+  addIndex, always, append, drop, evolve, F, head, map, length, T, update 
   } from 'ramda'
+import { autocomplete } from './Autocompletion.js'
 
 const onUpdateBlock = (idx) => (host, evt) => {
+  // TODO: This is the point to insert auto-completion
+  // Auto completion always occurs at caret.
   host.doc = updateBlock (idx) (evt.detail) (host.doc) 
+  let [completions, name, autocompletion] = autocomplete (evt.detail)
+  host.doc = updateBlock (idx)
+                         (evolve ({ autocompletion: always (autocompletion) }) 
+                                 (evt.detail))
+                         (host.doc)
+
 }
 
 const blockEvaluated = (idx) => (host, evt) => {

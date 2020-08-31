@@ -1950,6 +1950,13 @@
     };
   }
 
+  function _reduced(x) {
+    return x && x['@@transducer/reduced'] ? x : {
+      '@@transducer/value': x,
+      '@@transducer/reduced': true
+    };
+  }
+
   var _xfBase = {
     init: function () {
       return this.xf['@@transducer/init']();
@@ -2362,6 +2369,18 @@
   }));
 
   /**
+   * Determine if the passed argument is an integer.
+   *
+   * @private
+   * @param {*} n
+   * @category Type
+   * @return {Boolean}
+   */
+  var _isInteger = Number.isInteger || function _isInteger(n) {
+    return n << 0 === n;
+  };
+
+  /**
    * Returns the nth element of the given list or string. If n is negative the
    * element at index length + n is returned.
    *
@@ -2393,6 +2412,102 @@
   _curry2(function nth(offset, list) {
     var idx = offset < 0 ? list.length + offset : offset;
     return _isString(list) ? list.charAt(idx) : list[idx];
+  });
+
+  /**
+   * Retrieves the values at given paths of an object.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.27.1
+   * @category Object
+   * @typedefn Idx = [String | Int]
+   * @sig [Idx] -> {a} -> [a | Undefined]
+   * @param {Array} pathsArray The array of paths to be fetched.
+   * @param {Object} obj The object to retrieve the nested properties from.
+   * @return {Array} A list consisting of values at paths specified by "pathsArray".
+   * @see R.path
+   * @example
+   *
+   *      R.paths([['a', 'b'], ['p', 0, 'q']], {a: {b: 2}, p: [{q: 3}]}); //=> [2, 3]
+   *      R.paths([['a', 'b'], ['p', 'r']], {a: {b: 2}, p: [{q: 3}]}); //=> [2, undefined]
+   */
+
+  var paths =
+  /*#__PURE__*/
+  _curry2(function paths(pathsArray, obj) {
+    return pathsArray.map(function (paths) {
+      var val = obj;
+      var idx = 0;
+      var p;
+
+      while (idx < paths.length) {
+        if (val == null) {
+          return;
+        }
+
+        p = paths[idx];
+        val = _isInteger(p) ? nth(p, val) : val[p];
+        idx += 1;
+      }
+
+      return val;
+    });
+  });
+
+  /**
+   * Retrieve the value at a given path.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.2.0
+   * @category Object
+   * @typedefn Idx = String | Int
+   * @sig [Idx] -> {a} -> a | Undefined
+   * @param {Array} path The path to use.
+   * @param {Object} obj The object to retrieve the nested property from.
+   * @return {*} The data at `path`.
+   * @see R.prop, R.nth
+   * @example
+   *
+   *      R.path(['a', 'b'], {a: {b: 2}}); //=> 2
+   *      R.path(['a', 'b'], {c: {b: 2}}); //=> undefined
+   *      R.path(['a', 'b', 0], {a: {b: [1, 2, 3]}}); //=> 1
+   *      R.path(['a', 'b', -2], {a: {b: [1, 2, 3]}}); //=> 2
+   */
+
+  var path =
+  /*#__PURE__*/
+  _curry2(function path(pathAr, obj) {
+    return paths([pathAr], obj)[0];
+  });
+
+  /**
+   * Returns a function that when supplied an object returns the indicated
+   * property of that object, if it exists.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category Object
+   * @typedefn Idx = String | Int
+   * @sig Idx -> {s: a} -> a | Undefined
+   * @param {String|Number} p The property name or array index
+   * @param {Object} obj The object to query
+   * @return {*} The value at `obj.p`.
+   * @see R.path, R.nth
+   * @example
+   *
+   *      R.prop('x', {x: 100}); //=> 100
+   *      R.prop('x', {}); //=> undefined
+   *      R.prop(0, [100]); //=> 100
+   *      R.compose(R.inc, R.prop('x'))({ x: 3 }) //=> 4
+   */
+
+  var prop =
+  /*#__PURE__*/
+  _curry2(function prop(p, obj) {
+    return path([p], obj);
   });
 
   /**
@@ -3432,6 +3547,147 @@
     return adjust(idx, always(x), list);
   });
 
+  var XDrop =
+  /*#__PURE__*/
+  function () {
+    function XDrop(n, xf) {
+      this.xf = xf;
+      this.n = n;
+    }
+
+    XDrop.prototype['@@transducer/init'] = _xfBase.init;
+    XDrop.prototype['@@transducer/result'] = _xfBase.result;
+
+    XDrop.prototype['@@transducer/step'] = function (result, input) {
+      if (this.n > 0) {
+        this.n -= 1;
+        return result;
+      }
+
+      return this.xf['@@transducer/step'](result, input);
+    };
+
+    return XDrop;
+  }();
+
+  var _xdrop =
+  /*#__PURE__*/
+  _curry2(function _xdrop(n, xf) {
+    return new XDrop(n, xf);
+  });
+
+  /**
+   * Returns all but the first `n` elements of the given list, string, or
+   * transducer/transformer (or object with a `drop` method).
+   *
+   * Dispatches to the `drop` method of the second argument, if present.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category List
+   * @sig Number -> [a] -> [a]
+   * @sig Number -> String -> String
+   * @param {Number} n
+   * @param {*} list
+   * @return {*} A copy of list without the first `n` elements
+   * @see R.take, R.transduce, R.dropLast, R.dropWhile
+   * @example
+   *
+   *      R.drop(1, ['foo', 'bar', 'baz']); //=> ['bar', 'baz']
+   *      R.drop(2, ['foo', 'bar', 'baz']); //=> ['baz']
+   *      R.drop(3, ['foo', 'bar', 'baz']); //=> []
+   *      R.drop(4, ['foo', 'bar', 'baz']); //=> []
+   *      R.drop(3, 'ramda');               //=> 'da'
+   */
+
+  var drop =
+  /*#__PURE__*/
+  _curry2(
+  /*#__PURE__*/
+  _dispatchable(['drop'], _xdrop, function drop(n, xs) {
+    return slice(Math.max(0, n), Infinity, xs);
+  }));
+
+  var XTake =
+  /*#__PURE__*/
+  function () {
+    function XTake(n, xf) {
+      this.xf = xf;
+      this.n = n;
+      this.i = 0;
+    }
+
+    XTake.prototype['@@transducer/init'] = _xfBase.init;
+    XTake.prototype['@@transducer/result'] = _xfBase.result;
+
+    XTake.prototype['@@transducer/step'] = function (result, input) {
+      this.i += 1;
+      var ret = this.n === 0 ? result : this.xf['@@transducer/step'](result, input);
+      return this.n >= 0 && this.i >= this.n ? _reduced(ret) : ret;
+    };
+
+    return XTake;
+  }();
+
+  var _xtake =
+  /*#__PURE__*/
+  _curry2(function _xtake(n, xf) {
+    return new XTake(n, xf);
+  });
+
+  /**
+   * Returns the first `n` elements of the given list, string, or
+   * transducer/transformer (or object with a `take` method).
+   *
+   * Dispatches to the `take` method of the second argument, if present.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category List
+   * @sig Number -> [a] -> [a]
+   * @sig Number -> String -> String
+   * @param {Number} n
+   * @param {*} list
+   * @return {*}
+   * @see R.drop
+   * @example
+   *
+   *      R.take(1, ['foo', 'bar', 'baz']); //=> ['foo']
+   *      R.take(2, ['foo', 'bar', 'baz']); //=> ['foo', 'bar']
+   *      R.take(3, ['foo', 'bar', 'baz']); //=> ['foo', 'bar', 'baz']
+   *      R.take(4, ['foo', 'bar', 'baz']); //=> ['foo', 'bar', 'baz']
+   *      R.take(3, 'ramda');               //=> 'ram'
+   *
+   *      const personnel = [
+   *        'Dave Brubeck',
+   *        'Paul Desmond',
+   *        'Eugene Wright',
+   *        'Joe Morello',
+   *        'Gerry Mulligan',
+   *        'Bob Bates',
+   *        'Joe Dodge',
+   *        'Ron Crotty'
+   *      ];
+   *
+   *      const takeFive = R.take(5);
+   *      takeFive(personnel);
+   *      //=> ['Dave Brubeck', 'Paul Desmond', 'Eugene Wright', 'Joe Morello', 'Gerry Mulligan']
+   * @symb R.take(-1, [a, b]) = [a, b]
+   * @symb R.take(0, [a, b]) = []
+   * @symb R.take(1, [a, b]) = [a]
+   * @symb R.take(2, [a, b]) = [a, b]
+   */
+
+  var take =
+  /*#__PURE__*/
+  _curry2(
+  /*#__PURE__*/
+  _dispatchable(['take'], _xtake, function take(n, xs) {
+    return slice(0, n < 0 ? Infinity : n, xs);
+  }));
+
   /**
    * Returns the last element of the given list or string.
    *
@@ -3771,6 +4027,30 @@
   });
 
   /**
+   * Returns a new list with the given element at the front, followed by the
+   * contents of the list.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category List
+   * @sig a -> [a] -> [a]
+   * @param {*} el The item to add to the head of the output list.
+   * @param {Array} list The array to add to the tail of the output list.
+   * @return {Array} A new array.
+   * @see R.append
+   * @example
+   *
+   *      R.prepend('fee', ['fi', 'fo', 'fum']); //=> ['fee', 'fi', 'fo', 'fum']
+   */
+
+  var prepend =
+  /*#__PURE__*/
+  _curry2(function prepend(el, list) {
+    return _concat([el], list);
+  });
+
+  /**
    * Replace a substring or regex match in a string with a replacement.
    *
    * The first two parameters correspond to the parameters of the
@@ -3802,6 +4082,33 @@
   });
 
   /**
+   * Returns a copy of the list, sorted according to the comparator function,
+   * which should accept two values at a time and return a negative number if the
+   * first value is smaller, a positive number if it's larger, and zero if they
+   * are equal. Please note that this is a **copy** of the list. It does not
+   * modify the original.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category List
+   * @sig ((a, a) -> Number) -> [a] -> [a]
+   * @param {Function} comparator A sorting function :: a -> b -> Int
+   * @param {Array} list The list to sort
+   * @return {Array} a new array with its elements sorted by the comparator function.
+   * @example
+   *
+   *      const diff = function(a, b) { return a - b; };
+   *      R.sort(diff, [4,2,7,5]); //=> [2, 4, 5, 7]
+   */
+
+  var sort =
+  /*#__PURE__*/
+  _curry2(function sort(comparator, list) {
+    return Array.prototype.slice.call(list, 0).sort(comparator);
+  });
+
+  /**
    * Splits a given list or string at a given index.
    *
    * @func
@@ -3824,6 +4131,35 @@
   /*#__PURE__*/
   _curry2(function splitAt(index, array) {
     return [slice(0, index, array), slice(index, length(array), array)];
+  });
+
+  /**
+   * Checks if a list starts with the provided sublist.
+   *
+   * Similarly, checks if a string starts with the provided substring.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.24.0
+   * @category List
+   * @sig [a] -> [a] -> Boolean
+   * @sig String -> String -> Boolean
+   * @param {*} prefix
+   * @param {*} list
+   * @return {Boolean}
+   * @see R.endsWith
+   * @example
+   *
+   *      R.startsWith('a', 'abc')                //=> true
+   *      R.startsWith('b', 'abc')                //=> false
+   *      R.startsWith(['a'], ['a', 'b', 'c'])    //=> true
+   *      R.startsWith(['b'], ['a', 'b', 'c'])    //=> false
+   */
+
+  var startsWith =
+  /*#__PURE__*/
+  _curry2(function (prefix, list) {
+    return equals(take(prefix.length, list), prefix);
   });
 
   /**
@@ -4022,6 +4358,7 @@
   const createBlock = (text = ['']) => ({
     lines: text === null ? [''] : text,
     history: [],
+    autocompletion: '',
     cursor: [0, 0] // x -position on current line-
                    // y -number of current line-
   });
@@ -4062,24 +4399,34 @@
   const renderLine = (line) =>
     `<div class="line">${htmlSpaces (line)}</div>`;
 
-  const renderCaret = (character) =>
-    `<span class="caret">${htmlSpaces (character)}</span>`;
+  const renderCaret = (character) => (autocompletion) => 
+    (character === undefined || character === ' ' || character === '')  
+    && length (autocompletion) > 0 ?
+       '<span class="autocompletion">' + 
+       '<span class="caret">' +
+       htmlSpaces (head (autocompletion)) +
+       '</span>' +
+       htmlSpaces (tail (autocompletion)) +
+       '</span>'
+       : '<span class="caret">' +
+         htmlSpaces ((character === '' || !character)? ' ' : character) + 
+         '</span>';
 
-  const renderCaretLine = (line, caret) =>
-    length (line) <= caret [0] ?
-      `<div class="line">${htmlSpaces (line)}${renderCaret (' ')}</div>`  
-      : '<div class="line">' +
-        htmlSpaces (slice (0) (caret [0]) (line)) +
-        renderCaret (line [caret [0]]) +
-        htmlSpaces (slice (caret [0] + 1) (Infinity) (line)) +
-        '</div>';
+  const renderCaretLine = (line) => (caret) => (autocompletion) =>
+    '<div class="line">' + 
+    htmlSpaces (slice (0) (caret [0]) (line)) +
+    renderCaret (line [caret [0]]) (autocompletion) +
+    htmlSpaces (slice (caret [0] + 1) (Infinity) (line)) +
+    '</div>';
 
   const renderLines = (block, focus = true) =>
     focus ?
       addIndex 
         (map$1)
         ((line, idx) => idx === block.cursor [1] ?
-                          renderCaretLine (line, caret (block))
+                          renderCaretLine (line) 
+                                          (caret (block))
+                                          (block.autocompletion)
                           : renderLine (line))
         (block.lines)
       : map$1 (renderLine) (block.lines);
@@ -4098,6 +4445,10 @@
 .caret {
   min-width: 0.5em;
   animation: blink .75s step-end infinite;
+}
+
+.autocompletion {
+  color: green;
 }
 
 @keyframes blink {
@@ -9204,6 +9555,13 @@
     return Parser.parse(input, options)
   }
 
+  // Acorn is organized as a tokenizer and a recursive-descent parser.
+  // The `tokenizer` export provides an interface to the tokenizer.
+
+  function tokenizer(input, options) {
+    return Parser.tokenizer(input, options)
+  }
+
   //import { dispatch } from 'hybrids'
 
   //import { toHTML } from './PrettyPrint.js'
@@ -9510,8 +9868,140 @@
 
   define ('e-block', BlockView);
 
+  let keywords$2 = [
+    'await', 'break', 'case', 'catch', 'class', 'const', 'continue', 
+    'debugger', 'default', 'delete', 'do', 'else', 'enum', 'export', 
+    'extends', 'finally', 'for', 'function', 'if', 'implements', 'import', 
+    'in', 'interface', 'instanceof', 'let', 'new', 'package', 'private', 
+    'protected', 'public', 'return', 'static', 'super', 'switch', 'this', 
+    'throw', 'try', 'typeof', 'var', 'void', 'while', 'with', 'yield' ];
+
+  // As seen on:
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
+  let builtInObjects = [
+    'Infinity', 'NaN', 'undefined', 'globalThis', 'eval', 'uneval', 
+    'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'encodeURI', 
+    'encodeURIComponent', 'decodeURI', 'decodeURIComponent', 'Object', 
+    'Function', 'Boolean', 'Symbol', 'Error', 'AggregateError', 
+    'EvalError', 'InternalError', 'RangeError', 'ReferenceError', 
+    'SyntaxError', 'TypeError', 'URIError', 'Number', 'BigInt', 'Math', 
+    'Date', 'String', 'RegExp', 'Array', 'Int8Array', 'Uint8Array', 
+    'Uint8ClampedArray', 'Int16Array', 'Uint16Array', 'Int32Array', 
+    'Uint32Array', 'Float32Array', 'Float64Array', 'BigInt64Array', 
+    'BigUint64Array', 'Map', 'Set', 'WeakMap', 'WeakSet', 'ArrayBuffer', 
+    'SharedArrayBuffer', 'Atomics', 'DataView', 'JSON', 'Promise', 
+    'Generator', 'GeneratorFunction', 'AsyncFunction', 'Reflection', 
+    'Reflect', 'Proxy', 'Intl', 'WebAssembly', 'arguments' ];
+
+  // The pattern has to be consistent:
+  // name dot name dot name dot
+  // It can end at any level:
+  // name
+  // name dot
+  // name dot name
+  const innerGetScope = (tokens) => (from_name) => (scope) => {
+    if (length (tokens) > 0) {
+      let last_token = last (tokens);
+      if (last_token.type.label === 'name') {
+        if (from_name) {
+          return scope
+        } else {
+          return innerGetScope (init (tokens)) 
+                               (true) 
+                               (prepend (last_token.value) (scope))
+        }
+      } else if (last_token.type.label === '.') {
+        if (from_name === false) {
+          return scope
+        } else {
+          return innerGetScope (init (tokens)) 
+                               (false) 
+                               (prepend ('.') (scope))
+        }
+      }
+    }
+
+    return scope
+  };
+
+  const getScope = (tokens) => {
+    let result = innerGetScope (tokens) (undefined) ([]);
+    let scope = without ('.') (init (result));
+    let name = last (result);
+    name = name === '.' ? '' : name;
+    return [scope, name]
+  };
+
+  const autocomplete = (block) => {
+    let code =
+      join ('\n')
+           (take (caret (block) [1] + 1)
+                 (prop ('lines')
+                       (evolve ({ lines: adjust (caret (block) [1])
+                                                (take (caret (block) [0])) })
+                               (block))));
+
+    let tokens = [...tokenizer (code)];
+    let [scope, name] = getScope (tokens);
+
+    let completions = [];
+    if (name !== undefined && (last (code) === last (name) || (length (scope) > 0 && name === ''))) {
+      // Search on scope
+      for (let p in path (scope) (window)) {
+        if (startsWith (name) (p)) {
+          completions = append (p) (completions);
+        }
+      }
+    }
+
+    if (length (name) > 0 && length (scope) === 0) {
+      // Search on keywords
+      completions = concat (completions) (filter (startsWith (name)) (keywords$2));
+      // Search on built in objects
+      completions = concat (completions) (filter (startsWith (name)) (builtInObjects));
+    }
+
+    completions = sort ((a, b) => a.localeCompare (b)) (completions);
+
+    // TODO: Let's see if all of them can be reduced to one common 
+    // element:
+    // Like ['Array', 'ArrayBuffer'] -> ['Array']
+
+    console.log (completions);
+
+    let autocompletion = longestCommonSubstringOnArray (completions);
+    autocompletion = autocompletion === undefined ? '' : autocompletion;
+    autocompletion = drop (length (name)) (autocompletion);
+
+    return [completions, name, autocompletion]
+  };
+
+  const longestCommonSubstring = (s1) => (s2) => {
+    let s = '';
+    let i = 0;
+    while (i < length (s1) && i < length (s2) && s1[i] === s2[i]) {
+      s = s + s1[i];
+      i++;
+    }
+
+    return s
+  };
+
+  const longestCommonSubstringOnArray = (autocompletions) =>
+    reduce ((acc, value) => longestCommonSubstring (acc) (value))
+           (head (autocompletions))
+           (tail (autocompletions));
+
   const onUpdateBlock = (idx) => (host, evt) => {
+    // TODO: This is the point to insert auto-completion
+    // Auto completion always occurs at caret.
     host.doc = updateBlock (idx) (evt.detail) (host.doc); 
+    let [completions, name, autocompletion] = autocomplete (evt.detail);
+    host.doc = updateBlock (idx)
+                           (evolve ({ autocompletion: always (autocompletion) }) 
+                                   (evt.detail))
+                           (host.doc);
+
   };
 
   const blockEvaluated = (idx) => (host, evt) => {
