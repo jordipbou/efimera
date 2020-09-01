@@ -46,6 +46,16 @@ export const moveCursorLeft = (block) =>
                         (length (block.lines [block.cursor [1]]) - 1))
   }) (block)
 
+export const moveCursorToEnd = (block) =>
+  evolve ({
+    cursor: update (0) (length (block.lines [block.cursor [1]]))
+  }) (block)
+
+export const moveCursorToStart = (block) =>
+  evolve ({
+    cursor: update (0) (0)
+  }) (block)
+
 // ----------------------------- History ---------------------------------
 
 // TODO: Use a maximum number of history changes ?!?!

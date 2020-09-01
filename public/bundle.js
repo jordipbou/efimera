@@ -4267,6 +4267,16 @@
                           (length (block.lines [block.cursor [1]]) - 1))
     }) (block);
 
+  const moveCursorToEnd = (block) =>
+    evolve ({
+      cursor: update (0) (length (block.lines [block.cursor [1]]))
+    }) (block);
+
+  const moveCursorToStart = (block) =>
+    evolve ({
+      cursor: update (0) (0)
+    }) (block);
+
   // ------------------------ Text modification ----------------------------
 
   const insertText = (text) => (block) =>
@@ -9673,6 +9683,10 @@
         } else {
           update$1 (host) (moveCursorDown (host.block));
         }
+      } else if (evt.key === 'End') {
+        update$1 (host) (moveCursorToEnd (host.block));
+      } else if (evt.key === 'Home') {
+        update$1 (host) (moveCursorToStart (host.block));
       } else if ((evt.key === 's' || evt.key === 'S') && evt.ctrlKey) {
         dispatch (host, 'save', { bubbles: true, composed: true });
       } else if ((evt.key === 'l' || evt.key === 'L') && evt.ctrlKey) {

@@ -2,6 +2,7 @@ const test = require ('ava')
 import { 
   caret, changeBlock, createBlock, deleteText, insertText, insertLine,
   moveCursorDown, moveCursorLeft, moveCursorRight, moveCursorUp,
+  moveCursorToEnd, moveCursorToStart,
   removeText, undoChangeBlock
   } from '../src/Block.js'
 import { has, length } from 'ramda'
@@ -137,6 +138,22 @@ test ('Complex cursor movements', (t) => {
   t.deepEqual (c.cursor, [6, 0])
   c = moveCursorLeft (c)
   t.deepEqual (c.cursor, [2, 0])
+})
+
+test ('Move cursor to end/start of line', (t) => {
+  let b = createBlock (['let a = 5', 'let b = 10', 'a + b'])
+
+  let c = moveCursorToEnd (b)
+  t.deepEqual (c.cursor, [9, 0])
+  c = moveCursorToStart (c)
+  t.deepEqual (c.cursor, [0, 0])
+  b.cursor = [0, 1]
+  c = moveCursorToEnd (b)
+  t.deepEqual (c.cursor, [10, 1])
+  c = moveCursorToStart (c)
+  t.deepEqual (c.cursor, [0, 1])
+  c = moveCursorToStart (c)
+  t.deepEqual (c.cursor, [0, 1])
 })
 
 // --------------------------------------------------------------- History
