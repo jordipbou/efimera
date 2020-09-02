@@ -38,9 +38,11 @@ src: local('monofur   italic'), url('monof56.woff') format('woff');
 	--term-color: var(--base0);
 	--term-color-inverted: var(--base03);
 	--autocompletion-color: var(--yellow);
-	--autocompletion-color-invertd: var(--yellow);
+	--autocompletion-color-inverted: var(--yellow);
+	--autocompletions-background: var(--base02);
+	--autocompletions-color: var(--yellow);
 	--result-background: var(--base03);
-	--result-number-color: var(--yellow);
+	--result-number-color: var(--base01);
 	--result-string-color: var(--green);
 	--result-boolean-color: var(--yellow);
 }

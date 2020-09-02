@@ -7,13 +7,11 @@ import { html } from 'hybrids'
 export const styles = `
 .collapsed .expanded { display: none; }
 .expanded .collapsed { display: none; }
-.pp-undefined { background: var(--result-background); }
-.pp-number { color: var(--result-number-color); 
-             background: var(--result-background); }
-.pp-string { color: var(--result-string-color);
-             background: var(--result-background); }
-.pp-boolean { color: var(--result-boolean-color);
-              background: var(--result-background); }
+.result { background: var(--result-background); }
+.pp-undefined { }
+.pp-number { color: var(--result-number-color); }
+.pp-string { color: var(--result-string-color); }
+.pp-boolean { color: var(--result-boolean-color); }
 `
 
 export const toggle = (host, evt) => {
@@ -35,10 +33,13 @@ export const toggle = (host, evt) => {
 }
 
 const HTMLUndefined = () => html`
-  <div class="pp-undefined"></div>`.style (styles)
+  <div class="result pp-undefined"></div>`.style (styles)
+
+const HTMLBoolean = (b) => html`
+  <span class="result pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles)
 
 const HTMLNumber = (n) => html`
-  <span class="pp-number expandable collapsed" 
+  <span class="result pp-number expandable collapsed" 
         onclick=${ toggle }>
     <span class="collapsed">
       <span class="decimal">${n}</span>
@@ -54,7 +55,7 @@ const HTMLNumber = (n) => html`
   </span>`.style (styles)
 
 const HTMLString = (s) => html`
-  <span class="pp-string expandable collapsed" 
+  <span class="result pp-string expandable collapsed" 
         onclick=${ toggle }>
     <span class="collapsed">"${s}"</span>
     <span class="expanded">"${s}"</span>
@@ -64,7 +65,7 @@ const HTMLArrayElement = (last) => (e) => html`
   <span>${ toHTML (e) }${ !last ? `,` : `` }</span>`
 
 const HTMLArray = (a) => html`
-  <span class="pp-array">
+  <span class="result pp-array">
     <span class="">[Array]</span>
     <span class="">[</span>
     ${ map (HTMLArrayElement (false)) (init (a)) }
@@ -75,16 +76,16 @@ const HTMLArray = (a) => html`
 const HTMLPromise = (p) =>
   html.resolve(
     p.then ((value) => html`
-              <span class="pp-promise">
+              <span class="result pp-promise">
                 <span class="resolved">[[Resolved]]</span>
                 <span class="value">${ toHTML (value) }</span>
               </span>`.style (styles))
      .catch ((error) => html`
-               <span class="pp-promise">
+               <span class="result pp-promise">
                  <span class="rejected">[[Rejected]]</span>
                  <span class="error">${ toHTML (error) }</span>
                </span>`.style (styles)),
-    html`<span class="pp-promise">
+    html`<span class="result pp-promise">
            <span class="pending">[[Pending]]</span>
          </span>`.style (styles))
 
@@ -98,7 +99,7 @@ const HTMLObjectProperty = (last) => (p) => (v) => html`
   </span>`
 
 const HTMLObject = (o) => html`
-  <span class="pp-object">
+  <span class="result pp-object">
     <span class="">
       <span class="">[Object]</span>
       <span class="">{</span>
@@ -111,17 +112,14 @@ const HTMLObject = (o) => html`
     <span class="">}</span>
   </span>`.style (styles)
 
-const HTMLBoolean = (b) => html`
-  <span class="pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles)
-
 export const toHTML = 
   cond ([
     [isNil,           HTMLUndefined],
+    [equals (true),   HTMLBoolean],
+    [equals (false),  HTMLBoolean],
     [is (Number),     HTMLNumber],
     [is (String),     HTMLString],
     [is (Array),      HTMLArray],
     [is (Promise),    HTMLPromise],
     [is (Object),     HTMLObject],
-    [equals (true),   HTMLBoolean],
-    [equals (false),  HTMLBoolean],
     [T,               always]])

@@ -9,6 +9,7 @@ import {
   addIndex, always, append, drop, evolve, F, head, map, length, T, update 
   } from 'ramda'
 import { autocomplete } from './Autocompletion.js'
+import { AutocompletionView } from './AutocompletionView.js'
 
 // ---------------- Block modification / Autocompletion ------------------
 
@@ -23,6 +24,7 @@ const onUpdateBlock = (idx) => (host, evt) => {
                           }) (evt.detail))
                          (host.doc)
 
+  host.completions = completions
 }
 
 // ------------------------- Code evaluation -----------------------------
@@ -58,7 +60,8 @@ export const TermView = {
     connect: (host, key, invalidate) => { host.doc = createDocument () }
   },
   results: [undefined],
-  render: ({ doc, results }) => html`
+  completions: [],
+  render: ({ doc, completions, results }) => html`
     ${addIndex (map) 
                ((b, idx) => 
                   html`
@@ -71,5 +74,6 @@ export const TermView = {
                              result=${results [idx]}>
                     </e-block>`) 
                (doc.blocks)}
-  `.define ({ EBlock: BlockView })
+    <e-completions completions=${ completions }></e-completions>
+  `.define ({ EBlock: BlockView, ECompletions: AutocompletionView })
 }

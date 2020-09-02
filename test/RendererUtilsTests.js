@@ -12,8 +12,12 @@ test ('Replace spaces for &nbsp;', (t) => {
 
 test ('Render no caret line', (t) => {
   t.deepEqual (
-    renderLine ('  return null; '),
-    '<div class="line">&nbsp;&nbsp;return&nbsp;null;&nbsp;</div>')
+    renderLine (false) (htmlSpaces ('  return null; ')),
+    '<div class="line"><span class="prompt">…&nbsp;</span>&nbsp;&nbsp;return&nbsp;null;&nbsp;</div>')
+
+  t.deepEqual (
+    renderLine (true) (htmlSpaces ('  return null; ')),
+    '<div class="line"><span class="prompt">&gt;&nbsp;</span>&nbsp;&nbsp;return&nbsp;null;&nbsp;</div>')
 })
 
 test ('Render caret', (t) => {
@@ -46,27 +50,51 @@ test ('Render caret line', (t) => {
   let b = createBlock (['A  let a = 5'])
 
   t.deepEqual (
-    renderCaretLine (b.lines [0]) (caret (b)) (''),
-    '<div class="line"><span class="caret">A</span>&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
+    renderCaretLine (b.lines [0]) (false) (caret (b)) (''),
+    '<div class="line"><span class="prompt">…&nbsp;</span><span class="caret">A</span>&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
 
   t.deepEqual (
-    renderCaretLine (b.lines [0]) (caret (b)) ('Array'),
-    '<div class="line"><span class="caret">A</span>&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
+    renderCaretLine (b.lines [0]) (false) (caret (b)) ('Array'),
+    '<div class="line"><span class="prompt">…&nbsp;</span><span class="caret">A</span>&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
 
   b.cursor = [1, 0]
   t.deepEqual (
-    renderCaretLine (b.lines [0]) (caret (b)) ('rray'),
-    '<div class="line">A<span class="autocompletion"><span class="caret">r</span>ray</span>&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
+    renderCaretLine (b.lines [0]) (false) (caret (b)) ('rray'),
+    '<div class="line"><span class="prompt">…&nbsp;</span>A<span class="autocompletion"><span class="caret">r</span>ray</span>&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
 
   b.cursor = [2, 0]
   t.deepEqual (
-    renderCaretLine (b.lines [0]) (caret (b)) (''),
-    '<div class="line">A&nbsp;<span class="caret">&nbsp;</span>let&nbsp;a&nbsp;=&nbsp;5</div>')
+    renderCaretLine (b.lines [0]) (false) (caret (b)) (''),
+    '<div class="line"><span class="prompt">…&nbsp;</span>A&nbsp;<span class="caret">&nbsp;</span>let&nbsp;a&nbsp;=&nbsp;5</div>')
 
   b.cursor = [50, 0]
   t.deepEqual (
-    renderCaretLine (b.lines [0]) (caret (b)) (''),
-    '<div class="line">A&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5<span class="caret">&nbsp;</span></div>')
+    renderCaretLine (b.lines [0]) (false) (caret (b)) (''),
+    '<div class="line"><span class="prompt">…&nbsp;</span>A&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5<span class="caret">&nbsp;</span></div>')
+
+  b.cursor = [0, 0]
+  t.deepEqual (
+    renderCaretLine (b.lines [0]) (true) (caret (b)) (''),
+    '<div class="line"><span class="prompt">&gt;&nbsp;</span><span class="caret">A</span>&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
+
+  t.deepEqual (
+    renderCaretLine (b.lines [0]) (true) (caret (b)) ('Array'),
+    '<div class="line"><span class="prompt">&gt;&nbsp;</span><span class="caret">A</span>&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
+
+  b.cursor = [1, 0]
+  t.deepEqual (
+    renderCaretLine (b.lines [0]) (true) (caret (b)) ('rray'),
+    '<div class="line"><span class="prompt">&gt;&nbsp;</span>A<span class="autocompletion"><span class="caret">r</span>ray</span>&nbsp;let&nbsp;a&nbsp;=&nbsp;5</div>')
+
+  b.cursor = [2, 0]
+  t.deepEqual (
+    renderCaretLine (b.lines [0]) (true) (caret (b)) (''),
+    '<div class="line"><span class="prompt">&gt;&nbsp;</span>A&nbsp;<span class="caret">&nbsp;</span>let&nbsp;a&nbsp;=&nbsp;5</div>')
+
+  b.cursor = [50, 0]
+  t.deepEqual (
+    renderCaretLine (b.lines [0]) (true) (caret (b)) (''),
+    '<div class="line"><span class="prompt">&gt;&nbsp;</span>A&nbsp;&nbsp;let&nbsp;a&nbsp;=&nbsp;5<span class="caret">&nbsp;</span></div>')
 })
 
 test ('Render lines', (t) => {
@@ -74,8 +102,8 @@ test ('Render lines', (t) => {
 
   t.deepEqual (
     renderLines (b),
-    ['<div class="line"><span class="caret">l</span>et&nbsp;f&nbsp;=&nbsp;()&nbsp;=></div>',
-     '<div class="line">&nbsp;&nbsp;5</div>'])
+    ['<div class="line"><span class="prompt">&gt;&nbsp;</span><span class="caret">l</span>et&nbsp;f&nbsp;=&nbsp;()&nbsp;=></div>',
+     '<div class="line"><span class="prompt">…&nbsp;</span>&nbsp;&nbsp;5</div>'])
 })
 
 test ('Render unfocused block', (t) => {
@@ -83,6 +111,6 @@ test ('Render unfocused block', (t) => {
 
   t.deepEqual (
     renderLines (b, false),
-    ['<div class="line">let&nbsp;f&nbsp;=&nbsp;()&nbsp;=></div>',
-     '<div class="line">&nbsp;&nbsp;5</div>'])
+    ['<div class="line"><span class="prompt">&gt;&nbsp;</span>let&nbsp;f&nbsp;=&nbsp;()&nbsp;=></div>',
+     '<div class="line"><span class="prompt">…&nbsp;</span>&nbsp;&nbsp;5</div>'])
 })

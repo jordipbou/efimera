@@ -9747,13 +9747,11 @@
   const styles$2 = `
 .collapsed .expanded { display: none; }
 .expanded .collapsed { display: none; }
-.pp-undefined { background: var(--result-background); }
-.pp-number { color: var(--result-number-color); 
-             background: var(--result-background); }
-.pp-string { color: var(--result-string-color);
-             background: var(--result-background); }
-.pp-boolean { color: var(--result-boolean-color);
-              background: var(--result-background); }
+.result { background: var(--result-background); }
+.pp-undefined { }
+.pp-number { color: var(--result-number-color); }
+.pp-string { color: var(--result-string-color); }
+.pp-boolean { color: var(--result-boolean-color); }
 `;
 
   const toggle = (host, evt) => {
@@ -9775,10 +9773,13 @@
   };
 
   const HTMLUndefined = () => html`
-  <div class="pp-undefined"></div>`.style (styles$2);
+  <div class="result pp-undefined"></div>`.style (styles$2);
+
+  const HTMLBoolean = (b) => html`
+  <span class="result pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles$2);
 
   const HTMLNumber = (n) => html`
-  <span class="pp-number expandable collapsed" 
+  <span class="result pp-number expandable collapsed" 
         onclick=${ toggle }>
     <span class="collapsed">
       <span class="decimal">${n}</span>
@@ -9794,7 +9795,7 @@
   </span>`.style (styles$2);
 
   const HTMLString = (s) => html`
-  <span class="pp-string expandable collapsed" 
+  <span class="result pp-string expandable collapsed" 
         onclick=${ toggle }>
     <span class="collapsed">"${s}"</span>
     <span class="expanded">"${s}"</span>
@@ -9804,7 +9805,7 @@
   <span>${ toHTML (e) }${ !last ? `,` : `` }</span>`;
 
   const HTMLArray = (a) => html`
-  <span class="pp-array">
+  <span class="result pp-array">
     <span class="">[Array]</span>
     <span class="">[</span>
     ${ map$1 (HTMLArrayElement (false)) (init (a)) }
@@ -9815,16 +9816,16 @@
   const HTMLPromise = (p) =>
     html.resolve(
       p.then ((value) => html`
-              <span class="pp-promise">
+              <span class="result pp-promise">
                 <span class="resolved">[[Resolved]]</span>
                 <span class="value">${ toHTML (value) }</span>
               </span>`.style (styles$2))
        .catch ((error) => html`
-               <span class="pp-promise">
+               <span class="result pp-promise">
                  <span class="rejected">[[Rejected]]</span>
                  <span class="error">${ toHTML (error) }</span>
                </span>`.style (styles$2)),
-      html`<span class="pp-promise">
+      html`<span class="result pp-promise">
            <span class="pending">[[Pending]]</span>
          </span>`.style (styles$2));
 
@@ -9838,7 +9839,7 @@
   </span>`;
 
   const HTMLObject = (o) => html`
-  <span class="pp-object">
+  <span class="result pp-object">
     <span class="">
       <span class="">[Object]</span>
       <span class="">{</span>
@@ -9851,19 +9852,16 @@
     <span class="">}</span>
   </span>`.style (styles$2);
 
-  const HTMLBoolean = (b) => html`
-  <span class="pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles$2);
-
   const toHTML = 
     cond ([
       [isNil,           HTMLUndefined],
+      [equals (true),   HTMLBoolean],
+      [equals (false),  HTMLBoolean],
       [is (Number),     HTMLNumber],
       [is (String),     HTMLString],
       [is (Array),      HTMLArray],
       [is (Promise),    HTMLPromise],
       [is (Object),     HTMLObject],
-      [equals (true),   HTMLBoolean],
-      [equals (false),  HTMLBoolean],
       [T,               always]]);
 
   const styles$3 = `
@@ -10014,6 +10012,29 @@
             head (s1) + longestCommonSubstring (tail (s1)) (tail (s2))
             : '';
 
+  const styles$4 = `
+:host { width: 100%;
+        position: absolute;
+        bottom: 0px;
+        left: 0px; 
+        background: var(--autocompletions-background);
+        color: var(--autocompletions-color);
+        overflow-x: hidden;
+        text-overflow: ellipsis; }
+.completion { margin-left: 5px;
+              margin-right: 5px; }
+`;
+
+  const autocompletionItem = (completion) =>
+    html`<span class="completion">${ completion }</span>`;
+
+  const AutocompletionView = {
+    completions: [],
+    render: ({ completions }) => html`
+    ${ map$1 (autocompletionItem) (completions) }
+  `.style (styles$4)
+  };
+
   // ---------------- Block modification / Autocompletion ------------------
 
   const onUpdateBlock = (idx) => (host, evt) => {
@@ -10027,6 +10048,7 @@
                             }) (evt.detail))
                            (host.doc);
 
+    host.completions = completions;
   };
 
   // ------------------------- Code evaluation -----------------------------
@@ -10060,7 +10082,8 @@
       connect: (host, key, invalidate) => { host.doc = createDocument (); }
     },
     results: [undefined],
-    render: ({ doc, results }) => html`
+    completions: [],
+    render: ({ doc, completions, results }) => html`
     ${addIndex (map$1) 
                ((b, idx) => 
                   html`
@@ -10073,7 +10096,8 @@
                              result=${results [idx]}>
                     </e-block>`) 
                (doc.blocks)}
-  `.define ({ EBlock: BlockView })
+    <e-completions completions=${ completions }></e-completions>
+  `.define ({ EBlock: BlockView, ECompletions: AutocompletionView })
   };
 
   const onclose = (host) => (evt) =>
@@ -10093,7 +10117,7 @@
     host.dialog.close ();
   };
 
-  const styles$4 = `
+  const styles$5 = `
 .json { width: 80vw; }
 `;
 
@@ -10108,7 +10132,7 @@
         <button onclick=${copyToClipboard}>Copy</button>
       </div>
     </dialog>
-  `.style (styles$4)
+  `.style (styles$5)
   };
 
   const onclose$1 = (host) => (evt) =>
@@ -10146,7 +10170,7 @@
             .catch (showClipboardError (host))
           : showClipboardError (host) ());
 
-  const styles$5 = `
+  const styles$6 = `
 textarea { width: 80vw; }
 p { color: red }
 `;
@@ -10163,7 +10187,7 @@ p { color: red }
         <button onclick=${importFromJSON}>Import from clipboard</button>
       </div>
     </dialog>
-  `.style (styles$5)
+  `.style (styles$6)
   };
 
   // ------------------------ Save / Load session --------------------------
