@@ -1,16 +1,15 @@
 // InputView renders a Block using a BlockRenderer
 // and captures user input thru an BlockListener.
 
-import { define, html } from 'hybrids'
+import { html } from 'hybrids'
 import { ref } from './HybridsUtils.js'
 import { createRenderer } from './BlockRenderer.js'
 import { createListener } from './BlockListener.js'
 import { createBlock } from './Block.js'
 
 const styles = `
-#block-input-container {
-  min-height: 1rem;
-}
+#block-input-container { min-height: 1rem; }
+#block-input-container:focus { outline-style: none; }
 `
 
 export const InputView = {
@@ -39,5 +38,3 @@ export const InputView = {
     </div>
   `.style (styles)
 }
-
-define ('e-input', InputView)

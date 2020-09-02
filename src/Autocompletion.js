@@ -1,6 +1,6 @@
 import * as acorn from 'acorn'
 import { 
-  adjust, append, concat, drop, evolve, filter, head, init, join, 
+  adjust, append, concat, drop, evolve, filter, head, init, is, join, 
   last, length, take, path, prepend, prop, reduce, sort, 
   startsWith, tail, without
   } from 'ramda'
@@ -101,31 +101,23 @@ export const autocomplete = (block) => {
 
   completions = sort ((a, b) => a.localeCompare (b)) (completions)
 
-  // TODO: Let's see if all of them can be reduced to one common 
-  // element:
-  // Like ['Array', 'ArrayBuffer'] -> ['Array']
-
-  console.log (completions)
-
-  let autocompletion = longestCommonSubstringOnArray (completions)
+  let autocompletion = longestCommonSubstring (completions)
   autocompletion = autocompletion === undefined ? '' : autocompletion
   autocompletion = drop (length (name)) (autocompletion)
+
+  if (autocompletion === '' && length (completions) > 1) {
+    autocompletion = '...'
+  }
 
   return [completions, name, autocompletion]
 }
 
-export const longestCommonSubstring = (s1) => (s2) => {
-  let s = ''
-  let i = 0
-  while (i < length (s1) && i < length (s2) && s1[i] === s2[i]) {
-    s = s + s1[i]
-    i++
-  }
-
-  return s
-}
-
-export const longestCommonSubstringOnArray = (autocompletions) =>
-  reduce ((acc, value) => longestCommonSubstring (acc) (value))
-         (head (autocompletions))
-         (tail (autocompletions))
+export const longestCommonSubstring = (s1) => 
+  is (Array, s1) ?
+    reduce ((acc, value) => longestCommonSubstring (acc) (value))
+           (head (s1))
+           (tail (s1))
+    : (s2) =>
+        head (s1) === head (s2) && length (s1) > 0 && length (s2) > 0 ?
+          head (s1) + longestCommonSubstring (tail (s1)) (tail (s2))
+          : ''

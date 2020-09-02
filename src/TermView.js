@@ -1,26 +1,31 @@
-import { define, html } from 'hybrids'
+import { html } from 'hybrids'
 import { ref } from './HybridsUtils.js'
 import { 
   createDocument, focusNextBlock, focusPreviousBlock, 
   updateBlock, appendBlock 
   } from './Document.js'
-import { inputRefocus } from './BlockView.js'
+import { BlockView, inputRefocus } from './BlockView.js'
 import { 
   addIndex, always, append, drop, evolve, F, head, map, length, T, update 
   } from 'ramda'
 import { autocomplete } from './Autocompletion.js'
 
+// ---------------- Block modification / Autocompletion ------------------
+
 const onUpdateBlock = (idx) => (host, evt) => {
-  // TODO: This is the point to insert auto-completion
-  // Auto completion always occurs at caret.
   host.doc = updateBlock (idx) (evt.detail) (host.doc) 
+
   let [completions, name, autocompletion] = autocomplete (evt.detail)
   host.doc = updateBlock (idx)
-                         (evolve ({ autocompletion: always (autocompletion) }) 
-                                 (evt.detail))
+                         (evolve ({ 
+                           autocompletion: always (autocompletion),
+                           completions: always (completions)
+                          }) (evt.detail))
                          (host.doc)
 
 }
+
+// ------------------------- Code evaluation -----------------------------
 
 const blockEvaluated = (idx) => (host, evt) => {
   host.results = update (idx) (evt.detail) (host.results)
@@ -66,7 +71,5 @@ export const TermView = {
                              result=${results [idx]}>
                     </e-block>`) 
                (doc.blocks)}
-  `
+  `.define ({ EBlock: BlockView })
 }
-
-define ('e-term', TermView)

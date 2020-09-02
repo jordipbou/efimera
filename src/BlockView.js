@@ -1,7 +1,7 @@
-import { define, html } from 'hybrids'
+import { html } from 'hybrids'
 import { ref } from './HybridsUtils.js'
-import './InputView.js'
-import './OutputView.js'
+import { InputView } from './InputView.js'
+import { OutputView } from './OutputView.js'
 
 export const inputRefocus = (host) => {
   host.input.focused = true
@@ -17,7 +17,8 @@ export const BlockView = {
              focused=${focused}>
     </e-input>
     <e-output result=${result}></e-output>
-  `
+  `.define ({
+    EInput: InputView,
+    EOutput: OutputView
+  })
 }
-
-define ('e-block', BlockView)

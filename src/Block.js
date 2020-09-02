@@ -160,11 +160,17 @@ export const insertLine = (block) =>
     cursor: pipe (update (0) (0), adjust (1) (add (1)))
   }) (block)
 
+// --------------------------- Autocompletion ----------------------------
+
+export const autocomplete = (block) =>
+  insertText (block.autocompletion) (block)
+
 // --------------------------- Block creation ----------------------------
 
 export const createBlock = (text = ['']) => ({
   lines: text === null ? [''] : text,
   history: [],
+  completions: [],
   autocompletion: '',
   cursor: [0, 0] // x -position on current line-
                  // y -number of current line-

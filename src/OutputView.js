@@ -1,9 +1,14 @@
-import { define, html } from 'hybrids'
+import { html } from 'hybrids'
 import { toHTML } from './PrettyPrint.js'
+
+const styles = `
+:host { display: block;
+        min-width: 100vw; 
+        line-height: 1em;
+        background: var(--result-background); }
+`
 
 export const OutputView = {
   result: undefined,
-  render: ({ result }) => toHTML (result)
+  render: ({ result }) => html`${ toHTML (result) }`.style (styles)
 }
-
-define ('e-output', OutputView)

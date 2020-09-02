@@ -1,14 +1,7 @@
-/* @import "fork-awesome/css/fork-awesome.css"; */
-/*
 @import "monofur.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-*/
-/* Solarized colors */
-/*
 :root {
+    /* Solarized colors */
 	--base03:    #002b36;
 	--base02:    #073642;
 	--base01:    #586e75;
@@ -25,6 +18,17 @@
 	--blue:      #268bd2;
 	--cyan:      #2aa198;
 	--green:     #859900;
+
+	--term-background: var(--base03);
+	--term-background-inverted: var(--base3);
+	--term-color: var(--base0);
+	--term-color-inverted: var(--base03);
+	--autocompletion-color: var(--yellow);
+	--autocompletion-color-invertd: var(--yellow);
+	--result-background: var(--base03);
+	--result-number-color: var(--yellow);
+	--result-string-color: var(--green);
+	--result-boolean-color: var(--yellow);
 }
 
 html, body {
@@ -35,8 +39,7 @@ html, body {
 }
 
 body {
-	background-color: var(--base03);
-	color: var(--base0);
+	background-color: var(--term-background);
+	color: var(--term-color);
 	font-family: 'monofur';
 }
-*/

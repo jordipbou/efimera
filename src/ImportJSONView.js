@@ -1,4 +1,4 @@
-import { define, dispatch, html } from 'hybrids'
+import { dispatch, html } from 'hybrids'
 import { ref } from './HybridsUtils.js'
 
 const onclose = (host) => (evt) =>
@@ -60,5 +60,3 @@ export const ImportJSONView = {
     </dialog>
   `.style (styles)
 }
-
-define ('e-import-json', ImportJSONView)

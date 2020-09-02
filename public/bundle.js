@@ -1,9 +1,10 @@
 
 (function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(window.document);
-(function (factory) {
-  typeof define === 'function' && define.amd ? define(factory) :
-  factory();
-}((function () { 'use strict';
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (global = global || self, factory(global.efimera = {}));
+}(this, (function (exports) { 'use strict';
 
   function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -1423,14 +1424,6 @@
   Object.assign(html, helpers);
   Object.assign(svg, helpers);
   //# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy90ZW1wbGF0ZS9pbmRleC5qcyJdLCJuYW1lcyI6WyJkZWZpbmVFbGVtZW50cyIsImNvbXBpbGVUZW1wbGF0ZSIsImdldFBsYWNlaG9sZGVyIiwiaGVscGVycyIsIlBMQUNFSE9MREVSIiwiU1ZHX1BMQUNFSE9MREVSIiwiU1RZTEVfSU1QT1JUX1JFR0VYUCIsInRlbXBsYXRlc01hcCIsIk1hcCIsInN0eWxlc01hcCIsIldlYWtNYXAiLCJtZXRob2RzIiwiZGVmaW5lIiwiZWxlbWVudHMiLCJrZXkiLCJpZCIsInN0eWxlIiwic3R5bGVzIiwic2V0IiwiZmlsdGVyIiwiY3JlYXRlIiwicGFydHMiLCJhcmdzIiwiaXNTVkciLCJjcmVhdGVUZW1wbGF0ZSIsImhvc3QiLCJ0YXJnZXQiLCJnZXQiLCJoYXNBZG9wdGVkU3R5bGVTaGVldHMiLCJqb2luIiwiam9pbmVkU3R5bGVzIiwiYWRvcHRlZFN0eWxlU2hlZXRzIiwidGVzdCIsInJlbmRlciIsIk9iamVjdCIsImFzc2lnbiIsImh0bWwiLCJzdmciXSwibWFwcGluZ3MiOiJBQUFBLE9BQU9BLGNBQVAsTUFBMkIsY0FBM0I7QUFFQSxTQUFTQyxlQUFULEVBQTBCQyxjQUExQixRQUFnRCxXQUFoRDtBQUNBLE9BQU8sS0FBS0MsT0FBWixNQUF5QixjQUF6QjtBQUVBLElBQU1DLFdBQVcsR0FBR0YsY0FBYyxFQUFsQztBQUNBLElBQU1HLGVBQWUsR0FBR0gsY0FBYyxDQUFDLEtBQUQsQ0FBdEM7QUFDQSxJQUFNSSxtQkFBbUIsR0FBRyxTQUE1QjtBQUVBLElBQU1DLFlBQVksR0FBRyxJQUFJQyxHQUFKLEVBQXJCO0FBQ0EsSUFBTUMsU0FBUyxHQUFHLElBQUlDLE9BQUosRUFBbEI7QUFFQSxJQUFNQyxPQUFPLEdBQUc7QUFDZEMsRUFBQUEsTUFEYyxrQkFDUEMsUUFETyxFQUNHO0FBQ2ZiLElBQUFBLGNBQWMsQ0FBQ2EsUUFBRCxDQUFkO0FBQ0EsV0FBTyxJQUFQO0FBQ0QsR0FKYTtBQUtkQyxFQUFBQSxHQUxjLGVBS1ZDLEVBTFUsRUFLTjtBQUNOLFNBQUtBLEVBQUwsR0FBVUEsRUFBVjtBQUNBLFdBQU8sSUFBUDtBQUNELEdBUmE7QUFTZEMsRUFBQUEsS0FUYyxtQkFTRztBQUFBLHNDQUFSQyxNQUFRO0FBQVJBLE1BQUFBLE1BQVE7QUFBQTs7QUFDZlIsSUFBQUEsU0FBUyxDQUFDUyxHQUFWLENBQ0UsSUFERixFQUVFRCxNQUFNLENBQUNFLE1BQVAsQ0FBYyxVQUFBSCxLQUFLO0FBQUEsYUFBSUEsS0FBSjtBQUFBLEtBQW5CLENBRkY7QUFJQSxXQUFPLElBQVA7QUFDRDtBQWZhLENBQWhCOztBQWtCQSxTQUFTSSxNQUFULENBQWdCQyxLQUFoQixFQUF1QkMsSUFBdkIsRUFBNkJDLEtBQTdCLEVBQW9DO0FBQ2xDLE1BQU1DLGNBQWMsR0FBRyxTQUFqQkEsY0FBaUIsQ0FBQ0MsSUFBRCxFQUF5QjtBQUFBLFFBQWxCQyxNQUFrQix1RUFBVEQsSUFBUztBQUM5QyxRQUFNUixNQUFNLEdBQUdSLFNBQVMsQ0FBQ2tCLEdBQVYsQ0FBY0gsY0FBZCxDQUFmO0FBQ0EsUUFBSUkscUJBQUo7QUFDQSxRQUFJYixFQUFFLEdBQUdNLEtBQUssQ0FBQ1EsSUFBTixDQUFXekIsV0FBWCxDQUFUOztBQUVBLFFBQUlhLE1BQUosRUFBWTtBQUNWLFVBQU1hLFlBQVksR0FBR2IsTUFBTSxDQUFDWSxJQUFQLENBQVl6QixXQUFaLENBQXJCO0FBQ0F3QixNQUFBQSxxQkFBcUIsR0FDbkIsQ0FBQyxDQUFDRixNQUFNLENBQUNLLGtCQUFULElBQStCLENBQUN6QixtQkFBbUIsQ0FBQzBCLElBQXBCLENBQXlCRixZQUF6QixDQURsQztBQUVBLFVBQUksQ0FBQ0YscUJBQUwsRUFBNEJiLEVBQUUsSUFBSWUsWUFBTjtBQUM3Qjs7QUFFRCxRQUFJUCxLQUFKLEVBQVdSLEVBQUUsSUFBSVYsZUFBTjtBQUVYLFFBQUk0QixNQUFNLEdBQUcxQixZQUFZLENBQUNvQixHQUFiLENBQWlCWixFQUFqQixDQUFiOztBQUNBLFFBQUksQ0FBQ2tCLE1BQUwsRUFBYTtBQUNYQSxNQUFBQSxNQUFNLEdBQUdoQyxlQUFlLENBQUNvQixLQUFELEVBQVFFLEtBQVIsRUFBZSxDQUFDSyxxQkFBRCxJQUEwQlgsTUFBekMsQ0FBeEI7QUFDQVYsTUFBQUEsWUFBWSxDQUFDVyxHQUFiLENBQWlCSCxFQUFqQixFQUFxQmtCLE1BQXJCO0FBQ0Q7O0FBRURBLElBQUFBLE1BQU0sQ0FBQ1IsSUFBRCxFQUFPQyxNQUFQLEVBQWVKLElBQWYsRUFBcUJNLHFCQUFxQixJQUFJWCxNQUE5QyxDQUFOO0FBQ0QsR0FyQkQ7O0FBdUJBLFNBQU9pQixNQUFNLENBQUNDLE1BQVAsQ0FBY1gsY0FBZCxFQUE4QmIsT0FBOUIsQ0FBUDtBQUNEOztBQUVELE9BQU8sU0FBU3lCLElBQVQsQ0FBY2YsS0FBZCxFQUE4QjtBQUFBLHFDQUFOQyxJQUFNO0FBQU5BLElBQUFBLElBQU07QUFBQTs7QUFDbkMsU0FBT0YsTUFBTSxDQUFDQyxLQUFELEVBQVFDLElBQVIsQ0FBYjtBQUNEO0FBRUQsT0FBTyxTQUFTZSxHQUFULENBQWFoQixLQUFiLEVBQTZCO0FBQUEscUNBQU5DLElBQU07QUFBTkEsSUFBQUEsSUFBTTtBQUFBOztBQUNsQyxTQUFPRixNQUFNLENBQUNDLEtBQUQsRUFBUUMsSUFBUixFQUFjLElBQWQsQ0FBYjtBQUNEO0FBRURZLE1BQU0sQ0FBQ0MsTUFBUCxDQUFjQyxJQUFkLEVBQW9CakMsT0FBcEI7QUFDQStCLE1BQU0sQ0FBQ0MsTUFBUCxDQUFjRSxHQUFkLEVBQW1CbEMsT0FBbkIiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgZGVmaW5lRWxlbWVudHMgZnJvbSBcIi4uL2RlZmluZS5qc1wiO1xuXG5pbXBvcnQgeyBjb21waWxlVGVtcGxhdGUsIGdldFBsYWNlaG9sZGVyIH0gZnJvbSBcIi4vY29yZS5qc1wiO1xuaW1wb3J0ICogYXMgaGVscGVycyBmcm9tIFwiLi9oZWxwZXJzLmpzXCI7XG5cbmNvbnN0IFBMQUNFSE9MREVSID0gZ2V0UGxhY2Vob2xkZXIoKTtcbmNvbnN0IFNWR19QTEFDRUhPTERFUiA9IGdldFBsYWNlaG9sZGVyKFwic3ZnXCIpO1xuY29uc3QgU1RZTEVfSU1QT1JUX1JFR0VYUCA9IC9AaW1wb3J0LztcblxuY29uc3QgdGVtcGxhdGVzTWFwID0gbmV3IE1hcCgpO1xuY29uc3Qgc3R5bGVzTWFwID0gbmV3IFdlYWtNYXAoKTtcblxuY29uc3QgbWV0aG9kcyA9IHtcbiAgZGVmaW5lKGVsZW1lbnRzKSB7XG4gICAgZGVmaW5lRWxlbWVudHMoZWxlbWVudHMpO1xuICAgIHJldHVybiB0aGlzO1xuICB9LFxuICBrZXkoaWQpIHtcbiAgICB0aGlzLmlkID0gaWQ7XG4gICAgcmV0dXJuIHRoaXM7XG4gIH0sXG4gIHN0eWxlKC4uLnN0eWxlcykge1xuICAgIHN0eWxlc01hcC5zZXQoXG4gICAgICB0aGlzLFxuICAgICAgc3R5bGVzLmZpbHRlcihzdHlsZSA9PiBzdHlsZSksXG4gICAgKTtcbiAgICByZXR1cm4gdGhpcztcbiAgfSxcbn07XG5cbmZ1bmN0aW9uIGNyZWF0ZShwYXJ0cywgYXJncywgaXNTVkcpIHtcbiAgY29uc3QgY3JlYXRlVGVtcGxhdGUgPSAoaG9zdCwgdGFyZ2V0ID0gaG9zdCkgPT4ge1xuICAgIGNvbnN0IHN0eWxlcyA9IHN0eWxlc01hcC5nZXQoY3JlYXRlVGVtcGxhdGUpO1xuICAgIGxldCBoYXNBZG9wdGVkU3R5bGVTaGVldHM7XG4gICAgbGV0IGlkID0gcGFydHMuam9pbihQTEFDRUhPTERFUik7XG5cbiAgICBpZiAoc3R5bGVzKSB7XG4gICAgICBjb25zdCBqb2luZWRTdHlsZXMgPSBzdHlsZXMuam9pbihQTEFDRUhPTERFUik7XG4gICAgICBoYXNBZG9wdGVkU3R5bGVTaGVldHMgPVxuICAgICAgICAhIXRhcmdldC5hZG9wdGVkU3R5bGVTaGVldHMgJiYgIVNUWUxFX0lNUE9SVF9SRUdFWFAudGVzdChqb2luZWRTdHlsZXMpO1xuICAgICAgaWYgKCFoYXNBZG9wdGVkU3R5bGVTaGVldHMpIGlkICs9IGpvaW5lZFN0eWxlcztcbiAgICB9XG5cbiAgICBpZiAoaXNTVkcpIGlkICs9IFNWR19QTEFDRUhPTERFUjtcblxuICAgIGxldCByZW5kZXIgPSB0ZW1wbGF0ZXNNYXAuZ2V0KGlkKTtcbiAgICBpZiAoIXJlbmRlcikge1xuICAgICAgcmVuZGVyID0gY29tcGlsZVRlbXBsYXRlKHBhcnRzLCBpc1NWRywgIWhhc0Fkb3B0ZWRTdHlsZVNoZWV0cyAmJiBzdHlsZXMpO1xuICAgICAgdGVtcGxhdGVzTWFwLnNldChpZCwgcmVuZGVyKTtcbiAgICB9XG5cbiAgICByZW5kZXIoaG9zdCwgdGFyZ2V0LCBhcmdzLCBoYXNBZG9wdGVkU3R5bGVTaGVldHMgJiYgc3R5bGVzKTtcbiAgfTtcblxuICByZXR1cm4gT2JqZWN0LmFzc2lnbihjcmVhdGVUZW1wbGF0ZSwgbWV0aG9kcyk7XG59XG5cbmV4cG9ydCBmdW5jdGlvbiBodG1sKHBhcnRzLCAuLi5hcmdzKSB7XG4gIHJldHVybiBjcmVhdGUocGFydHMsIGFyZ3MpO1xufVxuXG5leHBvcnQgZnVuY3Rpb24gc3ZnKHBhcnRzLCAuLi5hcmdzKSB7XG4gIHJldHVybiBjcmVhdGUocGFydHMsIGFyZ3MsIHRydWUpO1xufVxuXG5PYmplY3QuYXNzaWduKGh0bWwsIGhlbHBlcnMpO1xuT2JqZWN0LmFzc2lnbihzdmcsIGhlbHBlcnMpO1xuIl19
-
-  const PaneView = {
-    render: () => html`
-    <slot name="content">Default content</slot>
-  `
-  };
-
-  define ('e-pane', PaneView);
 
   /**
    * A function that always returns `true`. Any passed in parameters are ignored.
@@ -4225,6 +4218,12 @@
           render ().querySelector (query) 
           : null;
 
+  const PaneView = {
+    render: () => html`
+    <slot name="content">Default content</slot>
+  `
+  };
+
   // A block is a single/multiline text with editing capabilities.
 
   // ----------------------------- Caret -----------------------------------
@@ -4363,11 +4362,17 @@
       cursor: pipe (update (0) (0), adjust (1) (add (1)))
     }) (block);
 
+  // --------------------------- Autocompletion ----------------------------
+
+  const autocomplete = (block) =>
+    insertText (block.autocompletion) (block);
+
   // --------------------------- Block creation ----------------------------
 
   const createBlock = (text = ['']) => ({
     lines: text === null ? [''] : text,
     history: [],
+    completions: [],
     autocompletion: '',
     cursor: [0, 0] // x -position on current line-
                    // y -number of current line-
@@ -4406,8 +4411,11 @@
 
   const htmlSpaces = replace (/ /g) ('&nbsp;');
 
-  const renderLine = (line) =>
-    `<div class="line">${htmlSpaces (line)}</div>`;
+  const prompt = (first) =>
+    `<span class="prompt">${ first ? '&gt;' : '…' }&nbsp;</span>`;
+
+  const renderLine = (first) => (line) =>
+    `<div class="line">${ prompt (first) }${ line }</div>`;
 
   const renderCaret = (character) => (autocompletion) => 
     (character === undefined || character === ' ' || character === '')  
@@ -4422,51 +4430,57 @@
          htmlSpaces ((character === '' || !character)? ' ' : character) + 
          '</span>';
 
-  const renderCaretLine = (line) => (caret) => (autocompletion) =>
-    '<div class="line">' + 
-    htmlSpaces (slice (0) (caret [0]) (line)) +
-    renderCaret (line [caret [0]]) (autocompletion) +
-    htmlSpaces (slice (caret [0] + 1) (Infinity) (line)) +
-    '</div>';
+  const renderCaretLine = 
+    (line) => (first) => (caret) => (autocompletion) =>
+    renderLine (first)
+               (htmlSpaces (slice (0) (caret [0]) (line)) +
+                renderCaret (line [caret [0]]) (autocompletion) +
+                htmlSpaces (slice (caret [0] + 1) (Infinity) (line)));
 
   const renderLines = (block, focus = true) =>
     focus ?
       addIndex 
         (map$1)
         ((line, idx) => idx === block.cursor [1] ?
-                          renderCaretLine (line) 
+                          renderCaretLine (line)
+                                          (idx === 0)
                                           (caret (block))
                                           (block.autocompletion)
-                          : renderLine (line))
+                          : renderLine (idx === 0) (htmlSpaces (line)))
         (block.lines)
-      : map$1 (renderLine) (block.lines);
+      : addIndex (map$1) 
+                 ((line, idx) => renderLine (idx === 0) 
+                                            (htmlSpaces (line)))
+                 (block.lines);
 
   // A block renderer renders a block content and possibly
 
   const styles = `
-.line {
-  background-color: gray;
-  min-height: 1em;
-  line-height: 1;
-  padding: 0em;
-  margin: 0em;
-}
+.line { min-height: 1em;
+        line-height: 1;
+        padding: 0em;
+        margin: 0em; }
 
-.caret {
-  min-width: 0.5em;
-  animation: blink .75s step-end infinite;
-}
+.line:focus { outline-style: none; }
 
-.autocompletion {
-  color: green;
-}
+.caret { min-width: 0.5em;
+         animation: blink .75s step-end infinite; }
 
-@keyframes blink {
-  from, to { background-color: black; 
-             color: white; }
-  50% { background-color: white;
-        color: black; }
-}
+@keyframes blink { from, to { background-color: var(--term-background); 
+                              color: var(--term-color); }
+                   50% { background-color: var(--term-background-inverted);
+                         color: var(--term-color-inverted); } }
+
+.autocompletion .caret { animation: auto-blink .75s step-end infinite; }
+
+@keyframes auto-blink { 
+  from, to { background-color: var(--term-background);
+             color: var(--autocompletion-color); }
+  50% { background-color: var(--term-background-inverted);
+        color: var(--autocompletion-color-inverted); } }
+
+.autocompletion { color: var(--autocompletion-color); }
+
 `;
 
   const createRenderer = () => ({
@@ -9572,19 +9586,17 @@
     return Parser.tokenizer(input, options)
   }
 
-  //import { dispatch } from 'hybrids'
-
-  //import { toHTML } from './PrettyPrint.js'
-
-  // import '<package>'
+  // ---------------------------------------------------- import '<package>'
   const regex1 = /import\s*['|"](?<package>.*)['|"]/;
-  const subst1 = "npmImport ('$<package>')";
-  // import * from '<package>'
+  const subst1 = "efimera.npmImport ('$<package>')";
+
+  // --------------------------------------------- import * from '<package>'
   const regex2 = /import\s*\*\s*from\s*['|"](?<package>.*)['|"]/;
-  const subst2 = "npmImport ('$<package>', null)";
-  // import { <exports> } from '<package>'
+  const subst2 = "efimera.npmImport ('$<package>', null)";
+
+  // --------------------------------  import { <exports> } from '<package>'
   const regex3 = /import\s*{(?<exports>.*)}\s*from\s*['|"](?<package>.*)['|"]/;
-  const subst3 = "npmImport ('$<package>').then (m => '$<exports>'.split (',').map ((s) => { let p = s.trim (); window[p] = m[p] }))";
+  const subst3 = "efimera.npmImport ('$<package>').then (m => '$<exports>'.split (',').map ((s) => { let p = s.trim (); window[p] = m[p] }))";
 
   const replaceImports = (line) =>
     line.replace (regex1, subst1)
@@ -9622,19 +9634,10 @@
 
   const evaluate_code = (code) => {
     let modified = applyReplacements (code);
-    //        .replace (/@view/, 
-    //                 'document.querySelector (\'[data-uuid="' + host.uuid + '"] .view\')')
-    //        .replace (/@block/,
-    //                 'document.querySelector (\'[data-uuid="' + host.uuid + '"]\')'))
-    //      (code)
 
     let strcode = join ('\n') (modified);
 
     return window.eval (strcode)
-
-    //dispatch (host, 'scrolltoend')
-
-    //host.result = toHTML (result)
   };
 
   const update$1 = (host) => (detail) =>
@@ -9687,6 +9690,10 @@
         update$1 (host) (moveCursorToEnd (host.block));
       } else if (evt.key === 'Home') {
         update$1 (host) (moveCursorToStart (host.block));
+      } else if (evt.key === 'Tab') {
+        if (host.block.autocompletion !== '...') {
+          update$1 (host) (autocomplete (host.block));
+        }
       } else if ((evt.key === 's' || evt.key === 'S') && evt.ctrlKey) {
         dispatch (host, 'save', { bubbles: true, composed: true });
       } else if ((evt.key === 'l' || evt.key === 'L') && evt.ctrlKey) {
@@ -9706,9 +9713,8 @@
   // InputView renders a Block using a BlockRenderer
 
   const styles$1 = `
-#block-input-container {
-  min-height: 1rem;
-}
+#block-input-container { min-height: 1rem; }
+#block-input-container:focus { outline-style: none; }
 `;
 
   const InputView = {
@@ -9738,12 +9744,16 @@
   `.style (styles$1)
   };
 
-  define ('e-input', InputView);
-
   const styles$2 = `
 .collapsed .expanded { display: none; }
 .expanded .collapsed { display: none; }
-.pp-undefined { height: 3px; background-color: red; }
+.pp-undefined { background: var(--result-background); }
+.pp-number { color: var(--result-number-color); 
+             background: var(--result-background); }
+.pp-string { color: var(--result-string-color);
+             background: var(--result-background); }
+.pp-boolean { color: var(--result-boolean-color);
+              background: var(--result-background); }
 `;
 
   const toggle = (host, evt) => {
@@ -9842,7 +9852,7 @@
   </span>`.style (styles$2);
 
   const HTMLBoolean = (b) => html`
-  <span class="pp-boolean">${b}</span>`.style (styles$2);
+  <span class="pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles$2);
 
   const toHTML = 
     cond ([
@@ -9856,12 +9866,17 @@
       [equals (false),  HTMLBoolean],
       [T,               always]]);
 
+  const styles$3 = `
+:host { display: block;
+        min-width: 100vw; 
+        line-height: 1em;
+        background: var(--result-background); }
+`;
+
   const OutputView = {
     result: undefined,
-    render: ({ result }) => toHTML (result)
+    render: ({ result }) => html`${ toHTML (result) }`.style (styles$3)
   };
-
-  define ('e-output', OutputView);
 
   const inputRefocus = (host) => {
     host.input.focused = true;
@@ -9877,10 +9892,11 @@
              focused=${focused}>
     </e-input>
     <e-output result=${result}></e-output>
-  `
+  `.define ({
+      EInput: InputView,
+      EOutput: OutputView
+    })
   };
-
-  define ('e-block', BlockView);
 
   let keywords$2 = [
     'await', 'break', 'case', 'catch', 'class', 'const', 'continue', 
@@ -9946,7 +9962,7 @@
     return [scope, name]
   };
 
-  const autocomplete = (block) => {
+  const autocomplete$1 = (block) => {
     let code =
       join ('\n')
            (take (caret (block) [1] + 1)
@@ -9977,46 +9993,43 @@
 
     completions = sort ((a, b) => a.localeCompare (b)) (completions);
 
-    // TODO: Let's see if all of them can be reduced to one common 
-    // element:
-    // Like ['Array', 'ArrayBuffer'] -> ['Array']
-
-    console.log (completions);
-
-    let autocompletion = longestCommonSubstringOnArray (completions);
+    let autocompletion = longestCommonSubstring (completions);
     autocompletion = autocompletion === undefined ? '' : autocompletion;
     autocompletion = drop (length (name)) (autocompletion);
+
+    if (autocompletion === '' && length (completions) > 1) {
+      autocompletion = '...';
+    }
 
     return [completions, name, autocompletion]
   };
 
-  const longestCommonSubstring = (s1) => (s2) => {
-    let s = '';
-    let i = 0;
-    while (i < length (s1) && i < length (s2) && s1[i] === s2[i]) {
-      s = s + s1[i];
-      i++;
-    }
+  const longestCommonSubstring = (s1) => 
+    is (Array, s1) ?
+      reduce ((acc, value) => longestCommonSubstring (acc) (value))
+             (head (s1))
+             (tail (s1))
+      : (s2) =>
+          head (s1) === head (s2) && length (s1) > 0 && length (s2) > 0 ?
+            head (s1) + longestCommonSubstring (tail (s1)) (tail (s2))
+            : '';
 
-    return s
-  };
-
-  const longestCommonSubstringOnArray = (autocompletions) =>
-    reduce ((acc, value) => longestCommonSubstring (acc) (value))
-           (head (autocompletions))
-           (tail (autocompletions));
+  // ---------------- Block modification / Autocompletion ------------------
 
   const onUpdateBlock = (idx) => (host, evt) => {
-    // TODO: This is the point to insert auto-completion
-    // Auto completion always occurs at caret.
     host.doc = updateBlock (idx) (evt.detail) (host.doc); 
-    let [completions, name, autocompletion] = autocomplete (evt.detail);
+
+    let [completions, name, autocompletion] = autocomplete$1 (evt.detail);
     host.doc = updateBlock (idx)
-                           (evolve ({ autocompletion: always (autocompletion) }) 
-                                   (evt.detail))
+                           (evolve ({ 
+                             autocompletion: always (autocompletion),
+                             completions: always (completions)
+                            }) (evt.detail))
                            (host.doc);
 
   };
+
+  // ------------------------- Code evaluation -----------------------------
 
   const blockEvaluated = (idx) => (host, evt) => {
     host.results = update (idx) (evt.detail) (host.results);
@@ -10060,10 +10073,8 @@
                              result=${results [idx]}>
                     </e-block>`) 
                (doc.blocks)}
-  `
+  `.define ({ EBlock: BlockView })
   };
-
-  define ('e-term', TermView);
 
   const onclose = (host) => (evt) =>
     dispatch (host, 'refocus', { bubbles: true, composed: true });
@@ -10082,7 +10093,7 @@
     host.dialog.close ();
   };
 
-  const styles$3 = `
+  const styles$4 = `
 .json { width: 80vw; }
 `;
 
@@ -10097,10 +10108,8 @@
         <button onclick=${copyToClipboard}>Copy</button>
       </div>
     </dialog>
-  `.style (styles$3)
+  `.style (styles$4)
   };
-
-  define ('e-export-json', ExportJSONView);
 
   const onclose$1 = (host) => (evt) =>
     dispatch (host, 'refocus', { bubbles: true, composed: true });
@@ -10137,7 +10146,7 @@
             .catch (showClipboardError (host))
           : showClipboardError (host) ());
 
-  const styles$4 = `
+  const styles$5 = `
 textarea { width: 80vw; }
 p { color: red }
 `;
@@ -10154,10 +10163,10 @@ p { color: red }
         <button onclick=${importFromJSON}>Import from clipboard</button>
       </div>
     </dialog>
-  `.style (styles$4)
+  `.style (styles$5)
   };
 
-  define ('e-import-json', ImportJSONView);
+  // ------------------------ Save / Load session --------------------------
 
   const save = (host, evt) => {
     let json = JSON.stringify (host.term.doc);
@@ -10172,8 +10181,12 @@ p { color: red }
     hideImportDialog (host.import_dialog);
   };
 
+  // --------------------------- Refocus block -----------------------------
+
   const refocus = (host, evt) => 
     termRefocus (host.term);
+
+  // ---------------------------- Session View -----------------------------
 
   const SessionView = {
     term: ref ('e-term'),
@@ -10189,10 +10202,74 @@ p { color: red }
     <e-import-json onimport=${importJSON}
                    onrefocus=${refocus}>
     </e-import-json>
-  ` 
+  `.define ({
+      EPane: PaneView,
+      ETerm: TermView,
+      EExportJSON: ExportJSONView,
+      EImportJSON: ImportJSONView
+    })
   };
 
   define ('e-session', SessionView);
+
+  // -------------- Import modules from npm directly from eval -------------
+
+  const populateWindowNamespace = (module) => {
+    for (let p in module) window[p] = module[p];
+  };
+
+  const ownNamespace = (namespace, d) => (module) =>
+    window[namespace] = d ? module.default : module;
+
+  const populateOn = (namespace, d) =>
+    namespace === null ?
+      populateWindowNamespace
+      : ownNamespace (namespace, d);
+
+  const cdnImport = (cdn) => (pkg, ns, d = false) =>
+    import (cdn + pkg)
+      .then (populateOn (ns !== undefined ? ns : pkg, d));
+
+  // Although the npm packages are the same, it seems that different
+  // cdns return different files (I suppose depending on main, module
+  // and browser properties of package.json)
+
+  const pikaImport = 
+    cdnImport ('https://cdn.pika.dev/');
+
+  const unpkgImport = 
+  	cdnImport ('https://unpkg.com/');
+
+  const skypackImport = 
+    cdnImport ('https://cdn.skypack.dev/');
+
+  const npmImport = (pkg, ns) => {
+    // By using null as namespace, all names
+    // from package namespace will be populated into
+    // window namespace.
+    if (pkg === 'frmidi') {
+      return unpkgImport ('frmidi', ns)
+    } else if (pkg === 'ramda') {
+      return skypackImport ('ramda', ns)
+    } else if (pkg === 'hybrids') {
+      return unpkgImport ('hybrids', ns)
+    } else if (pkg === 'rxjs') {
+      return pikaImport ('rxjs', ns)
+    } else {
+      return unpkgImport (pkg, ns)
+    }
+  };
+
+  // -------------------- Main element definition --------------------------
+
+  define ('e-session', SessionView);
+
+  exports.npmImport = npmImport;
+  exports.pikaImport = pikaImport;
+  exports.skypackImport = skypackImport;
+  exports.unpkgImport = unpkgImport;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 //# sourceMappingURL=bundle.js.map

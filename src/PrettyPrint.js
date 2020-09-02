@@ -2,13 +2,18 @@ import {
   always, append, cond, equals, filter, head, includes, init, is, isNil, 
   join, keys, last, length, map, T, type, without
   } from 'ramda'
-import { v4 as uuidv4 } from 'uuid'
 import { html } from 'hybrids'
 
 export const styles = `
 .collapsed .expanded { display: none; }
 .expanded .collapsed { display: none; }
-.pp-undefined { height: 3px; background-color: red; }
+.pp-undefined { background: var(--result-background); }
+.pp-number { color: var(--result-number-color); 
+             background: var(--result-background); }
+.pp-string { color: var(--result-string-color);
+             background: var(--result-background); }
+.pp-boolean { color: var(--result-boolean-color);
+              background: var(--result-background); }
 `
 
 export const toggle = (host, evt) => {
@@ -107,7 +112,7 @@ const HTMLObject = (o) => html`
   </span>`.style (styles)
 
 const HTMLBoolean = (b) => html`
-  <span class="pp-boolean">${b}</span>`.style (styles)
+  <span class="pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles)
 
 export const toHTML = 
   cond ([

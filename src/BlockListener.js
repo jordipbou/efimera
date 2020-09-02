@@ -1,6 +1,6 @@
 import { dispatch } from 'hybrids'
 import { 
-  caret, deleteText, insertText, insertLine,
+  autocomplete, caret, deleteText, insertText, insertLine,
   moveCursorLeft, moveCursorRight, moveCursorUp, moveCursorDown,
   moveCursorToEnd, moveCursorToStart,
   removeText 
@@ -59,6 +59,10 @@ export const createListener = () => ({
       update (host) (moveCursorToEnd (host.block))
     } else if (evt.key === 'Home') {
       update (host) (moveCursorToStart (host.block))
+    } else if (evt.key === 'Tab') {
+      if (host.block.autocompletion !== '...') {
+        update (host) (autocomplete (host.block))
+      }
     } else if ((evt.key === 's' || evt.key === 'S') && evt.ctrlKey) {
       dispatch (host, 'save', { bubbles: true, composed: true })
     } else if ((evt.key === 'l' || evt.key === 'L') && evt.ctrlKey) {
