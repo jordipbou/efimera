@@ -79,37 +79,41 @@ export const autocomplete = (block) => {
                                               (take (caret (block) [0])) })
                              (block))))
 
-  let tokens = [...acorn.tokenizer (code)]
-  let [scope, name] = getScope (tokens)
+  try {
+    let tokens = [...acorn.tokenizer (code)]
+    let [scope, name] = getScope (tokens)
 
-  let completions = []
-  if (name !== undefined && (last (code) === last (name) || (length (scope) > 0 && name === ''))) {
-    // Search on scope
-    for (let p in path (scope) (window)) {
-      if (startsWith (name) (p)) {
-        completions = append (p) (completions)
+    let completions = []
+    if (name !== undefined && (last (code) === last (name) || (length (scope) > 0 && name === ''))) {
+      // Search on scope
+      for (let p in path (scope) (window)) {
+        if (startsWith (name) (p)) {
+          completions = append (p) (completions)
+        }
       }
     }
+
+    if (length (name) > 0 && length (scope) === 0) {
+      // Search on keywords
+      completions = concat (completions) (filter (startsWith (name)) (keywords))
+      // Search on built in objects
+      completions = concat (completions) (filter (startsWith (name)) (builtInObjects))
+    }
+
+    completions = sort ((a, b) => a.localeCompare (b)) (completions)
+
+    let autocompletion = longestCommonSubstring (completions)
+    autocompletion = autocompletion === undefined ? '' : autocompletion
+    autocompletion = drop (length (name)) (autocompletion)
+
+    if (autocompletion === '' && length (completions) > 1) {
+      autocompletion = '...'
+    }
+
+    return [completions, name, autocompletion]
+  } catch {
+    return [[], '', '']
   }
-
-  if (length (name) > 0 && length (scope) === 0) {
-    // Search on keywords
-    completions = concat (completions) (filter (startsWith (name)) (keywords))
-    // Search on built in objects
-    completions = concat (completions) (filter (startsWith (name)) (builtInObjects))
-  }
-
-  completions = sort ((a, b) => a.localeCompare (b)) (completions)
-
-  let autocompletion = longestCommonSubstring (completions)
-  autocompletion = autocompletion === undefined ? '' : autocompletion
-  autocompletion = drop (length (name)) (autocompletion)
-
-  if (autocompletion === '' && length (completions) > 1) {
-    autocompletion = '...'
-  }
-
-  return [completions, name, autocompletion]
 }
 
 export const longestCommonSubstring = (s1) => 

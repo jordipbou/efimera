@@ -6,8 +6,13 @@ const regex1 = /import\s*['|"](?<package>.*)['|"]/
 const subst1 = "efimera.npmImport ('$<package>')"
 
 // --------------------------------------------- import * from '<package>'
+// This is not correct Javascript, but it can be useful,
+// should I continues using this format?
 const regex2 = /import\s*\*\s*from\s*['|"](?<package>.*)['|"]/
 const subst2 = "efimera.npmImport ('$<package>', null)"
+
+// ------------------------------ import * as <namespace> from '<package>'
+// TODO as regex4
 
 // --------------------------------  import { <exports> } from '<package>'
 const regex3 = /import\s*{(?<exports>.*)}\s*from\s*['|"](?<package>.*)['|"]/

@@ -9590,8 +9590,13 @@
   const subst1 = "efimera.npmImport ('$<package>')";
 
   // --------------------------------------------- import * from '<package>'
+  // This is not correct Javascript, but it can be useful,
+  // should I continues using this format?
   const regex2 = /import\s*\*\s*from\s*['|"](?<package>.*)['|"]/;
   const subst2 = "efimera.npmImport ('$<package>', null)";
+
+  // ------------------------------ import * as <namespace> from '<package>'
+  // TODO as regex4
 
   // --------------------------------  import { <exports> } from '<package>'
   const regex3 = /import\s*{(?<exports>.*)}\s*from\s*['|"](?<package>.*)['|"]/;
@@ -9968,37 +9973,41 @@
                                                 (take (caret (block) [0])) })
                                (block))));
 
-    let tokens = [...tokenizer (code)];
-    let [scope, name] = getScope (tokens);
+    try {
+      let tokens = [...tokenizer (code)];
+      let [scope, name] = getScope (tokens);
 
-    let completions = [];
-    if (name !== undefined && (last (code) === last (name) || (length (scope) > 0 && name === ''))) {
-      // Search on scope
-      for (let p in path (scope) (window)) {
-        if (startsWith (name) (p)) {
-          completions = append (p) (completions);
+      let completions = [];
+      if (name !== undefined && (last (code) === last (name) || (length (scope) > 0 && name === ''))) {
+        // Search on scope
+        for (let p in path (scope) (window)) {
+          if (startsWith (name) (p)) {
+            completions = append (p) (completions);
+          }
         }
       }
+
+      if (length (name) > 0 && length (scope) === 0) {
+        // Search on keywords
+        completions = concat (completions) (filter (startsWith (name)) (keywords$2));
+        // Search on built in objects
+        completions = concat (completions) (filter (startsWith (name)) (builtInObjects));
+      }
+
+      completions = sort ((a, b) => a.localeCompare (b)) (completions);
+
+      let autocompletion = longestCommonSubstring (completions);
+      autocompletion = autocompletion === undefined ? '' : autocompletion;
+      autocompletion = drop (length (name)) (autocompletion);
+
+      if (autocompletion === '' && length (completions) > 1) {
+        autocompletion = '...';
+      }
+
+      return [completions, name, autocompletion]
+    } catch {
+      return [[], '', '']
     }
-
-    if (length (name) > 0 && length (scope) === 0) {
-      // Search on keywords
-      completions = concat (completions) (filter (startsWith (name)) (keywords$2));
-      // Search on built in objects
-      completions = concat (completions) (filter (startsWith (name)) (builtInObjects));
-    }
-
-    completions = sort ((a, b) => a.localeCompare (b)) (completions);
-
-    let autocompletion = longestCommonSubstring (completions);
-    autocompletion = autocompletion === undefined ? '' : autocompletion;
-    autocompletion = drop (length (name)) (autocompletion);
-
-    if (autocompletion === '' && length (completions) > 1) {
-      autocompletion = '...';
-    }
-
-    return [completions, name, autocompletion]
   };
 
   const longestCommonSubstring = (s1) => 
