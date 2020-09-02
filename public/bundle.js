@@ -2827,6 +2827,34 @@
   /*#__PURE__*/
   nth(0);
 
+  function _identity(x) {
+    return x;
+  }
+
+  /**
+   * A function that does nothing but return the parameter supplied to it. Good
+   * as a default or placeholder function.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category Function
+   * @sig a -> a
+   * @param {*} x The value to return.
+   * @return {*} The input value, `x`.
+   * @example
+   *
+   *      R.identity(1); //=> 1
+   *
+   *      const obj = {};
+   *      R.identity(obj) === obj; //=> true
+   * @symb R.identity(a) = a
+   */
+
+  var identity =
+  /*#__PURE__*/
+  _curry1(_identity);
+
   function _arrayFromIterator(iter) {
     var list = [];
     var next;
@@ -3782,6 +3810,34 @@
   });
 
   /**
+   * Returns `true` if the first argument is greater than or equal to the second;
+   * `false` otherwise.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category Relation
+   * @sig Ord a => a -> a -> Boolean
+   * @param {Number} a
+   * @param {Number} b
+   * @return {Boolean}
+   * @see R.lte
+   * @example
+   *
+   *      R.gte(2, 1); //=> true
+   *      R.gte(2, 2); //=> true
+   *      R.gte(2, 3); //=> false
+   *      R.gte('a', 'z'); //=> false
+   *      R.gte('z', 'a'); //=> true
+   */
+
+  var gte =
+  /*#__PURE__*/
+  _curry2(function gte(a, b) {
+    return a >= b;
+  });
+
+  /**
    * Returns `true` if the specified value is equal, in [`R.equals`](#equals)
    * terms, to at least one element of the given list; `false` otherwise.
    * Works also with strings.
@@ -4383,6 +4439,15 @@
     evolve ({
       blocks: append (block),
       focused: always (length (doc.blocks))
+    }) (doc);
+
+  const removeBlock = (idx) => (doc) =>
+    evolve ({
+      blocks: remove (idx) (1),
+      focused: cond ([
+                 [gte (length (doc.blocks) - 1), 
+                    always (length (doc.blocks) - 2)],
+                 [T, identity]])
     }) (doc);
 
   const updateBlock = (idx) => (block) => (doc) =>
@@ -9654,7 +9719,11 @@
   const createListener = () => ({
     onkeydown: (host, evt) => {
       if (evt.key === 'Backspace') {
-        update$1 (host) (removeText (1) (host.block));
+        if (length (host.block.lines) === 1 && length (host.block.lines [0]) === 0) {
+          dispatch (host, 'deleteblock', { bubbles: true, composed: true });
+        } else {
+          update$1 (host) (removeText (1) (host.block));
+        }
       } else if (evt.key === 'Delete') {
         update$1 (host) (deleteText (1) (host.block));
       } else if (evt.key === 'Enter') {
@@ -10059,6 +10128,11 @@
     host.completions = completions;
   };
 
+  const onDeleteBlock = (idx) => (host, evt) => 
+    length (host.doc.blocks) > 1 ?
+      host.doc = removeBlock (idx) (host.doc)
+      : undefined;
+
   // ------------------------- Code evaluation -----------------------------
 
   const blockEvaluated = (idx) => (host, evt) => {
@@ -10096,6 +10170,7 @@
                ((b, idx) => 
                   html`
                     <e-block block=${b}
+                             ondeleteblock=${onDeleteBlock (idx)}
                              onupdateblock=${onUpdateBlock (idx)}
                              onblockevaluated=${blockEvaluated (idx)}
                              onblocktop=${blockTop}

@@ -19,7 +19,11 @@ const update = (host) => (detail) =>
 export const createListener = () => ({
   onkeydown: (host, evt) => {
     if (evt.key === 'Backspace') {
-      update (host) (removeText (1) (host.block))
+      if (length (host.block.lines) === 1 && length (host.block.lines [0]) === 0) {
+        dispatch (host, 'deleteblock', { bubbles: true, composed: true })
+      } else {
+        update (host) (removeText (1) (host.block))
+      }
     } else if (evt.key === 'Delete') {
       update (host) (deleteText (1) (host.block))
     } else if (evt.key === 'Enter') {

@@ -1,7 +1,7 @@
 import { html } from 'hybrids'
 import { ref } from './HybridsUtils.js'
 import { 
-  createDocument, focusNextBlock, focusPreviousBlock, 
+  createDocument, focusNextBlock, focusPreviousBlock, removeBlock,
   updateBlock, appendBlock 
   } from './Document.js'
 import { BlockView, inputRefocus } from './BlockView.js'
@@ -26,6 +26,11 @@ const onUpdateBlock = (idx) => (host, evt) => {
 
   host.completions = completions
 }
+
+const onDeleteBlock = (idx) => (host, evt) => 
+  length (host.doc.blocks) > 1 ?
+    host.doc = removeBlock (idx) (host.doc)
+    : undefined
 
 // ------------------------- Code evaluation -----------------------------
 
@@ -66,6 +71,7 @@ export const TermView = {
                ((b, idx) => 
                   html`
                     <e-block block=${b}
+                             ondeleteblock=${onDeleteBlock (idx)}
                              onupdateblock=${onUpdateBlock (idx)}
                              onblockevaluated=${blockEvaluated (idx)}
                              onblocktop=${blockTop}
