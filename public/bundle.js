@@ -4320,7 +4320,7 @@
 
   const deleteText = (n) => (block) => {
     let cursor = caret (block);
-    let height = length (block.lines);
+    let height = length (block.lines) - 1;
     let width = length (block.lines [cursor [1]]);
     let line = block.lines [cursor [1]];
     let next_line = block.lines [cursor [1] + 1];
@@ -4348,7 +4348,6 @@
                    : deleteText (n - (width - cursor [0]))
                                 (deleteText (width - cursor [0])
                                             (block))
-                                         
   };
 
   const insertLine = (block) =>

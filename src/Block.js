@@ -118,7 +118,7 @@ export const removeText = (n) => (block) =>
 
 export const deleteText = (n) => (block) => {
   let cursor = caret (block)
-  let height = length (block.lines)
+  let height = length (block.lines) - 1
   let width = length (block.lines [cursor [1]])
   let line = block.lines [cursor [1]]
   let next_line = block.lines [cursor [1] + 1]
@@ -146,7 +146,6 @@ export const deleteText = (n) => (block) => {
                  : deleteText (n - (width - cursor [0]))
                               (deleteText (width - cursor [0])
                                           (block))
-                                       
 }
 
 export const insertLine = (block) =>

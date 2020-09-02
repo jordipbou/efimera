@@ -272,6 +272,20 @@ test ('Delete text on and right of the cursor', (t) => {
   c = deleteText (10) (b)
   t.deepEqual (c.lines, ['let a = 10', 'a + b'])
   t.deepEqual (c.cursor, [5, 0])
+
+  b = createBlock ()
+  c = deleteText (1) (b)
+  t.deepEqual (c, b)
+
+  c = deleteText (50) (b)
+  t.deepEqual (c, b)
+
+  b = createBlock (['testing'])
+  b.cursor = [7, 0]
+  c = deleteText (1) (b)
+  t.deepEqual (c, b)
+  c = deleteText (50) (b)
+  t.deepEqual (c, b)
 })
 
 test ('Insert new line after cursor current line', (t) => {
