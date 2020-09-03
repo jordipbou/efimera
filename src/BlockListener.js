@@ -1,6 +1,7 @@
 import { dispatch } from 'hybrids'
 import { 
-  autocomplete, caret, deleteText, insertText, insertLine,
+  autocomplete, caret, deleteLine, deleteText, emptyBlock, 
+  insertText, insertLine,
   moveCursorLeft, moveCursorRight, moveCursorUp, moveCursorDown,
   moveCursorToEnd, moveCursorToStart,
   removeText 
@@ -19,8 +20,10 @@ const update = (host) => (detail) =>
 export const createListener = () => ({
   onkeydown: (host, evt) => {
     if (evt.key === 'Backspace') {
-      if (length (host.block.lines) === 1 && length (host.block.lines [0]) === 0) {
+      if (emptyBlock (host.block) && evt.ctrlKey) {
         dispatch (host, 'deleteblock', { bubbles: true, composed: true })
+      } else if (evt.ctrlKey) {
+        update (host) (deleteLine (host.block))
       } else {
         update (host) (removeText (1) (host.block))
       }
@@ -33,7 +36,7 @@ export const createListener = () => ({
 
       if (evt.shiftKey || !do_evaluate) {
         update (host) (insertLine (host.block))
-      } else {
+      } else if (!equals (host.block.lines, [''])) {
         let result = evaluate_code (host.block.lines)
         dispatch (host, 
                   'blockevaluated', 

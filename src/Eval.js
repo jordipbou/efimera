@@ -29,11 +29,28 @@ export const replaceLet = (line) =>
 export const replaceConst = (line) =>
   line.replace (/^const/, 'var')
 
+// --------------------------------------------- Referring efimera objects
+
+const regex01 = /@efimera/
+const subst01 = "document.querySelector ('e-session')"
+
+const regex02 = /@out/
+const subst02 = "document.querySelector ('e-session').term.shadowRoot.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-session').term.doc.focused + 1) + ')').preview"
+
+const regex03 = /@(\d*)out/
+const subst03 = "document.querySelector ('e-session').term.shadowRoot.querySelector ('e-block:nth-of-type($1)').preview"
+
+export const replaceEfimeraObjects = (line) =>
+  line.replace (regex01, subst01)
+      .replace (regex02, subst02)
+      .replace (regex03, subst03)
+
 export const applyReplacements = 
   map (
     pipe (replaceImports,
           replaceLet,
-          replaceConst))
+          replaceConst,
+          replaceEfimeraObjects))
 
 // ----------------------- Check if code is evaluable --------------------
 // It's used on block listener to know if enter means evaluate or

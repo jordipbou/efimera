@@ -1,36 +1,47 @@
 import { html } from 'hybrids'
 import { ref } from './HybridsUtils.js'
+import { moveCursorTo } from './Block.js'
 import { 
-  createDocument, focusNextBlock, focusPreviousBlock, removeBlock,
-  updateBlock, appendBlock 
+  createDocument, 
+  focusBlock, focusedBlock, focusLastBlock, 
+  focusNextBlock, focusPreviousBlock, 
+  removeBlock, updateBlock, appendBlock 
   } from './Document.js'
 import { BlockView, inputRefocus } from './BlockView.js'
 import { 
-  addIndex, always, append, drop, evolve, F, head, map, length, T, update 
+  addIndex, always, append, curry, drop, evolve, 
+  F, head, map, length, T, update 
   } from 'ramda'
 import { autocomplete } from './Autocompletion.js'
 import { AutocompletionView } from './AutocompletionView.js'
+import { WelcomeBlockView } from './WelcomeBlockView.js'
 
 // ---------------- Block modification / Autocompletion ------------------
 
 const onUpdateBlock = (idx) => (host, evt) => {
   host.doc = updateBlock (idx) (evt.detail) (host.doc) 
+  doAutocompletion (host)
+}
 
-  let [completions, name, autocompletion] = autocomplete (evt.detail)
+const onDeleteBlock = (idx) => (host, evt) => {
+  if (length (host.doc.blocks) > 1) {
+    host.doc = removeBlock (idx) (host.doc)
+    doAutocompletion (host)
+  }
+}
+
+const doAutocompletion = (host) => {
+  let [block, idx] = focusedBlock (host.doc)
+  let [completions, name, autocompletion] = autocomplete (block)
   host.doc = updateBlock (idx)
                          (evolve ({ 
                            autocompletion: always (autocompletion),
                            completions: always (completions)
-                          }) (evt.detail))
+                          }) (block))
                          (host.doc)
 
   host.completions = completions
 }
-
-const onDeleteBlock = (idx) => (host, evt) => 
-  length (host.doc.blocks) > 1 ?
-    host.doc = removeBlock (idx) (host.doc)
-    : undefined
 
 // ------------------------- Code evaluation -----------------------------
 
@@ -39,6 +50,7 @@ const blockEvaluated = (idx) => (host, evt) => {
   if (idx === length (host.doc.blocks) - 1) {
     host.doc = appendBlock () (host.doc)
     host.results = append (undefined) (host.results)
+    host.completions = []
     //focusLastBlock (host)
   } else {
     // TODO: Jump to next block?
@@ -47,30 +59,54 @@ const blockEvaluated = (idx) => (host, evt) => {
 
 const blockTop = (host, evt) => {
   host.doc = focusPreviousBlock (host.doc) 
+  doAutocompletion (host)
 }
 
 const blockBottom = (host, evt) => {
   host.doc = focusNextBlock (host.doc)
+  doAutocompletion (host)
 }
 
-export const termRefocus = (host, evt) => {
+export const termRefocus = (host) => (evt) =>
   inputRefocus (
     host
       .render ()
-      .querySelector ('e-block:nth-child(' + (host.doc.focused + 1) + ')'))
-}
+      .querySelector ('e-block:nth-of-type(' + (host.doc.focused + 1) + ')'))
+
+const onBlockClick = (idx) => (host, evt) =>
+  host.doc = 
+    focusBlock (idx)
+               (updateBlock (idx) 
+                            (moveCursorTo ([evt.detail.x, evt.detail.line])
+                                          (host.doc.blocks [idx]))
+                            (host.doc))
+
+
+const styles = `
+:host { display: block;
+        min-width: 100%;
+        min-height: 100%; }
+`
 
 export const TermView = {
   doc: { 
-    connect: (host, key, invalidate) => { host.doc = createDocument () }
+    connect: (host, key, invalidate) => { 
+      host.doc = createDocument () 
+
+      // Add onclick event listener to host
+      host.addEventListener ('click', termRefocus (host))
+      return () => host.removeEventListener ('click', termRefocus (host))
+    }
   },
   results: [undefined],
   completions: [],
   render: ({ doc, completions, results }) => html`
+    <e-welcome></e-welcome>
     ${addIndex (map) 
                ((b, idx) => 
                   html`
                     <e-block block=${b}
+                             onmovecursorto=${onBlockClick (idx)}
                              ondeleteblock=${onDeleteBlock (idx)}
                              onupdateblock=${onUpdateBlock (idx)}
                              onblockevaluated=${blockEvaluated (idx)}
@@ -81,5 +117,9 @@ export const TermView = {
                     </e-block>`) 
                (doc.blocks)}
     <e-completions completions=${ completions }></e-completions>
-  `.define ({ EBlock: BlockView, ECompletions: AutocompletionView })
+  `.style (styles)
+   .define ({ 
+      EBlock: BlockView, 
+      ECompletions: AutocompletionView,
+      EWelcome: WelcomeBlockView })
 }

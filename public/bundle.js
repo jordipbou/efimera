@@ -4274,13 +4274,24 @@
           render ().querySelector (query) 
           : null;
 
+  const styles = `
+:host { display: block;
+        width: 100%;
+        height: 100%; }
+`;
+
   const PaneView = {
     render: () => html`
     <slot name="content">Default content</slot>
-  `
+  `.style (styles)
   };
 
   // A block is a single/multiline text with editing capabilities.
+
+  // -------------------------- Predicates ---------------------------------
+
+  const emptyBlock = (block) =>
+    length (block.lines) === 1 && length (block.lines[0]) === 0;
 
   // ----------------------------- Caret -----------------------------------
 
@@ -4320,6 +4331,11 @@
       cursor: update (0)
                      (min (max (0, block.cursor [0] - 1))
                           (length (block.lines [block.cursor [1]]) - 1))
+    }) (block);
+
+  const moveCursorTo = (cursor) => (block) =>
+    evolve ({
+      cursor: always (caret (evolve ({ cursor: always (cursor) }) (block)))
     }) (block);
 
   const moveCursorToEnd = (block) =>
@@ -4417,6 +4433,16 @@
       cursor: pipe (update (0) (0), adjust (1) (add (1)))
     }) (block);
 
+  const deleteLine = (block) =>
+    length (block.lines) === 1 ?
+      evolve ({
+        lines: always (['']),
+        cursor: always ([0, 0])
+      }) (block)
+      : evolve ({
+          lines: addIndex (reject) ((l, idx) => idx === block.cursor [1]),
+          cursor: always ([0, block.cursor [1]])
+        }) (block);
   // --------------------------- Autocompletion ----------------------------
 
   const autocomplete = (block) =>
@@ -4455,6 +4481,11 @@
       blocks: update (idx) (block)
     }) (doc);
 
+  const focusBlock = (idx) => (doc) =>
+    evolve ({
+      focused: idx >= 0 && idx < length (doc.blocks) ? always (idx) : identity
+    }) (doc);
+
   const focusPreviousBlock = (doc) =>
     evolve ({
       focused: always (max (subtract (doc.focused) (1)) (0))
@@ -4465,61 +4496,91 @@
       focused: always (min (add (1) (doc.focused)) (length (doc.blocks) - 1))
     }) (doc);
 
+  const focusedBlock = (doc) =>
+    [doc.blocks [doc.focused], doc.focused];
+
   const createDocument = (blocks = [createBlock ()]) => ({
     blocks: blocks,
     focused: length (blocks) - 1
   });
 
-  // Extracting this functions from BlockRenderer and not importing
-  // html from hybrids here allows testing without a window object
+  // A block renderer renders a block content and possibly
 
-  const htmlSpaces = replace (/ /g) ('&nbsp;');
 
-  const prompt = (first) =>
-    `<span class="prompt">${ first ? '&gt;' : '…' }&nbsp;</span>`;
+  // -------------------- Line rendering utilities -------------------------
 
-  const renderLine = (first) => (line) =>
-    `<div class="line">${ prompt (first) }${ line }</div>`;
+  const htmlSpaces = (t) => replace (/ /g) ('&nbsp;') (t);
 
-  const renderCaret = (character) => (autocompletion) => 
-    (character === undefined || character === ' ' || character === '')  
-    && length (autocompletion) > 0 ?
-       '<span class="autocompletion">' + 
-       '<span class="caret">' +
-       htmlSpaces (head (autocompletion)) +
-       '</span>' +
-       htmlSpaces (tail (autocompletion)) +
-       '</span>'
-       : '<span class="caret">' +
-         htmlSpaces ((character === '' || !character)? ' ' : character) + 
-         '</span>';
+  const lineDiv = (i) => (p) => (e) => (c) => (t) =>
+    html`<div class="line" onclick=${ onclick (i) }>${p}${e}${c}${t}</div>`;
+
+  const promptSpan = (first) =>
+    first ?
+      html`<span class="prompt">&gt;&nbsp;</span>`
+      : html`<span class="prompt">…&nbsp;</span>`;
+
+  const caretSpan = (c) => {
+    let character = 
+      (c === ' ' || c === '' || c === undefined) ?
+        html`&nbsp;`
+        : c;
+    return html`<span class="caret">${character}</span>`
+  };
+
+  const autocompletionSpan = (a) => (c) => 
+    html`<span class="autocompletion">${caretSpan(c)}</span>${a}</span>`;
+
+  const renderLine = (idx) => (line) =>
+    html`${ lineDiv (idx) 
+                  (promptSpan (idx === 0)) 
+                  ('') 
+                  ('') 
+                  (line) }`;
 
   const renderCaretLine = 
-    (line) => (first) => (caret) => (autocompletion) =>
-    renderLine (first)
-               (htmlSpaces (slice (0) (caret [0]) (line)) +
-                renderCaret (line [caret [0]]) (autocompletion) +
-                htmlSpaces (slice (caret [0] + 1) (Infinity) (line)));
+    (idx) => (line) => (caret) => (autocompletion) => {
+      let character = line [caret [0]];
+      let isSpace = character === undefined 
+                 || character === ' ' 
+                 || character === '';
+      let pre = slice (0) (caret [0]) (line);
+      let post = slice (caret [0] + 1) (Infinity) (line);
 
-  const renderLines = (block, focus = true) =>
+      if (isSpace && length (autocompletion) > 0) {
+        return html`${ lineDiv (idx)
+                             (promptSpan (idx === 0)) 
+                             (pre)
+                             (autocompletionSpan (tail (autocompletion))
+                                                 (head (autocompletion)))
+                             (post) }`
+      } else {
+        return html`${ lineDiv (idx)
+                             (promptSpan (idx === 0))
+                             (pre)
+                             (caretSpan (character))
+                             (post) }`
+      }
+    };
+   
+  const renderLines = (block, focus = true) => 
     focus ?
       addIndex 
         (map$1)
         ((line, idx) => idx === block.cursor [1] ?
-                          renderCaretLine (line)
-                                          (idx === 0)
+                          renderCaretLine (idx)
+                                          (line)
                                           (caret (block))
                                           (block.autocompletion)
-                          : renderLine (idx === 0) (htmlSpaces (line)))
+                          : renderLine (idx) (line))
         (block.lines)
       : addIndex (map$1) 
-                 ((line, idx) => renderLine (idx === 0) 
-                                            (htmlSpaces (line)))
+                 ((line, idx) => renderLine (idx)
+                                            (line))
                  (block.lines);
 
-  // A block renderer renders a block content and possibly
+  // ----------------------- Input block rendering -------------------------
 
-  const styles = `
+  const styles$1 = `
 .line { min-height: 1em;
         line-height: 1;
         padding: 0em;
@@ -4547,9 +4608,18 @@
 
 `;
 
+  const onclick = (idx) => (host, evt) => {
+    let charwidth = host.render ().querySelector ('.line').clientHeight / 2;
+    let x = Math.floor (evt.x / charwidth) - 2; // 2 for prompt size
+    dispatch (host, 'movecursorto', { detail: { line: idx, x: x },
+                                      bubbles: true,
+                                      composed: true });
+  };
+
   const createRenderer = () => ({
-    render: (block, focused) => 
-      html (renderLines (block, focused)).style (styles)
+    render: (block, focused) => html`
+    ${ renderLines (block, focused) }
+  `.style (styles$1)
   });
 
   // Reserved word lists for various dialects of the language
@@ -9678,11 +9748,28 @@
   const replaceConst = (line) =>
     line.replace (/^const/, 'var');
 
+  // --------------------------------------------- Referring efimera objects
+
+  const regex01 = /@efimera/;
+  const subst01 = "document.querySelector ('e-session')";
+
+  const regex02 = /@out/;
+  const subst02 = "document.querySelector ('e-session').term.shadowRoot.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-session').term.doc.focused + 1) + ')').preview";
+
+  const regex03 = /@(\d*)out/;
+  const subst03 = "document.querySelector ('e-session').term.shadowRoot.querySelector ('e-block:nth-of-type($1)').preview";
+
+  const replaceEfimeraObjects = (line) =>
+    line.replace (regex01, subst01)
+        .replace (regex02, subst02)
+        .replace (regex03, subst03);
+
   const applyReplacements = 
     map$1 (
       pipe (replaceImports,
             replaceLet,
-            replaceConst));
+            replaceConst,
+            replaceEfimeraObjects));
 
   // ----------------------- Check if code is evaluable --------------------
   // It's used on block listener to know if enter means evaluate or
@@ -9719,8 +9806,10 @@
   const createListener = () => ({
     onkeydown: (host, evt) => {
       if (evt.key === 'Backspace') {
-        if (length (host.block.lines) === 1 && length (host.block.lines [0]) === 0) {
+        if (emptyBlock (host.block) && evt.ctrlKey) {
           dispatch (host, 'deleteblock', { bubbles: true, composed: true });
+        } else if (evt.ctrlKey) {
+          update$1 (host) (deleteLine (host.block));
         } else {
           update$1 (host) (removeText (1) (host.block));
         }
@@ -9733,7 +9822,7 @@
 
         if (evt.shiftKey || !do_evaluate) {
           update$1 (host) (insertLine (host.block));
-        } else {
+        } else if (!equals (host.block.lines, [''])) {
           let result = evaluate_code (host.block.lines);
           dispatch (host, 
                     'blockevaluated', 
@@ -9785,7 +9874,7 @@
 
   // InputView renders a Block using a BlockRenderer
 
-  const styles$1 = `
+  const styles$2 = `
 #block-input-container { min-height: 1rem; }
 #block-input-container:focus { outline-style: none; }
 `;
@@ -9812,12 +9901,12 @@
          tabindex="0" 
          onkeydown=${listener.onkeydown}
          onkeypress=${listener.onkeypress}>
-      ${renderer.render (block, focused)}
+      ${ renderer.render (block, focused) }
     </div>
-  `.style (styles$1)
+  `.style (styles$2)
   };
 
-  const styles$2 = `
+  const styles$3 = `
 .collapsed .expanded { display: none; }
 .expanded .collapsed { display: none; }
 .result { background: var(--result-background); }
@@ -9846,10 +9935,10 @@
   };
 
   const HTMLUndefined = () => html`
-  <div class="result pp-undefined"></div>`.style (styles$2);
+  <div class="result pp-undefined"></div>`.style (styles$3);
 
   const HTMLBoolean = (b) => html`
-  <span class="result pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles$2);
+  <span class="result pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles$3);
 
   const HTMLNumber = (n) => html`
   <span class="result pp-number expandable collapsed" 
@@ -9865,14 +9954,14 @@
       <span class="label binary">BIN</span>
       <span class="binary">${n.toString (2)}</span>
     </span>
-  </span>`.style (styles$2);
+  </span>`.style (styles$3);
 
   const HTMLString = (s) => html`
   <span class="result pp-string expandable collapsed" 
         onclick=${ toggle }>
     <span class="collapsed">"${s}"</span>
     <span class="expanded">"${s}"</span>
-  </span>`.style (styles$2);
+  </span>`.style (styles$3);
 
   const HTMLArrayElement = (last) => (e) => html`
   <span>${ toHTML (e) }${ !last ? `,` : `` }</span>`;
@@ -9884,7 +9973,7 @@
     ${ map$1 (HTMLArrayElement (false)) (init (a)) }
     ${ HTMLArrayElement (true) (last (a)) }
     <span class="">]</span>
-  </span>`.style (styles$2);
+  </span>`.style (styles$3);
 
   const HTMLPromise = (p) =>
     html.resolve(
@@ -9892,15 +9981,15 @@
               <span class="result pp-promise">
                 <span class="resolved">[[Resolved]]</span>
                 <span class="value">${ toHTML (value) }</span>
-              </span>`.style (styles$2))
+              </span>`.style (styles$3))
        .catch ((error) => html`
                <span class="result pp-promise">
                  <span class="rejected">[[Rejected]]</span>
                  <span class="error">${ toHTML (error) }</span>
-               </span>`.style (styles$2)),
+               </span>`.style (styles$3)),
       html`<span class="result pp-promise">
            <span class="pending">[[Pending]]</span>
-         </span>`.style (styles$2));
+         </span>`.style (styles$3));
 
 
   const HTMLObjectProperty = (last) => (p) => (v) => html`
@@ -9923,7 +10012,7 @@
       ${ HTMLObjectProperty (true) (last (keys (o))) (o[last (keys (o))]) }
     </span>
     <span class="">}</span>
-  </span>`.style (styles$2);
+  </span>`.style (styles$3);
 
   const toHTML = 
     cond ([
@@ -9937,7 +10026,7 @@
       [is (Object),     HTMLObject],
       [T,               always]]);
 
-  const styles$3 = `
+  const styles$4 = `
 :host { display: block;
         min-width: 100vw; 
         line-height: 1em;
@@ -9946,7 +10035,15 @@
 
   const OutputView = {
     result: undefined,
-    render: ({ result }) => html`${ toHTML (result) }`.style (styles$3)
+    render: ({ result }) => html`${ toHTML (result) }`.style (styles$4)
+  };
+
+  const styles$5 = `
+:host { display: block; }
+`;
+
+  const PreView = {
+    render: render((host) => html``.style (styles$5), { shadowRoot: false })
   };
 
   const inputRefocus = (host) => {
@@ -9958,15 +10055,19 @@
     result: undefined,
     focused: false,
     input: ref ('e-input'),
-    render: ({ block, result, focused }) => html`
+    output: ref ('e-output'),
+    preview: ref ('e-preview'),
+    render: render(({ block, result, focused }) => html`
     <e-input block=${block}
              focused=${focused}>
     </e-input>
     <e-output result=${result}></e-output>
+    <e-preview></e-preview>
   `.define ({
       EInput: InputView,
-      EOutput: OutputView
-    })
+      EOutput: OutputView,
+      EPreview: PreView
+    }), { shadowRoot: false })
   };
 
   let keywords$2 = [
@@ -10089,7 +10190,7 @@
             head (s1) + longestCommonSubstring (tail (s1)) (tail (s2))
             : '';
 
-  const styles$4 = `
+  const styles$6 = `
 :host { width: 100%;
         position: absolute;
         bottom: 0px;
@@ -10109,29 +10210,47 @@
     completions: [],
     render: ({ completions }) => html`
     ${ map$1 (autocompletionItem) (completions) }
-  `.style (styles$4)
+  `.style (styles$6)
+  };
+
+  const moreInfo = (host, evt) =>
+    console.log ('show more info!');
+
+  const WelcomeBlockView = {
+    render: () => html`
+    <div class="welcome">
+      <div class="line">Welcome to Efimera v1.0.0</div>
+      <div class="line">Type ".help" of press <a href="#" onclick=${moreInfo}>here</a> for more information.</div>
+    </div>
+  `
   };
 
   // ---------------- Block modification / Autocompletion ------------------
 
   const onUpdateBlock = (idx) => (host, evt) => {
     host.doc = updateBlock (idx) (evt.detail) (host.doc); 
+    doAutocompletion (host);
+  };
 
-    let [completions, name, autocompletion] = autocomplete$1 (evt.detail);
+  const onDeleteBlock = (idx) => (host, evt) => {
+    if (length (host.doc.blocks) > 1) {
+      host.doc = removeBlock (idx) (host.doc);
+      doAutocompletion (host);
+    }
+  };
+
+  const doAutocompletion = (host) => {
+    let [block, idx] = focusedBlock (host.doc);
+    let [completions, name, autocompletion] = autocomplete$1 (block);
     host.doc = updateBlock (idx)
                            (evolve ({ 
                              autocompletion: always (autocompletion),
                              completions: always (completions)
-                            }) (evt.detail))
+                            }) (block))
                            (host.doc);
 
     host.completions = completions;
   };
-
-  const onDeleteBlock = (idx) => (host, evt) => 
-    length (host.doc.blocks) > 1 ?
-      host.doc = removeBlock (idx) (host.doc)
-      : undefined;
 
   // ------------------------- Code evaluation -----------------------------
 
@@ -10140,36 +10259,61 @@
     if (idx === length (host.doc.blocks) - 1) {
       host.doc = appendBlock () (host.doc);
       host.results = append (undefined) (host.results);
+      host.completions = [];
       //focusLastBlock (host)
     }
   };
 
   const blockTop = (host, evt) => {
     host.doc = focusPreviousBlock (host.doc); 
+    doAutocompletion (host);
   };
 
   const blockBottom = (host, evt) => {
     host.doc = focusNextBlock (host.doc);
+    doAutocompletion (host);
   };
 
-  const termRefocus = (host, evt) => {
+  const termRefocus = (host) => (evt) =>
     inputRefocus (
       host
         .render ()
-        .querySelector ('e-block:nth-child(' + (host.doc.focused + 1) + ')'));
-  };
+        .querySelector ('e-block:nth-of-type(' + (host.doc.focused + 1) + ')'));
+
+  const onBlockClick = (idx) => (host, evt) =>
+    host.doc = 
+      focusBlock (idx)
+                 (updateBlock (idx) 
+                              (moveCursorTo ([evt.detail.x, evt.detail.line])
+                                            (host.doc.blocks [idx]))
+                              (host.doc));
+
+
+  const styles$7 = `
+:host { display: block;
+        min-width: 100%;
+        min-height: 100%; }
+`;
 
   const TermView = {
     doc: { 
-      connect: (host, key, invalidate) => { host.doc = createDocument (); }
+      connect: (host, key, invalidate) => { 
+        host.doc = createDocument (); 
+
+        // Add onclick event listener to host
+        host.addEventListener ('click', termRefocus (host));
+        return () => host.removeEventListener ('click', termRefocus (host))
+      }
     },
     results: [undefined],
     completions: [],
     render: ({ doc, completions, results }) => html`
+    <e-welcome></e-welcome>
     ${addIndex (map$1) 
                ((b, idx) => 
                   html`
                     <e-block block=${b}
+                             onmovecursorto=${onBlockClick (idx)}
                              ondeleteblock=${onDeleteBlock (idx)}
                              onupdateblock=${onUpdateBlock (idx)}
                              onblockevaluated=${blockEvaluated (idx)}
@@ -10180,7 +10324,11 @@
                     </e-block>`) 
                (doc.blocks)}
     <e-completions completions=${ completions }></e-completions>
-  `.define ({ EBlock: BlockView, ECompletions: AutocompletionView })
+  `.style (styles$7)
+     .define ({ 
+        EBlock: BlockView, 
+        ECompletions: AutocompletionView,
+        EWelcome: WelcomeBlockView })
   };
 
   const onclose = (host) => (evt) =>
@@ -10200,7 +10348,7 @@
     host.dialog.close ();
   };
 
-  const styles$5 = `
+  const styles$8 = `
 .json { width: 80vw; }
 `;
 
@@ -10215,7 +10363,7 @@
         <button onclick=${copyToClipboard}>Copy</button>
       </div>
     </dialog>
-  `.style (styles$5)
+  `.style (styles$8)
   };
 
   const onclose$1 = (host) => (evt) =>
@@ -10253,7 +10401,7 @@
             .catch (showClipboardError (host))
           : showClipboardError (host) ());
 
-  const styles$6 = `
+  const styles$9 = `
 textarea { width: 80vw; }
 p { color: red }
 `;
@@ -10270,7 +10418,7 @@ p { color: red }
         <button onclick=${importFromJSON}>Import from clipboard</button>
       </div>
     </dialog>
-  `.style (styles$6)
+  `.style (styles$9)
   };
 
   // ------------------------ Save / Load session --------------------------
@@ -10291,15 +10439,21 @@ p { color: red }
   // --------------------------- Refocus block -----------------------------
 
   const refocus = (host, evt) => 
-    termRefocus (host.term);
+    termRefocus (host.term) (evt);
 
   // ---------------------------- Session View -----------------------------
+
+  const styles$a = `
+:host { display: block;
+        width: 100%;
+        height: 100%; }
+`;
 
   const SessionView = {
     term: ref ('e-term'),
     export_dialog: ref ('e-export-json'),
     import_dialog: ref ('e-import-json'),
-    render: () => html`
+    render: render(() => html`
     <e-pane>
       <span slot="content">
         <e-term onsave=${save} onload=${load}></e-term>
@@ -10309,12 +10463,13 @@ p { color: red }
     <e-import-json onimport=${importJSON}
                    onrefocus=${refocus}>
     </e-import-json>
-  `.define ({
-      EPane: PaneView,
-      ETerm: TermView,
-      EExportJSON: ExportJSONView,
-      EImportJSON: ImportJSONView
-    })
+  `.style (styles$a)
+     .define ({
+        EPane: PaneView,
+        ETerm: TermView,
+        EExportJSON: ExportJSONView,
+        EImportJSON: ImportJSONView
+      }), { shadowRoot: false })
   };
 
   define ('e-session', SessionView);
@@ -10371,8 +10526,17 @@ p { color: red }
 
   define ('e-session', SessionView);
 
+  exports.autocompletionSpan = autocompletionSpan;
+  exports.caretSpan = caretSpan;
+  exports.createRenderer = createRenderer;
+  exports.htmlSpaces = htmlSpaces;
+  exports.lineDiv = lineDiv;
   exports.npmImport = npmImport;
   exports.pikaImport = pikaImport;
+  exports.promptSpan = promptSpan;
+  exports.renderCaretLine = renderCaretLine;
+  exports.renderLine = renderLine;
+  exports.renderLines = renderLines;
   exports.skypackImport = skypackImport;
   exports.unpkgImport = unpkgImport;
 

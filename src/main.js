@@ -3,6 +3,8 @@ import { SessionView } from './SessionView.js'
 
 import './main.css'
 
+export * from './BlockRenderer.js'
+
 // -------------- Import modules from npm directly from eval -------------
 
 const populateWindowNamespace = (module) => {

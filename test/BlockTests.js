@@ -1,8 +1,9 @@
 const test = require ('ava')
 import { 
-  caret, changeBlock, createBlock, deleteText, insertText, insertLine,
+  caret, changeBlock, createBlock, deleteLine, deleteText, 
+  insertText, insertLine,
   moveCursorDown, moveCursorLeft, moveCursorRight, moveCursorUp,
-  moveCursorToEnd, moveCursorToStart,
+  moveCursorTo, moveCursorToEnd, moveCursorToStart,
   removeText, undoChangeBlock
   } from '../src/Block.js'
 import { has, length } from 'ramda'
@@ -129,6 +130,21 @@ test ('Move cursor left', (t) => {
   t.deepEqual (c.cursor, [0, 3])
   c = moveCursorLeft (c)
   t.deepEqual (c.cursor, [0, 3])
+})
+
+test ('Move cursor to', (t) => {
+  let b = createBlock (['let a = 5', 'let b = 10', 'a + b'])
+  t.deepEqual (b.cursor, [0, 0])
+  let c = moveCursorTo ([3, 0]) (b)
+  t.deepEqual (c.cursor, [3, 0])
+  c = moveCursorTo ([5, 1]) (b)
+  t.deepEqual (c.cursor, [5, 1])
+  c = moveCursorTo ([-15, -15]) (b)
+  t.deepEqual (c.cursor, [0, 0])
+  c = moveCursorTo ([15, 15]) (b)
+  t.deepEqual (c.cursor, [5, 2])
+  c = moveCursorTo ([15, 1]) (b)
+  t.deepEqual (c.cursor, [10, 1])
 })
 
 test ('Complex cursor movements', (t) => {
@@ -299,6 +315,29 @@ test ('Insert new line after cursor current line', (t) => {
   c = insertLine (b)
   t.deepEqual (c.lines, ['let a = 5', '', 'let b = 10', 'a + b'])
   t.deepEqual (c.cursor, [0, 1])
+})
+
+test ('Delete current line', (t) => {
+  let b = createBlock (['let a = 5', 'let b = 10', 'a + b'])
+  let c = deleteLine (b)
+  t.deepEqual (c.lines, ['let b = 10', 'a + b'])
+  t.deepEqual (c.cursor, [0, 0])
+
+  b.cursor = [5, 1]
+  c = deleteLine (b)
+  t.deepEqual (c.lines, ['let a = 5', 'a + b'])
+  t.deepEqual (c.cursor, [0, 1])
+
+  b = createBlock ([''])
+  c = deleteLine (b)
+  t.deepEqual (c.lines, [''])
+  t.deepEqual (c.cursor, [0, 0])
+
+  b = createBlock (['let a = 5'])
+  b.cursor = [3, 0]
+  c = deleteLine (b)
+  t.deepEqual (c.lines, [''])
+  t.deepEqual (c.cursor, [0, 0])
 })
 
 test ('Complex inserting and removal', (t) => {

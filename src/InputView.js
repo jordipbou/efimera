@@ -34,7 +34,7 @@ export const InputView = {
          tabindex="0" 
          onkeydown=${listener.onkeydown}
          onkeypress=${listener.onkeypress}>
-      ${renderer.render (block, focused)}
+      ${ renderer.render (block, focused) }
     </div>
   `.style (styles)
 }

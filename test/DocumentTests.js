@@ -1,7 +1,7 @@
 const test = require ('ava')
 import { 
   appendBlock, createDocument, documentToGist,
-  focusNextBlock, focusPreviousBlock,
+  focusBlock, focusedBlock, focusNextBlock, focusPreviousBlock,
   removeBlock, updateBlock
   } from '../src/Document.js'
 import { createBlock, insertText } from '../src/Block.js'
@@ -54,6 +54,16 @@ test ('Update block', (t) => {
   t.deepEqual (e.blocks, [b2, createBlock (['b2'])])
 })
 
+test ('Focus block', (t) => {
+  let d = createDocument ([createBlock (['b1']), createBlock (['b2'])])
+  let e = focusBlock (1) (d)
+  t.is (e.focused, 1)
+  e = focusBlock (-50) (e)
+  t.is (e.focused, 1)
+  e = focusBlock (1000) (e)
+  t.is (e.focused, 1)
+})
+
 test ('Focus previous block', (t) => {
   let d = createDocument ([createBlock (['b1']), createBlock (['b2'])])
   d.focused = 1
@@ -74,4 +84,22 @@ test ('Focus next block', (t) => {
 
   e = focusNextBlock (e)
   t.is (e.focused, 1)
+})
+
+test ('Get current focused block and its index', (t) => {
+  let a = createBlock (['b1'])
+  let b = createBlock (['b2'])
+  let c = createBlock (['b3'])
+  let d = createDocument ([a, b, c])
+
+  d.focused = 1
+
+  let [block, idx] = focusedBlock (d)
+  t.deepEqual (block, b)
+  t.is (idx, 1)
+
+  d.focused = 0;
+  [block, idx] = focusedBlock (d)
+  t.deepEqual (block, a)
+  t.is (idx, 0)
 })

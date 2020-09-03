@@ -1,4 +1,4 @@
-import { define, html } from 'hybrids'
+import { define, html, render } from 'hybrids'
 import { ref } from './HybridsUtils.js'
 import { PaneView } from './PaneView.js'
 import { TermView, termRefocus } from './TermView.js'
@@ -27,15 +27,21 @@ const importJSON = (host, evt) => {
 // --------------------------- Refocus block -----------------------------
 
 const refocus = (host, evt) => 
-  termRefocus (host.term, evt)
+  termRefocus (host.term) (evt)
 
 // ---------------------------- Session View -----------------------------
+
+const styles = `
+:host { display: block;
+        width: 100%;
+        height: 100%; }
+`
 
 export const SessionView = {
   term: ref ('e-term'),
   export_dialog: ref ('e-export-json'),
   import_dialog: ref ('e-import-json'),
-  render: () => html`
+  render: render(() => html`
     <e-pane>
       <span slot="content">
         <e-term onsave=${save} onload=${load}></e-term>
@@ -45,12 +51,13 @@ export const SessionView = {
     <e-import-json onimport=${importJSON}
                    onrefocus=${refocus}>
     </e-import-json>
-  `.define ({
-    EPane: PaneView,
-    ETerm: TermView,
-    EExportJSON: ExportJSONView,
-    EImportJSON: ImportJSONView
-  })
+  `.style (styles)
+   .define ({
+      EPane: PaneView,
+      ETerm: TermView,
+      EExportJSON: ExportJSONView,
+      EImportJSON: ImportJSONView
+    }), { shadowRoot: false })
 }
 
 define ('e-session', SessionView)

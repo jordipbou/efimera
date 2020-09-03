@@ -1,10 +1,16 @@
 // A block is a single/multiline text with editing capabilities.
 import { 
-  __, add, adjust, always, apply, concat, curry, evolve, 
+  __, add, addIndex, adjust, always, apply, 
+  concat, cond, curry, evolve, equals, filter,
   insert, intersperse, is, join, length, max, min, nth,
-  pair, path, paths, pipe, prepend, remove, 
-  slice, splitAt, subtract, tail, update 
+  pair, path, paths, pipe, prepend, reject, remove, 
+  slice, splitAt, subtract, T, tail, update 
   } from 'ramda'
+
+// -------------------------- Predicates ---------------------------------
+
+export const emptyBlock = (block) =>
+  length (block.lines) === 1 && length (block.lines[0]) === 0
 
 // ----------------------------- Caret -----------------------------------
 
@@ -44,6 +50,11 @@ export const moveCursorLeft = (block) =>
     cursor: update (0)
                    (min (max (0, block.cursor [0] - 1))
                         (length (block.lines [block.cursor [1]]) - 1))
+  }) (block)
+
+export const moveCursorTo = (cursor) => (block) =>
+  evolve ({
+    cursor: always (caret (evolve ({ cursor: always (cursor) }) (block)))
   }) (block)
 
 export const moveCursorToEnd = (block) =>
@@ -159,6 +170,16 @@ export const insertLine = (block) =>
     cursor: pipe (update (0) (0), adjust (1) (add (1)))
   }) (block)
 
+export const deleteLine = (block) =>
+  length (block.lines) === 1 ?
+    evolve ({
+      lines: always (['']),
+      cursor: always ([0, 0])
+    }) (block)
+    : evolve ({
+        lines: addIndex (reject) ((l, idx) => idx === block.cursor [1]),
+        cursor: always ([0, block.cursor [1]])
+      }) (block)
 // --------------------------- Autocompletion ----------------------------
 
 export const autocomplete = (block) =>
