@@ -59,3 +59,37 @@ body {
 	color: var(--term-color);
 	font-family: 'monofur';
 }
+
+e-session { display: block;
+            width: 100%;
+			height: 100%; }
+
+e-term { display: block;
+         width: 100%;
+		 height: 100%; }
+
+e-input { display: block;
+          width: 100%; }
+
+#block-input-container { min-height: 1rem; }
+
+#block-input-container:focus { outline-style: none; }
+
+e-output { display: block;
+           min-width: 100vw; 
+           line-height: 1em;
+           background: var(--result-background); }
+
+e-export-json { width: 90vw; }
+
+.json-export-header { display: flex;
+                      flex-direction: row;
+					  justify-content: space-between; }
+
+.json-export-preview { width: 80vw; }
+
+e-import-json textarea { width: 80vw; }
+
+e-import-json p { color: red }
+
+

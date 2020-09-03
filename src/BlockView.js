@@ -2,7 +2,7 @@ import { html, render } from 'hybrids'
 import { ref } from './HybridsUtils.js'
 import { InputView } from './InputView.js'
 import { OutputView } from './OutputView.js'
-import { PreView } from './PreView.js'
+import { RenderView } from './RenderView.js'
 
 export const inputRefocus = (host) => {
   host.input.focused = true
@@ -14,16 +14,16 @@ export const BlockView = {
   focused: false,
   input: ref ('e-input'),
   output: ref ('e-output'),
-  preview: ref ('e-preview'),
+  preview: ref ('e-render'),
   render: render(({ block, result, focused }) => html`
     <e-input block=${block}
              focused=${focused}>
     </e-input>
     <e-output result=${result}></e-output>
-    <e-preview></e-preview>
+    <e-render></e-render>
   `.define ({
     EInput: InputView,
     EOutput: OutputView,
-    EPreview: PreView
+    ERender: RenderView
   }), { shadowRoot: false })
 }

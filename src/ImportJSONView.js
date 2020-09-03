@@ -1,4 +1,4 @@
-import { dispatch, html } from 'hybrids'
+import { dispatch, html, render } from 'hybrids'
 import { ref } from './HybridsUtils.js'
 
 const onclose = (host) => (evt) =>
@@ -41,16 +41,11 @@ const importFromJSON = (host, evt) =>
           .catch (showClipboardError (host))
         : showClipboardError (host) ())
 
-const styles = `
-textarea { width: 80vw; }
-p { color: red }
-`
-
 export const ImportJSONView = {
   textarea: ref ('textarea'),
   dialog: ref ('dialog'),
   error: ref ('p'),
-  render: ({ json }) => html`
+  render: render(({ json }) => html`
     <dialog>
       <h3>Import from JSON</h3>
       <p></p>
@@ -58,5 +53,5 @@ export const ImportJSONView = {
         <button onclick=${importFromJSON}>Import from clipboard</button>
       </div>
     </dialog>
-  `.style (styles)
+  `, { shadowRoot: false })
 }

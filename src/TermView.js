@@ -1,4 +1,4 @@
-import { html } from 'hybrids'
+import { html, render } from 'hybrids'
 import { ref } from './HybridsUtils.js'
 import { moveCursorTo } from './Block.js'
 import { 
@@ -81,13 +81,6 @@ const onBlockClick = (idx) => (host, evt) =>
                                           (host.doc.blocks [idx]))
                             (host.doc))
 
-
-const styles = `
-:host { display: block;
-        min-width: 100%;
-        min-height: 100%; }
-`
-
 export const TermView = {
   doc: { 
     connect: (host, key, invalidate) => { 
@@ -100,7 +93,7 @@ export const TermView = {
   },
   results: [undefined],
   completions: [],
-  render: ({ doc, completions, results }) => html`
+  render: render(({ doc, completions, results }) => html`
     <e-welcome></e-welcome>
     ${addIndex (map) 
                ((b, idx) => 
@@ -117,9 +110,9 @@ export const TermView = {
                     </e-block>`) 
                (doc.blocks)}
     <e-completions completions=${ completions }></e-completions>
-  `.style (styles)
-   .define ({ 
+  `.define ({ 
       EBlock: BlockView, 
       ECompletions: AutocompletionView,
-      EWelcome: WelcomeBlockView })
+      EWelcome: WelcomeBlockView }),
+  { shadowRoot: false })
 }

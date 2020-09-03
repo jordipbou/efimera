@@ -35,10 +35,10 @@ const regex01 = /@efimera/
 const subst01 = "document.querySelector ('e-session')"
 
 const regex02 = /@out/
-const subst02 = "document.querySelector ('e-session').term.shadowRoot.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-session').term.doc.focused + 1) + ')').preview"
+const subst02 = "document.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-term').doc.focused + 1) + ')').preview"
 
 const regex03 = /@(\d*)out/
-const subst03 = "document.querySelector ('e-session').term.shadowRoot.querySelector ('e-block:nth-of-type($1)').preview"
+const subst03 = "document.querySelector ('e-block:nth-of-type($1)').preview"
 
 export const replaceEfimeraObjects = (line) =>
   line.replace (regex01, subst01)

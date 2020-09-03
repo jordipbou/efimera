@@ -4274,18 +4274,6 @@
           render ().querySelector (query) 
           : null;
 
-  const styles = `
-:host { display: block;
-        width: 100%;
-        height: 100%; }
-`;
-
-  const PaneView = {
-    render: () => html`
-    <slot name="content">Default content</slot>
-  `.style (styles)
-  };
-
   // A block is a single/multiline text with editing capabilities.
 
   // -------------------------- Predicates ---------------------------------
@@ -4580,7 +4568,7 @@
 
   // ----------------------- Input block rendering -------------------------
 
-  const styles$1 = `
+  const styles = `
 .line { min-height: 1em;
         line-height: 1;
         padding: 0em;
@@ -4619,7 +4607,7 @@
   const createRenderer = () => ({
     render: (block, focused) => html`
     ${ renderLines (block, focused) }
-  `.style (styles$1)
+  `.style (styles)
   });
 
   // Reserved word lists for various dialects of the language
@@ -9754,10 +9742,10 @@
   const subst01 = "document.querySelector ('e-session')";
 
   const regex02 = /@out/;
-  const subst02 = "document.querySelector ('e-session').term.shadowRoot.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-session').term.doc.focused + 1) + ')').preview";
+  const subst02 = "document.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-term').doc.focused + 1) + ')').preview";
 
   const regex03 = /@(\d*)out/;
-  const subst03 = "document.querySelector ('e-session').term.shadowRoot.querySelector ('e-block:nth-of-type($1)').preview";
+  const subst03 = "document.querySelector ('e-block:nth-of-type($1)').preview";
 
   const replaceEfimeraObjects = (line) =>
     line.replace (regex01, subst01)
@@ -9874,11 +9862,6 @@
 
   // InputView renders a Block using a BlockRenderer
 
-  const styles$2 = `
-#block-input-container { min-height: 1rem; }
-#block-input-container:focus { outline-style: none; }
-`;
-
   const InputView = {
     block: {},
     container: ref ('#block-input-container'),
@@ -9896,17 +9879,18 @@
       connect: (host, key, invalidate) => {
         host.listener = createListener ();
     }},
-    render: ({ block, focused, renderer, listener }) => html`
+    render: render(({ block, focused, renderer, listener }) => html`
     <div id="block-input-container" 
          tabindex="0" 
          onkeydown=${listener.onkeydown}
          onkeypress=${listener.onkeypress}>
       ${ renderer.render (block, focused) }
     </div>
-  `.style (styles$2)
+  `, 
+    { shadowRoot: false })
   };
 
-  const styles$3 = `
+  const styles$1 = `
 .collapsed .expanded { display: none; }
 .expanded .collapsed { display: none; }
 .result { background: var(--result-background); }
@@ -9935,10 +9919,10 @@
   };
 
   const HTMLUndefined = () => html`
-  <div class="result pp-undefined"></div>`.style (styles$3);
+  <div class="result pp-undefined"></div>`.style (styles$1);
 
   const HTMLBoolean = (b) => html`
-  <span class="result pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles$3);
+  <span class="result pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles$1);
 
   const HTMLNumber = (n) => html`
   <span class="result pp-number expandable collapsed" 
@@ -9954,14 +9938,14 @@
       <span class="label binary">BIN</span>
       <span class="binary">${n.toString (2)}</span>
     </span>
-  </span>`.style (styles$3);
+  </span>`.style (styles$1);
 
   const HTMLString = (s) => html`
   <span class="result pp-string expandable collapsed" 
         onclick=${ toggle }>
     <span class="collapsed">"${s}"</span>
     <span class="expanded">"${s}"</span>
-  </span>`.style (styles$3);
+  </span>`.style (styles$1);
 
   const HTMLArrayElement = (last) => (e) => html`
   <span>${ toHTML (e) }${ !last ? `,` : `` }</span>`;
@@ -9973,7 +9957,7 @@
     ${ map$1 (HTMLArrayElement (false)) (init (a)) }
     ${ HTMLArrayElement (true) (last (a)) }
     <span class="">]</span>
-  </span>`.style (styles$3);
+  </span>`.style (styles$1);
 
   const HTMLPromise = (p) =>
     html.resolve(
@@ -9981,15 +9965,15 @@
               <span class="result pp-promise">
                 <span class="resolved">[[Resolved]]</span>
                 <span class="value">${ toHTML (value) }</span>
-              </span>`.style (styles$3))
+              </span>`.style (styles$1))
        .catch ((error) => html`
                <span class="result pp-promise">
                  <span class="rejected">[[Rejected]]</span>
                  <span class="error">${ toHTML (error) }</span>
-               </span>`.style (styles$3)),
+               </span>`.style (styles$1)),
       html`<span class="result pp-promise">
            <span class="pending">[[Pending]]</span>
-         </span>`.style (styles$3));
+         </span>`.style (styles$1));
 
 
   const HTMLObjectProperty = (last) => (p) => (v) => html`
@@ -10012,7 +9996,7 @@
       ${ HTMLObjectProperty (true) (last (keys (o))) (o[last (keys (o))]) }
     </span>
     <span class="">}</span>
-  </span>`.style (styles$3);
+  </span>`.style (styles$1);
 
   const toHTML = 
     cond ([
@@ -10026,24 +10010,19 @@
       [is (Object),     HTMLObject],
       [T,               always]]);
 
-  const styles$4 = `
-:host { display: block;
-        min-width: 100vw; 
-        line-height: 1em;
-        background: var(--result-background); }
-`;
-
   const OutputView = {
     result: undefined,
-    render: ({ result }) => html`${ toHTML (result) }`.style (styles$4)
+    render: render(
+      ({ result }) => html`${ toHTML (result) }`,
+      { shadowRoot: false })
   };
 
-  const styles$5 = `
+  const styles$2 = `
 :host { display: block; }
 `;
 
-  const PreView = {
-    render: render((host) => html``.style (styles$5), { shadowRoot: false })
+  const RenderView = {
+    render: render((host) => html``.style (styles$2), { shadowRoot: false })
   };
 
   const inputRefocus = (host) => {
@@ -10056,17 +10035,17 @@
     focused: false,
     input: ref ('e-input'),
     output: ref ('e-output'),
-    preview: ref ('e-preview'),
+    preview: ref ('e-render'),
     render: render(({ block, result, focused }) => html`
     <e-input block=${block}
              focused=${focused}>
     </e-input>
     <e-output result=${result}></e-output>
-    <e-preview></e-preview>
+    <e-render></e-render>
   `.define ({
       EInput: InputView,
       EOutput: OutputView,
-      EPreview: PreView
+      ERender: RenderView
     }), { shadowRoot: false })
   };
 
@@ -10190,7 +10169,7 @@
             head (s1) + longestCommonSubstring (tail (s1)) (tail (s2))
             : '';
 
-  const styles$6 = `
+  const styles$3 = `
 :host { width: 100%;
         position: absolute;
         bottom: 0px;
@@ -10210,7 +10189,7 @@
     completions: [],
     render: ({ completions }) => html`
     ${ map$1 (autocompletionItem) (completions) }
-  `.style (styles$6)
+  `.style (styles$3)
   };
 
   const moreInfo = (host, evt) =>
@@ -10288,13 +10267,6 @@
                                             (host.doc.blocks [idx]))
                               (host.doc));
 
-
-  const styles$7 = `
-:host { display: block;
-        min-width: 100%;
-        min-height: 100%; }
-`;
-
   const TermView = {
     doc: { 
       connect: (host, key, invalidate) => { 
@@ -10307,7 +10279,7 @@
     },
     results: [undefined],
     completions: [],
-    render: ({ doc, completions, results }) => html`
+    render: render(({ doc, completions, results }) => html`
     <e-welcome></e-welcome>
     ${addIndex (map$1) 
                ((b, idx) => 
@@ -10324,17 +10296,18 @@
                     </e-block>`) 
                (doc.blocks)}
     <e-completions completions=${ completions }></e-completions>
-  `.style (styles$7)
-     .define ({ 
+  `.define ({ 
         EBlock: BlockView, 
         ECompletions: AutocompletionView,
-        EWelcome: WelcomeBlockView })
+        EWelcome: WelcomeBlockView }),
+    { shadowRoot: false })
   };
 
   const onclose = (host) => (evt) =>
     dispatch (host, 'refocus', { bubbles: true, composed: true });
 
   const showExportDialog = (json) => (host) => {
+    console.log (host);
     host.dialog.removeEventListener ('close',
                                      onclose (host));
     host.dialog.addEventListener ('close',
@@ -10348,22 +10321,18 @@
     host.dialog.close ();
   };
 
-  const styles$8 = `
-.json { width: 80vw; }
-`;
-
   const ExportJSONView = {
     json: '',
     dialog: ref ('dialog'),
-    render: ({ json }) => html`
+    render: render(({ json }) => html`
     <dialog>
-      <h3>Export to JSON</h3>
-      <div class="json">${json}</div>
-      <div>
-        <button onclick=${copyToClipboard}>Copy</button>
+      <div class="json-export-header">
+        <h3>Export to JSON</h3>
+        <button onclick=${ copyToClipboard }>Copy</button>
       </div>
+      <div class="json-export-preview">${ json }</div>
     </dialog>
-  `.style (styles$8)
+  `, { shadowRoot: false })
   };
 
   const onclose$1 = (host) => (evt) =>
@@ -10401,16 +10370,11 @@
             .catch (showClipboardError (host))
           : showClipboardError (host) ());
 
-  const styles$9 = `
-textarea { width: 80vw; }
-p { color: red }
-`;
-
   const ImportJSONView = {
     textarea: ref ('textarea'),
     dialog: ref ('dialog'),
     error: ref ('p'),
-    render: ({ json }) => html`
+    render: render(({ json }) => html`
     <dialog>
       <h3>Import from JSON</h3>
       <p></p>
@@ -10418,58 +10382,49 @@ p { color: red }
         <button onclick=${importFromJSON}>Import from clipboard</button>
       </div>
     </dialog>
-  `.style (styles$9)
+  `, { shadowRoot: false })
   };
 
   // ------------------------ Save / Load session --------------------------
 
-  const save = (host, evt) => {
+  const onSave = (host, evt) => {
     let json = JSON.stringify (host.term.doc);
     showExportDialog (json) (host.export_dialog);
   };
 
-  const load = (host, evt) => 
+  const onLoad = (host, evt) => 
     showImportDialog (host.import_dialog);
 
-  const importJSON = (host, evt) => {
+  const onImportJSON = (host, evt) => {
     host.term.doc = JSON.parse (evt.detail);
     hideImportDialog (host.import_dialog);
   };
 
   // --------------------------- Refocus block -----------------------------
+  // After closing one of the export/import modals, focus is returned
+  // to currently 'focused' block to be able to type without touching the
+  // mouse.
 
   const refocus = (host, evt) => 
     termRefocus (host.term) (evt);
 
   // ---------------------------- Session View -----------------------------
 
-  const styles$a = `
-:host { display: block;
-        width: 100%;
-        height: 100%; }
-`;
-
   const SessionView = {
     term: ref ('e-term'),
     export_dialog: ref ('e-export-json'),
     import_dialog: ref ('e-import-json'),
     render: render(() => html`
-    <e-pane>
-      <span slot="content">
-        <e-term onsave=${save} onload=${load}></e-term>
-      </slot>
-    </e-pane>
-    <e-export-json onrefocus=${refocus}></e-export-json>
-    <e-import-json onimport=${importJSON}
-                   onrefocus=${refocus}>
+    <e-term onsave=${ onSave } onload=${ onLoad }></e-term>
+    <e-export-json onrefocus=${ refocus }></e-export-json>
+    <e-import-json onimport=${ onImportJSON }
+                   onrefocus=${ refocus }>
     </e-import-json>
-  `.style (styles$a)
-     .define ({
-        EPane: PaneView,
-        ETerm: TermView,
-        EExportJSON: ExportJSONView,
-        EImportJSON: ImportJSONView
-      }), { shadowRoot: false })
+  `.define ({
+      ETerm: TermView,
+      EExportJson: ExportJSONView,
+      EImportJson: ImportJSONView
+    }), { shadowRoot: false })
   };
 
   define ('e-session', SessionView);

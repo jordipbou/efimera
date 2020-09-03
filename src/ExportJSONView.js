@@ -1,10 +1,11 @@
-import { dispatch, html } from 'hybrids'
+import { dispatch, html, render } from 'hybrids'
 import { ref } from './HybridsUtils.js'
 
 const onclose = (host) => (evt) =>
   dispatch (host, 'refocus', { bubbles: true, composed: true })
 
 export const showExportDialog = (json) => (host) => {
+  console.log (host)
   host.dialog.removeEventListener ('close',
                                    onclose (host))
   host.dialog.addEventListener ('close',
@@ -18,20 +19,16 @@ const copyToClipboard = (host, evt) => {
   host.dialog.close ()
 }
 
-const styles = `
-.json { width: 80vw; }
-`
-
 export const ExportJSONView = {
   json: '',
   dialog: ref ('dialog'),
-  render: ({ json }) => html`
+  render: render(({ json }) => html`
     <dialog>
-      <h3>Export to JSON</h3>
-      <div class="json">${json}</div>
-      <div>
-        <button onclick=${copyToClipboard}>Copy</button>
+      <div class="json-export-header">
+        <h3>Export to JSON</h3>
+        <button onclick=${ copyToClipboard }>Copy</button>
       </div>
+      <div class="json-export-preview">${ json }</div>
     </dialog>
-  `.style (styles)
+  `, { shadowRoot: false })
 }
