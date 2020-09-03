@@ -11,33 +11,33 @@ import { caret } from './Block.js'
 
 // -------------------- Line rendering utilities -------------------------
 
-export const htmlSpaces = (t) => replace (/ /g) ('&nbsp;') (t)
+export const htmlSpaces = replace (/ /g) ('&nbsp;')
 
 export const lineDiv = (i) => (p) => (e) => (c) => (t) =>
-  html`<div class="line" onclick=${ onclick (i) }>${p}${e}${c}${t}</div>`
+   html`<div class="line" onclick=${ onclick (i) }>${ html ([p]) }${ html ([htmlSpaces (e)]) }${ html ([c]) }${ html ([htmlSpaces (t)]) }</div>`
 
 export const promptSpan = (first) =>
   first ?
-    html`<span class="prompt">&gt;&nbsp;</span>`
-    : html`<span class="prompt">…&nbsp;</span>`
+    '<span class="prompt">&gt;&nbsp;</span>'
+    : '<span class="prompt">…&nbsp;</span>'
 
 export const caretSpan = (c) => {
   let character = 
     (c === ' ' || c === '' || c === undefined) ?
-      html`&nbsp;`
+      '&nbsp;'
       : c
-  return html`<span class="caret">${character}</span>`
+  return '<span class="caret">' + character + '</span>'
 }
 
 export const autocompletionSpan = (a) => (c) => 
-  html`<span class="autocompletion">${caretSpan(c)}</span>${a}</span>`
+  '<span class="autocompletion">' + caretSpan(c) + '</span>' + a + '</span>'
 
 export const renderLine = (idx) => (line) =>
-  html`${ lineDiv (idx) 
-                  (promptSpan (idx === 0)) 
-                  ('') 
-                  ('') 
-                  (line) }`
+  lineDiv (idx) 
+          (promptSpan (idx === 0)) 
+          ('') 
+          ('') 
+          (line)
 
 export const renderCaretLine = 
   (idx) => (line) => (caret) => (autocompletion) => {
@@ -49,36 +49,32 @@ export const renderCaretLine =
     let post = slice (caret [0] + 1) (Infinity) (line)
 
     if (isSpace && length (autocompletion) > 0) {
-      return html`${ lineDiv (idx)
-                             (promptSpan (idx === 0)) 
-                             (pre)
-                             (autocompletionSpan (tail (autocompletion))
-                                                 (head (autocompletion)))
-                             (post) }`
+      return lineDiv (idx)
+                     (promptSpan (idx === 0)) 
+                     (pre)
+                     (autocompletionSpan 
+                       (tail (autocompletion))
+                       (head (autocompletion)))
+                     (post)
     } else {
-      return html`${ lineDiv (idx)
-                             (promptSpan (idx === 0))
-                             (pre)
-                             (caretSpan (character))
-                             (post) }`
+      return lineDiv (idx)
+                     (promptSpan (idx === 0))
+                     (pre)
+                     (caretSpan (character))
+                     (post)
     }
   }
  
-export const renderLines = (block, focus = true) => 
-  focus ?
-    addIndex 
-      (map)
-      ((line, idx) => idx === block.cursor [1] ?
-                        renderCaretLine (idx)
-                                        (line)
-                                        (caret (block))
-                                        (block.autocompletion)
-                        : renderLine (idx) (line))
-      (block.lines)
-    : addIndex (map) 
-               ((line, idx) => renderLine (idx)
-                                          (line))
-               (block.lines)
+export const renderLines = (block, focus = true) =>
+  addIndex
+    (map)
+    ((line, idx) => focus && idx === block.cursor [1] ?
+                      renderCaretLine (idx) 
+                                      (line) 
+                                      (caret (block))
+                                      (block.autocompletion)
+                      : renderLine (idx) (line))
+    (block.lines)
 
 // ----------------------- Input block rendering -------------------------
 
