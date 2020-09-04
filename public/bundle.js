@@ -9704,33 +9704,66 @@
     return Parser.tokenizer(input, options)
   }
 
-  // ---------------------------------------------------- import '<package>'
-  const regex1 = /import\s*['|"](?<package>.*)['|"]/;
-  const subst1 = "efimera.npmImport ('$<package>')";
+  // -------------- Import modules from npm directly from eval -------------
 
-  // --------------------------------------------- import * from '<package>'
-  // This is not correct Javascript, but it can be useful,
-  // should I continues using this format?
-  const regex2 = /import\s*\*\s*from\s*['|"](?<package>.*)['|"]/;
-  const subst2 = "efimera.npmImport ('$<package>', null)";
+  const populateWindowNamespace = (module) => {
+    for (let p in module) window[p] = module[p];
+  };
 
-  // ------------------------------ import * as <namespace> from '<package>'
-  // TODO as regex4
+  const ownNamespace = (namespace, d) => (module) =>
+    window[namespace] = d ? module.default : module;
+
+  const populateOn = (namespace, d) =>
+    namespace === null ?
+      populateWindowNamespace
+      : ownNamespace (namespace, d);
+
+  const cdnImport = (cdn) => (pkg, ns, d = false) =>
+    import (cdn + pkg)
+      .then (populateOn (ns !== undefined ? ns : pkg, d));
+
+  // Although the npm packages are the same, it seems that different
+  // cdns return different files (I suppose depending on main, module
+  // and browser properties of package.json)
+
+  const pikaImport = 
+    cdnImport ('https://cdn.pika.dev/');
+
+  const unpkgImport = 
+  	cdnImport ('https://unpkg.com/');
+
+  const skypackImport = 
+    cdnImport ('https://cdn.skypack.dev/');
+
+  const npmImport = (pkg, ns) => {
+    // By using null as namespace, all names
+    // from package namespace will be populated into
+    // window namespace.
+    if (pkg === 'frmidi') {
+      return unpkgImport ('frmidi', ns)
+    } else if (pkg === 'ramda') {
+      return skypackImport ('ramda', ns)
+    } else if (pkg === 'hybrids') {
+      return unpkgImport ('hybrids', ns)
+    } else if (pkg === 'rxjs') {
+      return pikaImport ('rxjs', ns)
+    } else {
+      return unpkgImport (pkg, ns)
+    }
+  };
+
+
+  // ------------------------------- import * as <namespace> from '<package>'
+  const regex2 = /import\s*\*\s*as\s*(?<namespace>[^\s*])\s*from\s*['|"](?<package>.*)['|"]/;
+  const subst2 = "efimera.npmImport ('$<package>', '$<namespace>')";
 
   // --------------------------------  import { <exports> } from '<package>'
   const regex3 = /import\s*{(?<exports>.*)}\s*from\s*['|"](?<package>.*)['|"]/;
   const subst3 = "efimera.npmImport ('$<package>').then (m => '$<exports>'.split (',').map ((s) => { let p = s.trim (); window[p] = m[p] }))";
 
   const replaceImports = (line) =>
-    line.replace (regex1, subst1)
-        .replace (regex2, subst2)
-        .replace (regex3, subst3);
-
-  const replaceLet = (line) =>
-    line.replace (/^let/, 'var');
-
-  const replaceConst = (line) =>
-    line.replace (/^const/, 'var');
+      line.replace (regex2, subst2)
+          .replace (regex3, subst3);
 
   // --------------------------------------------- Referring efimera objects
 
@@ -9751,8 +9784,6 @@
   const applyReplacements = 
     map$1 (
       pipe (replaceImports,
-            replaceLet,
-            replaceConst,
             replaceEfimeraObjects));
 
   // ----------------------- Check if code is evaluable --------------------
@@ -10425,54 +10456,6 @@
 
   define ('e-session', SessionView);
 
-  // -------------- Import modules from npm directly from eval -------------
-
-  const populateWindowNamespace = (module) => {
-    for (let p in module) window[p] = module[p];
-  };
-
-  const ownNamespace = (namespace, d) => (module) =>
-    window[namespace] = d ? module.default : module;
-
-  const populateOn = (namespace, d) =>
-    namespace === null ?
-      populateWindowNamespace
-      : ownNamespace (namespace, d);
-
-  const cdnImport = (cdn) => (pkg, ns, d = false) =>
-    import (cdn + pkg)
-      .then (populateOn (ns !== undefined ? ns : pkg, d));
-
-  // Although the npm packages are the same, it seems that different
-  // cdns return different files (I suppose depending on main, module
-  // and browser properties of package.json)
-
-  const pikaImport = 
-    cdnImport ('https://cdn.pika.dev/');
-
-  const unpkgImport = 
-  	cdnImport ('https://unpkg.com/');
-
-  const skypackImport = 
-    cdnImport ('https://cdn.skypack.dev/');
-
-  const npmImport = (pkg, ns) => {
-    // By using null as namespace, all names
-    // from package namespace will be populated into
-    // window namespace.
-    if (pkg === 'frmidi') {
-      return unpkgImport ('frmidi', ns)
-    } else if (pkg === 'ramda') {
-      return skypackImport ('ramda', ns)
-    } else if (pkg === 'hybrids') {
-      return unpkgImport ('hybrids', ns)
-    } else if (pkg === 'rxjs') {
-      return pikaImport ('rxjs', ns)
-    } else {
-      return unpkgImport (pkg, ns)
-    }
-  };
-
   // -------------------- Main element definition --------------------------
 
   define ('e-session', SessionView);
@@ -10483,13 +10466,10 @@
   exports.htmlSpaces = htmlSpaces;
   exports.lineDiv = lineDiv;
   exports.npmImport = npmImport;
-  exports.pikaImport = pikaImport;
   exports.promptSpan = promptSpan;
   exports.renderCaretLine = renderCaretLine;
   exports.renderLine = renderLine;
   exports.renderLines = renderLines;
-  exports.skypackImport = skypackImport;
-  exports.unpkgImport = unpkgImport;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -2,14 +2,9 @@ const test = require ('ava')
 import { replaceImports } from '../src/Eval.js'
 
 test ('Replace import statements', (t) => {
-  let line = 'import "efimera"'
+  let line = 'import * as E from \'efimera\''
   t.deepEqual (
-    'efimera.npmImport (\'efimera\')', 
-    replaceImports (line))
-
-  line = 'import * from \'efimera\''
-  t.deepEqual (
-    'efimera.npmImport (\'efimera\', null)', 
+    'efimera.npmImport (\'efimera\', \'E\')', 
     replaceImports (line))
 
   line = 'import { foo } from "efimera"'
