@@ -5,6 +5,7 @@ import './main.css'
 
 export * from './BlockRenderer.js'
 export { npmImport } from './Eval.js'
+export { showHelpDialog } from './HelpView.js'
 
 // -------------------- Main element definition --------------------------
 

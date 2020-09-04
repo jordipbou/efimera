@@ -2,7 +2,7 @@
 // and captures user input thru an BlockListener.
 
 import { html, render } from 'hybrids'
-import { ref } from './HybridsUtils.js'
+import { ref } from './Utils.js'
 import { createRenderer } from './BlockRenderer.js'
 import { createListener } from './BlockListener.js'
 import { createBlock } from './Block.js'

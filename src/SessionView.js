@@ -1,5 +1,5 @@
 import { define, html, render } from 'hybrids'
-import { ref } from './HybridsUtils.js'
+import { ref } from './Utils.js'
 import { TermView, termRefocus } from './TermView.js'
 import { 
   ExportJSONView, showExportDialog 
@@ -7,6 +7,7 @@ import {
 import { 
   ImportJSONView, showImportDialog, hideImportDialog 
   } from './ImportJSONView.js'
+import { HelpView, showHelpDialog } from './HelpView.js'
 
 // ------------------------ Save / Load session --------------------------
 
@@ -23,12 +24,17 @@ const onImportJSON = (host, evt) => {
   hideImportDialog (host.import_dialog)
 }
 
+// ----------------------------- Show help -------------------------------
+
+const onHelp = (host, evt) =>
+  showHelpDialog (host.help_dialog)
+
 // --------------------------- Refocus block -----------------------------
 // After closing one of the export/import modals, focus is returned
 // to currently 'focused' block to be able to type without touching the
 // mouse.
 
-const refocus = (host, evt) => 
+const refocus = (host, evt) =>
   termRefocus (host.term) (evt)
 
 // ---------------------------- Session View -----------------------------
@@ -37,16 +43,19 @@ export const SessionView = {
   term: ref ('e-term'),
   export_dialog: ref ('e-export-json'),
   import_dialog: ref ('e-import-json'),
+  help_dialog: ref ('e-help'),
   render: render(() => html`
-    <e-term onsave=${ onSave } onload=${ onLoad }></e-term>
+    <e-term onsave=${ onSave } onload=${ onLoad } onhelp=${ onHelp }></e-term>
     <e-export-json onrefocus=${ refocus }></e-export-json>
     <e-import-json onimport=${ onImportJSON }
                    onrefocus=${ refocus }>
     </e-import-json>
+    <e-help onrefocus=${ refocus }></e-help>
   `.define ({
     ETerm: TermView,
     EExportJson: ExportJSONView,
-    EImportJson: ImportJSONView
+    EImportJson: ImportJSONView,
+    EHelp: HelpView
   }), { shadowRoot: false })
 }
 

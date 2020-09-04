@@ -78,10 +78,18 @@ export const replaceEfimeraObjects = (line) =>
       .replace (regex02, subst02)
       .replace (regex03, subst03)
 
+// ------------------------------------------------------------- Show help
+const regex001 = /^\.help$/
+const subst001 = "efimera.showHelpDialog (document.querySelector ('e-session').help_dialog)"
+
+export const replaceReplInstructions = (line) =>
+  line.replace (regex001, subst001)
+
 export const applyReplacements = 
   map (
     pipe (replaceImports,
-          replaceEfimeraObjects))
+          replaceEfimeraObjects,
+          replaceReplInstructions))
 
 // ----------------------- Check if code is evaluable --------------------
 // It's used on block listener to know if enter means evaluate or

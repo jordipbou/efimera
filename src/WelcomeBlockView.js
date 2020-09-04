@@ -1,7 +1,7 @@
-import { html } from 'hybrids'
+import { dispatch, html } from 'hybrids'
 
 const moreInfo = (host, evt) =>
-  console.log ('show more info!')
+  dispatch (host, 'help', { bubbles: true, composed: true })
 
 export const WelcomeBlockView = {
   render: () => html`

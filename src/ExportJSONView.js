@@ -1,15 +1,8 @@
 import { dispatch, html, render } from 'hybrids'
-import { ref } from './HybridsUtils.js'
-
-const onclose = (host) => (evt) =>
-  dispatch (host, 'refocus', { bubbles: true, composed: true })
+import { ref, setOnCloseListener } from './Utils.js'
 
 export const showExportDialog = (json) => (host) => {
-  console.log (host)
-  host.dialog.removeEventListener ('close',
-                                   onclose (host))
-  host.dialog.addEventListener ('close',
-                                onclose (host))
+  setOnCloseListener (host) (host.dialog)
   host.json = json
   host.dialog.showModal ()
 }

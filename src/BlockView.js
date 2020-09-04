@@ -1,5 +1,5 @@
 import { html, render } from 'hybrids'
-import { ref } from './HybridsUtils.js'
+import { ref } from './Utils.js'
 import { InputView } from './InputView.js'
 import { OutputView } from './OutputView.js'
 import { RenderView } from './RenderView.js'
