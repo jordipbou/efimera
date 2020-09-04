@@ -37,7 +37,7 @@ export const createListener = () => ({
       if (evt.shiftKey || !do_evaluate) {
         update (host) (insertLine (host.block))
       } else if (!equals (host.block.lines, [''])) {
-        let result = evaluate_code (host.block.lines)
+        let result = evaluate_code (host) (host.block.lines)
         dispatch (host, 
                   'blockevaluated', 
                   { detail: result, 
@@ -72,8 +72,18 @@ export const createListener = () => ({
       }
     } else if ((evt.key === 's' || evt.key === 'S') && evt.ctrlKey) {
       dispatch (host, 'save', { bubbles: true, composed: true })
-    } else if ((evt.key === 'l' || evt.key === 'L') && evt.ctrlKey) {
+    } else if ((evt.key === 'o' || evt.key === 'O') && evt.ctrlKey) {
       dispatch (host, 'load', { bubbles: true, composed: true })
+    } else if ((evt.key === 'l' || evt.key === 'L')) {
+      if (evt.ctrlKey) {
+        console.clear ()
+        dispatch (host, 'error', { detail: { noerror: true },
+                                   bubbles: true,
+                                   composed: true })
+      }
+      if (evt.shiftKey) {
+        dispatch (host, 'cleardocument', { bubbles: true, composed: true })
+      }
     } else {
       return true
     }

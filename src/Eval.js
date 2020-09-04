@@ -1,5 +1,6 @@
 import { join, map, pipe } from 'ramda'
 import * as acorn from 'acorn'
+import { dispatch } from 'hybrids'
 
 // -------------- Import modules from npm directly from eval -------------
 
@@ -108,10 +109,22 @@ export const is_evaluable = (code) => {
 
 // ---------------------------- Code evaluation --------------------------
 
-export const evaluate_code = (code) => {
+export const evaluate_code = (host) => (code) => {
   let modified = applyReplacements (code)
 
   let strcode = join ('\n') (modified)
 
-  return window.eval (strcode)
+  try {
+    let result = window.eval (strcode)
+    dispatch (host, 'error', { detail: { noerror: true }, 
+                               bubbles: true, 
+                               composed: true })
+    return result
+  } catch (e) {
+    console.error (e)
+    dispatch (host, 'error', { detail: e, 
+                               bubbles: true, 
+                               composed: true })
+    return undefined
+  }
 }

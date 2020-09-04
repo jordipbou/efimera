@@ -1,4 +1,4 @@
-import { html, render } from 'hybrids'
+import { html, property, render } from 'hybrids'
 import { ref } from './Utils.js'
 import { moveCursorTo } from './Block.js'
 import { 
@@ -15,6 +15,7 @@ import {
 import { autocomplete } from './Autocompletion.js'
 import { AutocompletionView } from './AutocompletionView.js'
 import { WelcomeBlockView } from './WelcomeBlockView.js'
+import { ErrorView } from './ErrorView.js'
 
 // ---------------- Block modification / Autocompletion ------------------
 
@@ -81,6 +82,14 @@ const onBlockClick = (idx) => (host, evt) =>
                                           (host.doc.blocks [idx]))
                             (host.doc))
 
+// ----------------------- Manage evaluation errors ----------------------
+
+const onError = (host, evt) =>
+  host.error = evt.detail
+
+const clearDocument = (host, evt) =>
+  host.doc = createDocument ()
+
 export const TermView = {
   doc: { 
     connect: (host, key, invalidate) => { 
@@ -93,7 +102,8 @@ export const TermView = {
   },
   results: [undefined],
   completions: [],
-  render: render(({ doc, completions, results }) => html`
+  error: property(null),
+  render: render(({ doc, completions, results, error }) => html`
     <e-welcome></e-welcome>
     ${addIndex (map) 
                ((b, idx) => 
@@ -105,14 +115,20 @@ export const TermView = {
                              onblockevaluated=${blockEvaluated (idx)}
                              onblocktop=${blockTop}
                              onblockbottom=${blockBottom}
+                             onerror=${ onError }
+                             oncleardocument=${ clearDocument }
                              focused=${doc.focused === idx}
                              result=${results [idx]}>
                     </e-block>`) 
                (doc.blocks)}
-    <e-completions completions=${ completions }></e-completions>
+    <div class="info-bars">
+      <e-error error=${ error }></e-error>
+      <e-completions completions=${ completions }></e-completions>
+    </div>
   `.define ({ 
       EBlock: BlockView, 
       ECompletions: AutocompletionView,
-      EWelcome: WelcomeBlockView }),
+      EWelcome: WelcomeBlockView,
+      EError: ErrorView }),
   { shadowRoot: false })
 }

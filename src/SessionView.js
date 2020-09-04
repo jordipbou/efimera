@@ -45,7 +45,9 @@ export const SessionView = {
   import_dialog: ref ('e-import-json'),
   help_dialog: ref ('e-help'),
   render: render(() => html`
-    <e-term onsave=${ onSave } onload=${ onLoad } onhelp=${ onHelp }></e-term>
+    <e-term onsave=${ onSave } 
+            onload=${ onLoad } 
+            onhelp=${ onHelp }></e-term>
     <e-export-json onrefocus=${ refocus }></e-export-json>
     <e-import-json onimport=${ onImportJSON }
                    onrefocus=${ refocus }>
