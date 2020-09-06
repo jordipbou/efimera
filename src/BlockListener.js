@@ -37,12 +37,21 @@ export const createListener = () => ({
       if (evt.shiftKey || !do_evaluate) {
         update (host) (insertLine (host.block))
       } else if (!equals (host.block.lines, [''])) {
-        let result = evaluate_code (host) (host.block.lines)
-        dispatch (host, 
-                  'blockevaluated', 
-                  { detail: result, 
-                    bubbles: true, 
-                    composed: true })
+        let [st, result, e] = evaluate_code (host) (host.block.lines)
+        if (st === 'ok') {
+          dispatch (host, 'error', { detail: { noerror: true },
+                                     bubbles: true, 
+                                     composed: true })
+          dispatch (host, 
+                    'blockevaluated', 
+                    { detail: result, 
+                      bubbles: true, 
+                      composed: true })
+        } else {
+          dispatch (host, 'error', { detail: e,
+                                     bubbles: true, 
+                                     composed: true })
+        }
       }
     } else if (evt.key === 'ArrowLeft') {
       update (host) (moveCursorLeft (host.block))
