@@ -89,9 +89,11 @@ export const createListener = () => ({
         dispatch (host, 'error', { detail: { noerror: true },
                                    bubbles: true,
                                    composed: true })
-      }
-      if (evt.shiftKey) {
-        dispatch (host, 'cleardocument', { bubbles: true, composed: true })
+        if (evt.shiftKey) {
+          dispatch (host, 'cleardocument', { bubbles: true, composed: true })
+        }
+      } else {
+        return true
       }
     } else {
       return true
