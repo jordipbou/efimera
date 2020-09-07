@@ -11,10 +11,15 @@ import { caret } from './Block.js'
 
 // -------------------- Line rendering utilities -------------------------
 
-export const htmlSpaces = replace (/ /g) ('&nbsp;')
+export const htmlEntities = (t) => 
+  replace (/</g) 
+          ('&gt;') 
+          (replace (/</g)
+                   ('&lt;')
+                   (replace (/ /g) ('&nbsp;') (t)))
 
 export const lineDiv = (i) => (p) => (e) => (c) => (t) =>
-   html`<div class="line" onclick=${ onclick (i) }>${ html ([p]) }${ html ([htmlSpaces (e)]) }${ html ([c]) }${ html ([htmlSpaces (t)]) }</div>`
+   html`<div class="line" onclick=${ onclick (i) }>${ html ([p]) }${ html ([htmlEntities (e)]) }${ html ([c]) }${ html ([htmlEntities (t)]) }</div>`
 
 export const promptSpan = (first) =>
   first ?

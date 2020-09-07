@@ -43,7 +43,7 @@ export const npmImport = (pkg, ns) => {
   } else if (pkg === 'hybrids') {
     return unpkgImport ('hybrids', ns)
   } else if (pkg === 'rxjs') {
-    return pikaImport ('rxjs', ns)
+    return skypackImport ('rxjs', ns)
   } else {
     return unpkgImport (pkg, ns)
   }
