@@ -14,7 +14,7 @@ const copyToClipboard = (host, evt) => {
 }
 
 const copyLinkToClipboard = (host, evt) => {
-  navigator.clipboard.writeText ('https://jordipbou.github.com/efimera/?json=' + host.json)
+  navigator.clipboard.writeText ('https://jordipbou.github.com/efimera/?json=' + encodeURI (host.json))
   host.dialog.close ()
 }
 

@@ -44,6 +44,8 @@ export const npmImport = (pkg, ns) => {
     return unpkgImport ('hybrids', ns)
   } else if (pkg === 'rxjs') {
     return skypackImport ('rxjs', ns)
+  } else if (pkg === 'rxjs/operators') {
+    return skypackImport ('rxjs/operators', ns)
   } else {
     return unpkgImport (pkg, ns)
   }
@@ -56,7 +58,7 @@ const subst1 = "efimera.npmImport ('$<package>')"
 
 // ------------------------------- import * as <namespace> from '<package>'
 
-const regex2 = /import\s*\*\s*as\s*(?<namespace>[^\s*])\s*from\s*['|"](?<package>.*)['|"]/
+const regex2 = /import\s*\*\s*as\s*(?<namespace>[^\s]*)\s*from\s*['|"](?<package>.*)['|"]/
 const subst2 = "efimera.npmImport ('$<package>', '$<namespace>')"
 
 // --------------------------------  import { <exports> } from '<package>'
