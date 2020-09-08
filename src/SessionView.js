@@ -40,6 +40,19 @@ const refocus = (host, evt) =>
 // ---------------------------- Session View -----------------------------
 
 export const SessionView = {
+  url_params: {
+    connect: (host, key, invalidate) => {
+      let params = new URLSearchParams (window.location.search)
+      if (params.has ('json')) {
+        try {
+          // TODO: Add JSON validation !!
+          host.term.doc = JSON.parse (params.get ('json')) 
+        } catch (e) {
+          console.error (e) 
+        }
+      }
+    }
+  },
   term: ref ('e-term'),
   export_dialog: ref ('e-export-json'),
   import_dialog: ref ('e-import-json'),

@@ -49,18 +49,33 @@ export const npmImport = (pkg, ns) => {
   }
 }
 
+// ---------------------------------------------------- import '<package>'
+
+const regex1 = /import\s*['|"](?<package>.*)['|"]/
+const subst1 = "efimera.npmImport ('$<package>')" 
 
 // ------------------------------- import * as <namespace> from '<package>'
+
 const regex2 = /import\s*\*\s*as\s*(?<namespace>[^\s*])\s*from\s*['|"](?<package>.*)['|"]/
 const subst2 = "efimera.npmImport ('$<package>', '$<namespace>')"
 
 // --------------------------------  import { <exports> } from '<package>'
+
 const regex3 = /import\s*{(?<exports>.*)}\s*from\s*['|"](?<package>.*)['|"]/
 const subst3 = "efimera.npmImport ('$<package>').then (m => '$<exports>'.split (',').map ((s) => { let p = s.trim (); window[p] = m[p] }))"
 
+// ------------------------------- import * from '<package>'
+
+// This is not correct Javascript syntax, but I find it pretty useful.
+
+const regex4 = /import\s*\*\s*from\s*['|"](?<package>.*)['|"]/
+const subst4 = "efimera.npmImport ('$<package>', null)"
+
 export const replaceImports = (line) =>
-    line.replace (regex2, subst2)
+    line.replace (regex1, subst1)
+        .replace (regex2, subst2)
         .replace (regex3, subst3)
+        .replace (regex4, subst4)
 
 // --------------------------------------------- Referring efimera objects
 
