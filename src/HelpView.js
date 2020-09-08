@@ -1,5 +1,6 @@
 import { html, render } from 'hybrids'
 import { ref, setOnCloseListener } from './Utils.js'
+import dialogPolyfill from 'dialog-polyfill'
 
 export const showHelpDialog = (host) => {
   setOnCloseListener (host) (host.dialog)
@@ -7,6 +8,11 @@ export const showHelpDialog = (host) => {
 }
 
 export const HelpView = {
+  init: {
+    connect: (host, key, invalidate) => {
+      dialogPolyfill.registerDialog (host.dialog)
+    },
+  },
   dialog: ref ('dialog'),
   render: render(() => html`
     <dialog>

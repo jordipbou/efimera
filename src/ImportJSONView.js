@@ -1,5 +1,6 @@
 import { dispatch, html, render } from 'hybrids'
 import { ref, setOnCloseListener } from './Utils.js'
+import dialogPolyfill from 'dialog-polyfill'
 
 export const showImportDialog = (host) => {
   setOnCloseListener (host) (host.dialog)
@@ -36,6 +37,11 @@ const importFromJSON = (host, evt) =>
         : showClipboardError (host) ())
 
 export const ImportJSONView = {
+  init: {
+    connect: (host, key, invalidate) => {
+      dialogPolyfill.registerDialog (host.dialog)
+    },
+  },
   textarea: ref ('textarea'),
   dialog: ref ('dialog'),
   error: ref ('p'),

@@ -1,5 +1,6 @@
 import { dispatch, html, render } from 'hybrids'
 import { ref, setOnCloseListener } from './Utils.js'
+import dialogPolyfill from 'dialog-polyfill'
 
 export const showExportDialog = (json) => (host) => {
   setOnCloseListener (host) (host.dialog)
@@ -13,6 +14,11 @@ const copyToClipboard = (host, evt) => {
 }
 
 export const ExportJSONView = {
+  init: {
+    connect: (host, key, invalidate) => {
+      dialogPolyfill.registerDialog (host.dialog)
+    },
+  },
   json: '',
   dialog: ref ('dialog'),
   render: render(({ json }) => html`
