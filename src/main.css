@@ -91,6 +91,9 @@ e-export-json { width: 90vw; }
 .json-export-header { display: flex;
                       flex-direction: row;
 					  justify-content: space-between; }
+
+.json-export-header div { display: flex; }
+
 .json-export-preview { width: 80vw; }
 
 e-import-json textarea { width: 80vw; }

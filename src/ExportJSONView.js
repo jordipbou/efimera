@@ -13,6 +13,11 @@ const copyToClipboard = (host, evt) => {
   host.dialog.close ()
 }
 
+const copyLinkToClipboard = (host, evt) => {
+  navigator.clipboard.writeText ('https://jordipbou.github.com/efimera/?json=' + host.json)
+  host.dialog.close ()
+}
+
 export const ExportJSONView = {
   init: {
     connect: (host, key, invalidate) => {
@@ -25,7 +30,10 @@ export const ExportJSONView = {
     <dialog>
       <div class="json-export-header">
         <h3>Export to JSON</h3>
-        <button onclick=${ copyToClipboard }>Copy</button>
+        <div>
+          <button onclick=${ copyToClipboard }>Copy</button>
+          <button onclick=${ copyLinkToClipboard }>Copy link</button>
+        </div>
       </div>
       <div class="json-export-preview">${ json }</div>
     </dialog>
