@@ -83,34 +83,6 @@ export const renderLines = (block, focus = true) =>
 
 // ----------------------- Input block rendering -------------------------
 
-const styles = `
-.line { min-height: 1em;
-        line-height: 1;
-        padding: 0em;
-        margin: 0em; }
-
-.line:focus { outline-style: none; }
-
-.caret { min-width: 0.5em;
-         animation: blink .75s step-end infinite; }
-
-@keyframes blink { from, to { background-color: var(--term-background); 
-                              color: var(--term-color); }
-                   50% { background-color: var(--term-background-inverted);
-                         color: var(--term-color-inverted); } }
-
-.autocompletion .caret { animation: auto-blink .75s step-end infinite; }
-
-@keyframes auto-blink { 
-  from, to { background-color: var(--term-background);
-             color: var(--autocompletion-color); }
-  50% { background-color: var(--term-background-inverted);
-        color: var(--autocompletion-color-inverted); } }
-
-.autocompletion { color: var(--autocompletion-color); }
-
-`
-
 const onclick = (idx) => (host, evt) => {
   let charwidth = host.render ().querySelector ('.line').clientHeight / 2
   let x = Math.floor (evt.x / charwidth) - 2 // 2 for prompt size
@@ -122,5 +94,5 @@ const onclick = (idx) => (host, evt) => {
 export const createRenderer = () => ({
   render: (block, focused) => html`
     ${ renderLines (block, focused) }
-  `.style (styles)
+  `
 })
