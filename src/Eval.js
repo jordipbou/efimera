@@ -51,6 +51,8 @@ export const npmImport = (pkg, ns) => {
   }
 }
 
+// Importing npm packages ------------------------------------------------
+
 // ---------------------------------------------------- import '<package>'
 
 const regex1 = /import\s*['|"](?<package>.*)['|"]/
@@ -79,21 +81,76 @@ export const replaceImports = (line) =>
         .replace (regex3, subst3)
         .replace (regex4, subst4)
 
-// --------------------------------------------- Referring efimera objects
+// Referring efimera objects ---------------------------------------------
+
+// --------------------------------------- Efimera session (Global object)
 
 const regex01 = /@efimera/
 const subst01 = "document.querySelector ('e-session')"
 
+// ------------------------------------------ Render view of current block
+
 const regex02 = /@out/
 const subst02 = "document.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-term').doc.focused + 1) + ')').preview"
 
+// ---------------------------------------- Render view of block by number
+
 const regex03 = /@(\d*)out/
 const subst03 = "document.querySelector ('e-block:nth-of-type($1)').preview"
+
+// ------------------------------------------- Input view of current block
+
+const regex04 = /@in/
+const subst04 = "document.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-term').doc.focused + 1) + ')').input"
+
+// ----------------------------------------- Input view of block by number
+
+const regex05 = /@(\d*)in/
+const subst05 = "document.querySelector ('e-block:nth-of-type($1)').input"
+
+// ------------- Result (output view) of two blocks before the current one
+
+const regex06 = /@@@/
+const subst06 = "document.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-term').doc.focused - 1) + ')').output.result"
+
+// --------------------------------- Result (output view) of previous block
+
+const regex07 = /@@/
+const subst07 = "document.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-term').doc.focused) + ')').output.result"
+
+
+// ------------------------------- Result (output view) of block by number
+
+const regex08 = /@(\d*)@/
+const subst08 = "document.querySelector ('e-block:nth-of-type($1)').output.result"
+
+// ----------------------------------------------------------- Term object
+
+const regex09 = /@term/
+const subst09 = "document.querySelector ('e-term')"
+
+// -------------------------------------------------- Current block object
+
+const regex010 = /@block/
+const subst010 = "document.querySelector ('e-block:nth-of-type(' + (document.querySelector ('e-term').doc.focused + 1) + ')')"
+
+// ------------------------------------------------ Block object by number
+
+const regex011 = /@(\d*)block/
+const subst011 = "document.querySelector ('e-block:nth-of-type($1)')"
 
 export const replaceEfimeraObjects = (line) =>
   line.replace (regex01, subst01)
       .replace (regex02, subst02)
       .replace (regex03, subst03)
+      .replace (regex04, subst04)
+      .replace (regex05, subst05)
+      .replace (regex06, subst06)
+      .replace (regex07, subst07)
+      .replace (regex08, subst08)
+      .replace (regex09, subst09)
+      .replace (regex010, subst010)
+      .replace (regex011, subst011)
 
 // ------------------------------------------------------------- Show help
 const regex001 = /^\.help$/
