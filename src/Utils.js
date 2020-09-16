@@ -1,5 +1,5 @@
 import { is } from 'ramda'
-import { dispatch } from 'hybrids'
+import { dispatch, render } from 'hybrids'
 
 export const ref = 
   (query) => 
@@ -7,6 +7,9 @@ export const ref =
       is (Function, render) ? 
         render ().querySelector (query) 
         : null
+
+export const noShadow = (r) => render(r, { shadowRoot: false })
+  
 
 const onCloseDialog = (host) => (evt) =>
   dispatch (host, 

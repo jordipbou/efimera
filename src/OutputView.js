@@ -1,9 +1,12 @@
 import { html, render } from 'hybrids'
-import { toHTML } from './PrettyPrint.js'
+import { 
+  ResultDefines, toBlocks } from './PrettyPrint.js'
+import { noShadow } from './Utils.js'
 
 export const OutputView = {
-  result: undefined,
-  render: render(
-    ({ result }) => html`${ toHTML (result) }`,
-    { shadowRoot: false })
+  result: { evaluated: false, value: undefined },
+  render: noShadow (
+    ({ result }) => 
+      html`${ result.evaluated && toBlocks (true) (result.value) }`
+        .define (ResultDefines))
 }

@@ -1,125 +1,292 @@
+// Objects have three possible states:
+// - condensed : it's inside a collapsed collection
+// - collapsed : occupies full line (only on root or expanded collection)
+// - expanded  : can use more than one line (on root or expanded coll)
+
+// An object always has:
+// <object-tag>
+//   <container>
+//     <condensed>
+//     <collapsed>
+//     <expanded>
+//   </container>
+// <object-tag>
+
+// Condensed/Collapsed/Expanded blocks are only rendered if needed
+// but then they're are always rendered to maintain internal state
+// even if they are hidden.
+
+// As condensed/collapsed/expanded are classes assigned to blocks,
+// same block can be used for the three states if needed.
+
 import { 
-  always, append, cond, equals, filter, head, includes, init, is, isNil, 
+  addIndex, always, append, cond, equals, filter, 
+  head, includes, init, is, isNil, 
   join, keys, last, length, map, T, type, without
   } from 'ramda'
-import { html } from 'hybrids'
+import { dispatch, html } from 'hybrids'
+import { noShadow } from './Utils.js'
 
-export const styles = `
-.collapsed .expanded { display: none; }
-.expanded .collapsed { display: none; }
-.result { background: var(--result-background); }
-.pp-undefined { }
-.pp-number { color: var(--result-number-color); }
-.pp-string { color: var(--result-string-color); }
-.pp-boolean { color: var(--result-boolean-color); }
-`
+// ----------------------------------------------------- On click callback
 
-export const toggle = (host, evt) => {
-  let e = 
-    head 
-      (filter 
-        ((e) => e.classList ? 
-                  includes ('expandable') (e.classList) 
-                  : false)
-        (evt.path))
-
-  e.classList = 
-    join (' ')
-      (includes ('collapsed') (e.classList) ?
-        append ('expanded') 
-               (without ('collapsed') (e.classList))
-        : append ('collapsed')  
-                 (without ('expanded') (e.classList)))
+const noClick = (host, evt) => {
+  if (evt.cancelBubble !== null) evt.cancelBubble = true
+  dispatch (host, 'refocus', { bubbles: true, composed: true })
+  evt.preventDefault ()
+  return false
 }
 
-const HTMLUndefined = () => html`
-  <div class="result pp-undefined"></div>`.style (styles)
+const expandTag = (host, evt) => {
+  host._expanded = true
+  host._hasExpanded = true
+  if (evt.cancelBubble !== null) evt.cancelBubble = true
+  dispatch (host, 'refocus', { bubbles: true, composed: true })
+  evt.preventDefault ()
+  return false
+}
 
-const HTMLBoolean = (b) => html`
-  <span class="result pp-boolean">${b ? 'true' : 'false' }</span>`.style (styles)
+const collapseTag = (host, evt) => {
+  host._expanded = false
+  if (evt.cancelBubble !== null) evt.cancelBubble = true
+  dispatch (host, 'refocus', { bubbles: true, composed: true })
+  evt.preventDefault ()
+  return false
+}
 
-const HTMLNumber = (n) => html`
-  <span class="result pp-number expandable collapsed" 
-        onclick=${ toggle }>
-    <span class="collapsed">
-      <span class="decimal">${n}</span>
+// --------------------------------------------------------- HTML Elements
+
+const HTMLBaseElement = (value) =>
+  ({ value: value,
+     full_line: true,
+     _expanded: false,
+     _hasExpanded: false })
+
+const ContainerClasses = (full_line) => (expanded) =>
+  ({ 'pp-container': true,
+     'condensed': !full_line,
+     'collapsed': full_line && !expanded,
+     'expanded': full_line && expanded })
+
+// Undefined
+
+const HTMLUndefinedTag = (full_line) =>
+  html`<e-undefined class="result pp-undefined"
+                    full_line="${ full_line }">
+       </e-undefined>`
+
+const HTMLUndefined = {
+  ...HTMLBaseElement (undefined),
+  render: noShadow(({ full_line, _expanded }) => html`
+    <span class="${ ContainerClasses (full_line) (_expanded) }">
+      ${ !full_line && html`
+        <span class="condensed">undefined</span>`}
+      ${ full_line && html`
+        <span class="collapsed" onclick="${ noClick }">undefined</span>`}
     </span>
-    <span class="expanded">
-      <span class="label decimal">DEC</span>
-      <span class="decimal">${n}</span>
-      <span class="label hexadecimal">HEX</span>
-      <span class="hexadecimal">${n.toString (16)}</span>
-      <span class="label binary">BIN</span>
-      <span class="binary">${n.toString (2)}</span>
+  `)}
+
+// Boolean
+
+const HTMLBooleanTag = (full_line) => (value) =>
+  html`<e-boolean class="result pp-boolean" 
+                  full_line="${ full_line }"
+                  value="${ value }">
+       </e-boolean>`
+
+const HTMLBoolean = {
+  ...HTMLBaseElement (true),
+  render: noShadow(({ value, full_line, _expanded }) => html`
+    <span class="${ ContainerClasses (full_line) (_expanded) }">
+      ${ !full_line && html`
+        <span class="condensed">
+          ${ value ? 'true' : 'false' }
+        </span>`}
+      ${ full_line && html`
+        <span class="collapsed" onclick="${ noClick }">
+          ${ value ? 'true' : 'false' }
+        </span>`}
+      </span>
     </span>
-  </span>`.style (styles)
+  `)}
 
-const HTMLString = (s) => html`
-  <span class="result pp-string expandable collapsed" 
-        onclick=${ toggle }>
-    <span class="collapsed">"${s}"</span>
-    <span class="expanded">"${s}"</span>
-  </span>`.style (styles)
+// Number
 
-const HTMLArrayElement = (last) => (e) => html`
-  <span>${ toHTML (e) }${ !last ? `,` : `` }</span>`
+const HTMLNumberTag = (full_line) => (value) =>
+  html`<e-number class="result pp-number" 
+                 full_line="${ full_line }"
+                 value="${ value }">
+       </e-number`
 
-const HTMLArray = (a) => html`
-  <span class="result pp-array">
-    <span class="">[Array]</span>
-    <span class="">[</span>
-    ${ map (HTMLArrayElement (false)) (init (a)) }
-    ${ HTMLArrayElement (true) (last (a)) }
-    <span class="">]</span>
-  </span>`.style (styles)
-
-const HTMLPromise = (p) =>
-  html.resolve(
-    p.then ((value) => html`
-              <span class="result pp-promise">
-                <span class="resolved">[[Resolved]]</span>
-                <span class="value">${ toHTML (value) }</span>
-              </span>`.style (styles))
-     .catch ((error) => html`
-               <span class="result pp-promise">
-                 <span class="rejected">[[Rejected]]</span>
-                 <span class="error">${ toHTML (error) }</span>
-               </span>`.style (styles)),
-    html`<span class="result pp-promise">
-           <span class="pending">[[Pending]]</span>
-         </span>`.style (styles))
-
-
-const HTMLObjectProperty = (last) => (p) => (v) => html`
-  <span class="pp-object-property">
-    <span class="pp-object-property-name">${ p }</span>
-    <span>:</span>
-    <span class="pp-object-property-value">${ toHTML (v) }</span>
-    ${ !last ? `,` : `` }
-  </span>`
-
-const HTMLObject = (o) => html`
-  <span class="result pp-object">
-    <span class="">
-      <span class="">[Object]</span>
-      <span class="">{</span>
+const HTMLNumber = {
+  ...HTMLBaseElement (0),
+  render: noShadow (({value, full_line, _expanded, _hasExpanded}) => html`
+    <span class="${ ContainerClasses (full_line) (_expanded) }">
+      ${ !full_line && html`
+        <span class="condensed">
+          ${ value }
+        </span>`}
+      ${ (full_line && !_expanded) && html`
+        <span class="collapsed" onclick="${ expandTag }">
+          ${ value }
+        </span>`}
+      ${ (full_line && _expanded) && html`
+      <span class="expanded" onclick="${ collapseTag }">
+        <span class="label decimal">DEC</span>
+        <span class="decimal">${ value }</span>
+        <span class="label hexadecimal">HEX</span>
+        <span class="hexadecimal">${ value.toString (16) }</span>
+        <span class="label binary">BIN</span>
+        <span class="binary">${ value.toString (2) }</span>
+      </span>`}
     </span>
-    <span class="">
-      ${ map ((k) => HTMLObjectProperty (false) (k) (o[k])) 
-             (init (keys (o))) }
-      ${ HTMLObjectProperty (true) (last (keys (o))) (o[last (keys (o))]) }
-    </span>
-    <span class="">}</span>
-  </span>`.style (styles)
+  `)}
 
-export const toHTML = 
+// String
+
+const HTMLStringTag = (full_line) => (value) =>
+  html`<e-string class="result pp-string"
+                 full_line="${ full_line }"
+                 value="${ value }">
+       </e-string>`
+
+const HTMLString = {
+  ...HTMLBaseElement (''),
+  render: noShadow (({value, full_line, _expanded, _hasExpanded }) => html`
+    <span class="${ ContainerClasses (full_line) (_expanded) }">
+      ${ !full_line && html`
+        <span class="condensed">
+          "${ value }"
+        </span>`}
+      ${ full_line && !_expanded && html`
+        <span class="collapsed" onclick="${ expandTag }">
+          "${ value }"
+        </span>`}
+      ${ full_line && _expanded && html`
+        <span class="expanded" onclick="${ collapseTag }">
+          "${ value }"
+        </span>`}
+    </span>
+  `)}
+
+// Array
+
+const HTMLArrayTag = (full_line) => (value) =>
+  html`<e-array class="result pp-array"
+                full_line="${ full_line }"
+                value="${ value }">
+       </e-array>`
+
+const HTMLArray = {
+  ...HTMLBaseElement ([]),
+  render: noShadow (({value, full_line, _expanded, _hasExpanded}) => html`
+    <span class="${ ContainerClasses (full_line) (_expanded) }">
+      ${ !full_line && html`
+        <span class="condensed">
+          Array (${ length (value) })
+        </span>`}
+      ${ full_line && !_expanded && html`
+        <span class="collapsed" onclick="${ expandTag }">
+          Array (${ length (value) }) [
+          ${ map ((i) => html`${ toBlocks (false) (i) },`) (value) }
+          ]
+        </span>`}
+      ${ ((full_line && _expanded) || _hasExpanded) && html`
+        <span class="expanded" onclick="${ collapseTag }">
+          <span class="pp-array-header">
+            Array (${ length (value) }) [
+          </span>
+          ${ addIndex 
+               (map)
+               ((i, idx) => html`
+                 <span class="pp-array-item">
+                   ${ idx }:${ toBlocks (true) (i) },
+                 </span>`)
+               (value) }
+          <span class="pp-array-footer">]</span>
+        </span>`}
+    </span>
+  `)}
+
+// Promise
+
+const HTMLPromiseTag = (full_line) => (value) =>
+  html`<e-promise class="result pp-promise"
+                  full_line="${ full_line }"
+                  value="${ value }">
+       </e-promise>`
+
+const HTMLPromise = {
+  ...HTMLBaseElement ({}),
+  render: noShadow (({value, full_line, _expanded, _hasExpanded}) => html`
+    ${ html.resolve (
+      value.then ((x) => html`[[Resolved]]`)
+           .catch ((e) => html`[[Rejected]]`),
+      html`[[Pending]]`)}`)}
+
+// Object
+
+const HTMLObjectTag = (full_line) => (value) =>
+  html`<e-object class="result pp-object"
+                 full_line="${ full_line }"
+                 value="${ value }">
+       </e-object>`
+
+const HTMLObject = {
+  ...HTMLBaseElement ({}),
+  render: noShadow (({value, full_line, _expanded, _hasExpanded}) => html`
+    <span class="${ ContainerClasses (full_line) (_expanded) }">
+      ${ !full_line && html`
+        <span class="condensed">{…}</span>
+      `}
+      ${ full_line && !_expanded && html`
+        <span class="collapsed" onclick="${ expandTag }">
+          {
+          ${ map ((k) => html`
+                   <span class="pp-object-property">
+                     ${ k }:${ toBlocks (false) (value[k]) },
+                   </span>
+                 `)
+                 (keys (value)) }
+          }
+        </span>
+      `}
+      ${ full_line && _expanded && html`
+        <span class="expanded" onclick="${ collapseTag }">
+          <span class="pp-object-header">
+            {
+          </span>
+          ${ map ((k) => html`
+                   <span class="pp-object-property">
+                     ${ k }:${ toBlocks (true) (value[k]) },
+                   </span>
+                 `)
+                 (keys (value)) }
+          <span class="pp-object-footer">
+            }
+          </span>
+        </span>
+      `}
+    </span>
+  `)}
+ 
+export const toBlocks = (full_line) => (value) => 
   cond ([
-    [isNil,           HTMLUndefined],
-    [equals (true),   HTMLBoolean],
-    [equals (false),  HTMLBoolean],
-    [is (Number),     HTMLNumber],
-    [is (String),     HTMLString],
-    [is (Array),      HTMLArray],
-    [is (Promise),    HTMLPromise],
-    [is (Object),     HTMLObject],
-    [T,               always]])
+    [isNil, always (HTMLUndefinedTag (full_line))],
+    [equals (true), always (HTMLBooleanTag (full_line) (true))],
+    [equals (false), always (HTMLBooleanTag (full_line) (false))],
+    [is (Number), always (HTMLNumberTag (full_line) (value))],
+    [is (String), always (HTMLStringTag (full_line) (value))],
+    [is (Array), always (HTMLArrayTag (full_line) (value))],
+    [is (Promise), always (HTMLPromiseTag (full_line) (value))],
+    [is (Object), always (HTMLObjectTag (full_line) (value))],
+  ]) (value)
+
+export const ResultDefines = {
+  EUndefined: HTMLUndefined,
+  EBoolean: HTMLBoolean,
+  ENumber: HTMLNumber,
+  EString: HTMLString,
+  EArray: HTMLArray,
+  EPromise: HTMLPromise,
+  EObject: HTMLObject,
+}

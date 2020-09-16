@@ -1,5 +1,5 @@
 import { html, property, render } from 'hybrids'
-import { ref } from './Utils.js'
+import { ref, noShadow } from './Utils.js'
 import { moveCursorTo } from './Block.js'
 import { 
   createDocument, 
@@ -47,12 +47,14 @@ const doAutocompletion = (host) => {
 // ------------------------- Code evaluation -----------------------------
 
 const blockEvaluated = (idx) => (host, evt) => {
-  host.results = update (idx) (evt.detail) (host.results)
+  host.results = update (idx) 
+                        ({ evaluated: true, value: evt.detail }) 
+                        (host.results)
   if (idx === length (host.doc.blocks) - 1) {
     host.doc = appendBlock () (host.doc)
-    host.results = append (undefined) (host.results)
+    host.results = append ({ evaluated: false, value: undefined }) 
+                          (host.results)
     host.completions = []
-    //focusLastBlock (host)
   } else {
     // TODO: Jump to next block?
   }
@@ -100,10 +102,12 @@ export const TermView = {
       return () => host.removeEventListener ('click', termRefocus (host))
     }
   },
-  results: [undefined],
+  results: [{ evaluated: false, value: undefined }],
   completions: [],
   error: property(null),
-  render: render(({ doc, completions, results, error }) => html`
+  render: noShadow ((host) => {
+    let { doc, completions, results, error } = host
+    return html`
     <e-welcome></e-welcome>
     ${addIndex (map) 
                ((b, idx) => 
@@ -117,6 +121,7 @@ export const TermView = {
                              onblockbottom=${blockBottom}
                              onerror=${ onError }
                              oncleardocument=${ clearDocument }
+                             onrefocus=${ termRefocus (host) }
                              focused=${doc.focused === idx}
                              result=${results [idx]}>
                     </e-block>`) 
@@ -129,6 +134,4 @@ export const TermView = {
       EBlock: BlockView, 
       ECompletions: AutocompletionView,
       EWelcome: WelcomeBlockView,
-      EError: ErrorView }),
-  { shadowRoot: false })
-}
+      EError: ErrorView })})}

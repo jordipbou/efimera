@@ -1,6 +1,10 @@
 // A block renderer renders a block content and possibly
 // added content (like autocompletions) to HTML
 
+// TODO: Study the possibility of using acorn to make a
+// very simple analysis of text to colorize brackets and
+// possibly basic data types.
+
 import { dispatch, html } from 'hybrids'
 import { 
   addIndex, cond, head, is, isNil, join, length, 

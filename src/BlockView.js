@@ -10,7 +10,7 @@ export const inputRefocus = (host) => {
 
 export const BlockView = {
   block: {},
-  result: undefined,
+  result: { evaluated: false, value: undefined },
   focused: false,
   input: ref ('e-input'),
   output: ref ('e-output'),
