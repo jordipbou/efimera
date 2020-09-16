@@ -155,15 +155,15 @@ const HTMLString = {
     <span class="${ ContainerClasses (full_line) (_expanded) }">
       ${ !full_line && html`
         <span class="condensed">
-          "${ value }"
+          '${ value }'
         </span>`}
       ${ full_line && !_expanded && html`
         <span class="collapsed" onclick="${ expandTag }">
-          "${ value }"
+          '${ value }'
         </span>`}
       ${ full_line && _expanded && html`
         <span class="expanded" onclick="${ collapseTag }">
-          "${ value }"
+          '${ value }'
         </span>`}
     </span>
   `)}
@@ -187,7 +187,13 @@ const HTMLArray = {
       ${ full_line && !_expanded && html`
         <span class="collapsed" onclick="${ expandTag }">
           Array (${ length (value) }) [
-          ${ map ((i) => html`${ toBlocks (false) (i) },`) (value) }
+          ${ addIndex 
+               (map) 
+               ((i, idx) => html`
+                 ${ toBlocks (false) (i) }
+                 ${ idx !== (length (value) - 1) ? ',' : '' }
+               `) 
+               (value) }
           ]
         </span>`}
       ${ ((full_line && _expanded) || _hasExpanded) && html`
@@ -199,7 +205,7 @@ const HTMLArray = {
                (map)
                ((i, idx) => html`
                  <span class="pp-array-item">
-                   ${ idx }:${ toBlocks (true) (i) },
+                   ${ idx }:${ toBlocks (true) (i) }
                  </span>`)
                (value) }
           <span class="pp-array-footer">]</span>
@@ -219,9 +225,57 @@ const HTMLPromise = {
   ...HTMLBaseElement ({}),
   render: noShadow (({value, full_line, _expanded, _hasExpanded}) => html`
     ${ html.resolve (
-      value.then ((x) => html`[[Resolved]]`)
-           .catch ((e) => html`[[Rejected]]`),
-      html`[[Pending]]`)}`)}
+      value.then ((x) => html`
+              <span class="${ ContainerClasses (full_line) (_expanded) }">
+                ${ !full_line && html`
+                  <span class="condensed">
+                    [[Resolved]] ${ toBlocks (false) (x) }
+                  </span>
+                `}
+                ${ full_line && !_expanded && html`
+                  <span class="collapsed" onclick="${ expandTag }">
+                    [[Resolved]] ${ toBlocks (false) (x) }
+                  </span>
+                `}
+                ${ full_line && _expanded && html`
+                  <span class="expanded" onclick="${ collapseTag }">
+                    [[Resolved]] ${ toBlocks (true) (x) }
+                  </span>
+                `}
+              </span>`)
+           .catch ((e) => html`
+              <span class="${ ContainerClasses (full_line) (_expanded) }">
+                ${ !full_line && html`
+                  <span class="condensed">
+                    [[Rejected]] ${ toBlocks (false) (e) }
+                  </span>
+                `}
+                ${ full_line && !_expanded && html`
+                  <span class="collapsed" onclick="${ expandTag }">
+                    [[Rejected]] ${ toBlocks (false) (e) }
+                  </span>
+                `}
+                ${ full_line && _expanded && html`
+                  <span class="expanded" onclick="${ collapseTag }">
+                    [[Rejected]] ${ toBlocks (true) (e) }
+                  </span>
+                `}
+              </span>`),
+      html`
+        <span class="${ ContainerClasses (full_line) (_expanded) }">
+          ${ !full_line && html`
+            <span class="condensed">
+              [[Pending]]
+            </span>`}
+          ${ full_line && !_expanded && html`
+            <span class="condensed" onclick="${ expandTag }">
+              [[Pending]]
+            </span>`}
+          ${ full_line && _expanded && html`
+            <span class="expanded" onclick="${ collapseTag }">
+              [[Pending]]
+            </span>`}
+      `)}`)}
 
 // Object
 
@@ -241,29 +295,25 @@ const HTMLObject = {
       ${ full_line && !_expanded && html`
         <span class="collapsed" onclick="${ expandTag }">
           {
-          ${ map ((k) => html`
-                   <span class="pp-object-property">
-                     ${ k }:${ toBlocks (false) (value[k]) },
-                   </span>
-                 `)
-                 (keys (value)) }
+          ${ addIndex 
+               (map) 
+               ((k, idx) => html`
+                 <span class="pp-object-property">
+                   ${ k }:${ toBlocks (false) (value[k]) }
+                   ${ idx !== (length (keys (value)) - 1) ? ',' : '' }
+                 </span>`)
+               (keys (value)) }
           }
         </span>
       `}
       ${ full_line && _expanded && html`
         <span class="expanded" onclick="${ collapseTag }">
-          <span class="pp-object-header">
-            {
-          </span>
-          ${ map ((k) => html`
-                   <span class="pp-object-property">
-                     ${ k }:${ toBlocks (true) (value[k]) },
-                   </span>
-                 `)
-                 (keys (value)) }
-          <span class="pp-object-footer">
-            }
-          </span>
+          ${ map
+               ((k) => html`
+                 <span class="pp-object-property">
+                   ${ k }:${ toBlocks (true) (value[k]) }
+                 </span>`)
+               (keys (value)) }
         </span>
       `}
     </span>

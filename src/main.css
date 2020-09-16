@@ -12,7 +12,7 @@ html, body {
 body {
 	background-color: var(--term-background);
 	color: var(--term-color);
-	font-family: 'monofur';
+	font-family: 'monofur', monospace;
 }
 
 e-session { display: block;
