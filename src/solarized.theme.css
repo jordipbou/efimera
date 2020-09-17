@@ -32,4 +32,5 @@
 	--result-number-color: var(--yellow);
 	--result-string-color: var(--green);
 	--result-key-color: var(--base01);
+	--result-function-color: var(--violet);
 }

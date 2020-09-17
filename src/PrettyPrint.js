@@ -24,10 +24,13 @@ import {
   head, includes, init, is, isNil, 
   join, keys, last, length, map, T, type, without
   } from 'ramda'
-import { dispatch, html } from 'hybrids'
+import { dispatch, html, property } from 'hybrids'
 import { noShadow } from './Utils.js'
 
 // ----------------------------------------------------- On click callback
+
+// TODO: On click, set page scroll to click position (or
+// around that object)
 
 const noClick = (host, evt) => {
   if (evt.cancelBubble !== null) evt.cancelBubble = true
@@ -198,7 +201,9 @@ const HTMLString = {
               <span class="pp-key">
                 ${ prefix }:
               </span>`}
-            '${ value }'
+            '${ length (value) < 11 ? 
+                  value
+                  : value.slice (0, 10) + '…' }'
           </span>`}
         ${ full_line && !_expanded && html`
           <span class="collapsed" onclick="${ expandTag }">
@@ -367,7 +372,7 @@ const HTMLPromise = {
                 [[Pending]]
               </span>`}
             ${ full_line && !_expanded && html`
-              <span class="condensed" onclick="${ expandTag }">
+              <span class="collapsed" onclick="${ expandTag }">
                 ${ (prefix !== '') && html`
                   <span class="pp-key">
                     ${ prefix }:
@@ -404,7 +409,7 @@ const HTMLObject = {
               <span class="pp-key">
                 ${ prefix }:
               </span>`}
-            Object {…}
+            ${ value.constructor.name } {…}
           </span>
         `}
         ${ full_line && !_expanded && html`
@@ -414,7 +419,7 @@ const HTMLObject = {
                 <span class="pp-key">
                   ${ prefix }:
                 </span>`}
-              Object {
+              ${ value.constructor.name } {
             </span>
             ${ addIndex 
                  (map) 
@@ -434,7 +439,7 @@ const HTMLObject = {
                 <span class="pp-key">
                   ${ prefix }:
                 </span>`}
-              Object {
+              ${ value.constructor.name } {
             </span>
             ${ map
                  ((k) => html`
@@ -447,7 +452,52 @@ const HTMLObject = {
         `}
       </span>
     `)}
- 
+
+// Function
+
+const HTMLFunctionTag = (full_line) => (prefix) => (value) =>
+  html`<e-function class="result pp-function"
+                   full_line="${ full_line }"
+                   prefix="${ prefix }"
+                   value="${ value }">
+       </e-function>`
+
+const HTMLFunction = {
+  ...HTMLBaseElement ({
+    get: (host, lastValue) => lastValue,
+    set: (host, value, lastValue) => value
+  }),
+  render: noShadow (
+    ({value, full_line, _expanded, _hasExpanded, prefix}) => html`
+      <span class="${ ContainerClasses (full_line) (_expanded) }">
+        ${ !full_line && html`
+          <span class="condensed">
+            ${ (prefix !== '') && html`
+              <span class="pp-key">
+                ${ prefix }:
+              </span>`}
+            ${ value.toString () }  
+          </span>
+        `}
+        ${ (full_line && !_expanded) && html`
+          <span class="collapsed" onclick="${ expandTag }">
+            ${ (prefix !== '') && html`
+              <span class="pp-key">
+                ${ prefix }:
+              </span>`}
+            ${ value.toString () }
+          </span>
+        `}
+        ${ (full_line && _expanded) && html`
+          <span class="expanded" onclick="${ collapseTag }">
+            ${ (prefix !== '') && html`
+              <span class="pp-key">
+                ${ prefix }:
+              </span>`}
+            <span class="pp-code">${ value.toString () }</code>
+          </span>
+      </span>`}`)}
+
 export const toBlocks = (full_line) => (prefix) => (value) => 
   cond ([
     [isNil, always (HTMLUndefinedTag (full_line) (prefix))],
@@ -457,7 +507,7 @@ export const toBlocks = (full_line) => (prefix) => (value) =>
     [is (String), always (HTMLStringTag (full_line) (prefix) (value))],
     [is (Array), always (HTMLArrayTag (full_line) (prefix) (value))],
     [is (Promise), always (HTMLPromiseTag (full_line) (prefix) (value))],
-    // Function
+    [is (Function), always (HTMLFunctionTag (full_line) (prefix) (value))],
     [is (Object), always (HTMLObjectTag (full_line) (prefix) (value))],
     // Regular Expression
   ]) (value)
@@ -469,5 +519,6 @@ export const ResultDefines = {
   EString: HTMLString,
   EArray: HTMLArray,
   EPromise: HTMLPromise,
+  EFunction: HTMLFunction,
   EObject: HTMLObject,
 }
