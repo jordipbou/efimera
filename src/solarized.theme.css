@@ -31,4 +31,5 @@
 	--result-boolean-color: var(--yellow);
 	--result-number-color: var(--yellow);
 	--result-string-color: var(--green);
+	--result-key-color: var(--base01);
 }

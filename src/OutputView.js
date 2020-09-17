@@ -7,6 +7,6 @@ export const OutputView = {
   result: { evaluated: false, value: undefined },
   render: noShadow (
     ({ result }) => 
-      html`${ result.evaluated && toBlocks (true) (result.value) }`
+      html`${ result.evaluated && toBlocks (true) ('') (result.value) }`
         .define (ResultDefines))
 }

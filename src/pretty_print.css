@@ -1,7 +1,10 @@
 /* ---------------------------------------------------- Pretty printing */
 
+.result { display: block; 
+          width: 100%; }
+
 .result > .condensed > .collapsed { display: none; }
-.result > .condensed > .condensed { display: inline-block; }
+.result > .condensed > .condensed { display: inline-flex; }
 .result > .condensed > .expanded { display: none; }
 .result > .collapsed > .condensed { display: none; }
 .result > .collapsed > .collapsed { display: block; }
@@ -22,24 +25,32 @@ e-output > .pp-undefined { display: block;
 .pp-number { color: var(--result-number-color); }
 
 .pp-string { color: var(--result-string-color); }
-.pp-string > .collapsed > .collapsed { white-space: nowrap;
-									   display: block;
-									   overflow: hidden;
-						  			   text-overflow: ellipsis; 
-						  			   width: 100%; }
+.pp-string > .collapsed > .collapsed  { white-space: nowrap;
+									    display: block;
+									    overflow: hidden;
+						  			    text-overflow: ellipsis; 
+						  			    width: 100%; }
 
 .pp-array > .collapsed > .collapsed { overflow: hidden;
                                       text-overflow: ellipsis;
 									  white-space: nowrap; }
 .pp-array > .collapsed > .collapsed > .result { display: inline-flex; }
-.pp-array > .expanded > .expanded { display: flex;
-                                    flex-direction: column; }
-.pp-array > .expanded > .expanded > .pp-array-item { display: flex; 
-                                                     padding-left: 1em; }
+.pp-array > .expanded > .expanded { display: block; }
+.pp-array > .expanded > .expanded > .pp-array-item { 
+  display: block; 
+  padding-left: 1em; 
+  width: calc(100% - 1em);
+}
 
+.pp-object > .collapsed > .collapsed { display: flex; }
+.pp-object > .collapsed > .collapsed > .pp-object-property {
+  display: flex;
+}
 .pp-object > .expanded > .expanded { display: flex;
                                      flex-direction: column; }
 .pp-object > .expanded > .expanded > .pp-object-property { 
   display: flex;
   padding-left: 1em;
 }
+
+.pp-key { color: var(--result-key-color); }
