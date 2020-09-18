@@ -182,8 +182,35 @@ export const deleteLine = (block) =>
       }) (block)
 // --------------------------- Autocompletion ----------------------------
 
-export const autocomplete = (block) =>
-  insertText (block.autocompletion) (block)
+export const willAutocomplete = (block) => {
+  if (block.autocompletion !== '...' && block.autocompletion !== '') {
+    let start = caret (block) [0]
+    let end = start + length (block.autocompletion)
+    let current_line = caret (block) [1]
+    let text_after = slice (start) (end) (block.lines [current_line])
+
+    return text_after !== block.autocompletion
+  } else {
+    return false
+  }
+}
+
+export const autocomplete = (block) => {
+  if (block.autocompletion !== '...' && block.autocompletion !== '') {
+    let start = caret (block) [0]
+    let end = start + length (block.autocompletion)
+    let current_line = caret (block) [1]
+    let text_after = slice (start) (end) (block.lines [current_line])
+
+    if (text_after !== block.autocompletion) {
+      return insertText (block.autocompletion) (block)
+    } else {
+      return moveCursorTo ([end, current_line]) (block)
+    }
+  } else {
+    return block
+  }
+}
 
 // --------------------------- Block creation ----------------------------
 

@@ -30,3 +30,22 @@ SessionView
       + RenderView -> space for real time rendering from any block
   + RenderView -> Independent of blocks renderViews, but can be copied
   + LogsView
+
+## Keyboard Shortcuts
+
+(Those implemented are prefixed with *)
+
+* Enter -> Evaluate single-line block
+*       -> Insert new line on multi-line block
+
+* Shift + Enter -> Insert new line
+* Ctrl + Enter -> Evaluate block
+
+* Ctrl + Backspace -> Delete line
+*                  -> Delete block (if empty)
+
+* Ctrl + Delete -> Delete current block
+* Ctrl + Insert -> Insert new block after the current one (without eval)
+
+Ctrl + Arrow Up -> Copy previous block to current one
+Ctrl + Arrow Down -> Go back in history ?!

@@ -3,7 +3,7 @@
 import { createBlock } from './Block.js'
 import { 
   __, add, addIndex, always, append, concat, cond, filter, 
-  gte, head, length, evolve, 
+  evolve, gte, head, insert, length,
   identity, join, map, max, min, subtract, remove, T, update
   } from 'ramda'
 
@@ -11,6 +11,12 @@ export const appendBlock = (block = createBlock ()) => (doc) =>
   evolve ({
     blocks: append (block),
     focused: always (length (doc.blocks))
+  }) (doc)
+
+export const insertBlockAfter = (block = createBlock ()) => (doc) =>
+  evolve ({
+    blocks: insert (doc.focused + 1) (block),
+    focused: always (doc.focused + 1)
   }) (doc)
 
 export const removeBlock = (idx) => (doc) =>

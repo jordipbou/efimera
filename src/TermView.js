@@ -5,12 +5,13 @@ import {
   createDocument, 
   focusBlock, focusedBlock, focusLastBlock, 
   focusNextBlock, focusPreviousBlock, 
+  insertBlockAfter,
   removeBlock, updateBlock, appendBlock 
   } from './Document.js'
 import { BlockView, inputRefocus } from './BlockView.js'
 import { 
   addIndex, always, append, curry, drop, evolve, 
-  F, head, map, length, T, update 
+  F, head, insert, map, length, remove, T, update 
   } from 'ramda'
 import { autocomplete } from './Autocompletion.js'
 import { AutocompletionView } from './AutocompletionView.js'
@@ -27,8 +28,16 @@ const onUpdateBlock = (idx) => (host, evt) => {
 const onDeleteBlock = (idx) => (host, evt) => {
   if (length (host.doc.blocks) > 1) {
     host.doc = removeBlock (idx) (host.doc)
+    host.results = remove (idx) (1) (host.results)
     doAutocompletion (host)
   }
+}
+
+const onInsertBlockAfter = (idx) => (host, evt) => {
+  host.doc = insertBlockAfter () (host.doc)
+  host.results = insert (idx + 1) 
+                        ({ evaluated: false, value: undefined })
+                        (host.results)
 }
 
 const doAutocompletion = (host) => {
@@ -115,6 +124,7 @@ export const TermView = {
                     <e-block block=${b}
                              onmovecursorto=${onBlockClick (idx)}
                              ondeleteblock=${onDeleteBlock (idx)}
+                             oninsertblockafter=${onInsertBlockAfter (idx)}
                              onupdateblock=${onUpdateBlock (idx)}
                              onblockevaluated=${blockEvaluated (idx)}
                              onblocktop=${blockTop}

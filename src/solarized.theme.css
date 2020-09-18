@@ -21,10 +21,10 @@
 	--term-background-inverted: var(--base3);
 	--term-color: var(--base0);
 	--term-color-inverted: var(--base03);
-	--autocompletion-color: var(--yellow);
-	--autocompletion-color-inverted: var(--yellow);
+	--autocompletion-color: var(--orange);
+	--autocompletion-color-inverted: var(--orange);
 	--autocompletions-background: var(--base02);
-	--autocompletions-color: var(--yellow);
+	--autocompletions-color: var(--orange);
 	--result-background: var(--base03);
 	--result-undefined-line: var(--base02);
 	--result-undefined-color: var(--base01);

@@ -1,10 +1,10 @@
 const test = require ('ava')
 import { 
-  caret, changeBlock, createBlock, deleteLine, deleteText, 
+  autocomplete, caret, changeBlock, createBlock, deleteLine, deleteText, 
   insertText, insertLine,
   moveCursorDown, moveCursorLeft, moveCursorRight, moveCursorUp,
   moveCursorTo, moveCursorToEnd, moveCursorToStart,
-  removeText, undoChangeBlock
+  removeText, undoChangeBlock, willAutocomplete
   } from '../src/Block.js'
 import { has, length } from 'ramda'
 
@@ -374,4 +374,48 @@ test ('Complex movement and removal', (t) => {
   t.deepEqual (c.lines [2], 'a + ')
   t.deepEqual (c.cursor, [4, 2])
   t.deepEqual (caret (c), [4, 2])
+})
+
+test ('Will autocomplete', (t) => {
+  let b = createBlock (['Ar'])
+  b.cursor = [2, 0]
+  b.autocompletion = 'ray'
+  t.true (willAutocomplete (b))
+
+  b.autocompletion = '...'
+  t.false (willAutocomplete (b))
+
+  b.autocompletion = ''
+  t.false (willAutocomplete (b))
+
+  b = createBlock (['Array'])
+  b.cursor = [2, 0]
+  b.autocompletion = 'ray'
+  t.false (willAutocomplete (b))
+})
+
+test ('Autocompletion', (t) => {
+  let b = createBlock (['Ar'])
+  b.cursor = [2, 0]
+  b.autocompletion = 'ray'
+  let c = autocomplete (b)
+  t.deepEqual (c.lines, ['Array'])
+  t.deepEqual (c.cursor, [5, 0])
+
+  b.autocompletion = '...'
+  c = autocomplete (b)
+  t.deepEqual (c.lines, ['Ar'])
+  t.deepEqual (c.cursor, [2, 0])
+
+  b.autocompletion = ''
+  c = autocomplete (b)
+  t.deepEqual (c.lines, ['Ar'])
+  t.deepEqual (c.cursor, [2, 0])
+
+  b = createBlock (['Array'])
+  b.cursor = [2, 0]
+  b.autocompletion = 'ray'
+  c = autocomplete (b)
+  t.deepEqual (c.lines, ['Array'])
+  t.deepEqual (c.cursor, [5, 0])
 })

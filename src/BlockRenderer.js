@@ -39,7 +39,7 @@ export const caretSpan = (c) => {
 }
 
 export const autocompletionSpan = (a) => (c) => 
-  '<span class="autocompletion">' + caretSpan(c) + '</span>' + a + '</span>'
+  '<span class="autocompletion">' + caretSpan(c) +  a + '</span>'
 
 export const renderLine = (idx) => (line) =>
   lineDiv (idx) 

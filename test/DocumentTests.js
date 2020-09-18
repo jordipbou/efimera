@@ -2,7 +2,7 @@ const test = require ('ava')
 import { 
   appendBlock, createDocument, documentToGist,
   focusBlock, focusedBlock, focusNextBlock, focusPreviousBlock,
-  removeBlock, updateBlock
+  insertBlockAfter, removeBlock, updateBlock
   } from '../src/Document.js'
 import { createBlock, insertText } from '../src/Block.js'
 
@@ -29,6 +29,27 @@ test ('Append block', (t) => {
   t.deepEqual (e.blocks, [createBlock (['line1']), 
                           createBlock (['line2'])])
   t.is (e.focused, 1)
+})
+
+test ('Insert block', (t) => {
+  let d = createDocument ([createBlock (['b1']), 
+                           createBlock (['b2']),
+                           createBlock (['b3'])])
+  d.focused = 1
+  let e = insertBlockAfter () (d)
+  t.deepEqual (e.blocks, [createBlock (['b1']),
+                          createBlock (['b2']),
+                          createBlock (),
+                          createBlock (['b3'])])
+  t.deepEqual (e.focused, 2)
+
+  d.focused = 2
+  e = insertBlockAfter () (d)
+  t.deepEqual (e.blocks, [createBlock (['b1']),
+                          createBlock (['b2']),
+                          createBlock (['b3']),
+                          createBlock ()])
+  t.deepEqual (e.focused, 3)
 })
 
 test ('Remove block', (t) => {

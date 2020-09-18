@@ -4,8 +4,10 @@ import {
   insertText, insertLine,
   moveCursorLeft, moveCursorRight, moveCursorUp, moveCursorDown,
   moveCursorToEnd, moveCursorToStart,
-  removeText 
+  removeText, willAutocomplete
   } from './Block.js'
+import {
+  } from './Document.js'
 import * as acorn from 'acorn'
 import { equals, join, length } from 'ramda'
 import { is_evaluable, evaluate_code } from './Eval.js'
@@ -28,7 +30,18 @@ export const createListener = () => ({
         update (host) (removeText (1) (host.block))
       }
     } else if (evt.key === 'Delete') {
-      update (host) (deleteText (1) (host.block))
+      if (evt.ctrlKey) {
+        dispatch (host, 'deleteblock', { bubbles: true, composed: true })
+      } else {
+        update (host) (deleteText (1) (host.block))
+      }
+    } else if (evt.key === 'Insert') {
+      if (evt.ctrlKey) {
+        dispatch (host, 'insertblockafter', { bubbles: true, 
+                                              composed: true })
+      } else {
+        return true
+      }
     } else if (evt.key === 'Enter') {
       let singleline = length (host.block.lines) === 1
       let valid_code = is_evaluable (host.block.lines)
@@ -65,7 +78,11 @@ export const createListener = () => ({
     } else if (evt.key === 'ArrowLeft') {
       update (host) (moveCursorLeft (host.block))
     } else if (evt.key === 'ArrowRight') {
-      update (host) (moveCursorRight (host.block))
+      if (willAutocomplete (host.block)) {
+        update (host) (autocomplete (host.block))
+      } else {
+        update (host) (moveCursorRight (host.block))
+      }
     } else if (evt.key === 'ArrowUp') {
       let b = moveCursorUp (host.block)
       if (equals (host.block.cursor) (b.cursor)) {
@@ -85,9 +102,7 @@ export const createListener = () => ({
     } else if (evt.key === 'Home') {
       update (host) (moveCursorToStart (host.block))
     } else if (evt.key === 'Tab') {
-      if (host.block.autocompletion !== '...') {
-        update (host) (autocomplete (host.block))
-      }
+      update (host) (autocomplete (host.block))
     } else if ((evt.key === 's' || evt.key === 'S') && evt.ctrlKey) {
       dispatch (host, 'save', { bubbles: true, composed: true })
     } else if ((evt.key === 'o' || evt.key === 'O') && evt.ctrlKey) {
