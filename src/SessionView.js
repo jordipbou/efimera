@@ -8,6 +8,7 @@ import {
   ImportJSONView, showImportDialog, hideImportDialog 
   } from './ImportJSONView.js'
 import { HelpView, showHelpDialog } from './HelpView.js'
+import { length, repeat } from 'ramda'
 
 // ------------------------ Save / Load session --------------------------
 
@@ -20,7 +21,10 @@ const onLoad = (host, evt) =>
   showImportDialog (host.import_dialog)
 
 const onImportJSON = (host, evt) => {
-  host.term.doc = JSON.parse (evt.detail)
+  let doc = JSON.parse (evt.detail)
+  let n = length (doc.blocks)
+  host.term.results = repeat ({ evaluated: false, value: undefined }, n)
+  host.term.doc = doc
   hideImportDialog (host.import_dialog)
 }
 

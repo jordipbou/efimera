@@ -6,7 +6,7 @@ const moreInfo = (host, evt) =>
 export const WelcomeBlockView = {
   render: () => html`
     <div class="welcome">
-      <div class="line">Welcome to Efimera v1.0.17</div>
+      <div class="line">Welcome to Efimera v1.0.18</div>
       <div class="line">Type ".help" or press <a href="#" onclick=${moreInfo}>here</a> for more information.</div>
     </div>
   `
