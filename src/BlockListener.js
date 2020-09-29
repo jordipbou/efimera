@@ -140,7 +140,7 @@ export const createListener = () => ({
   },
   onkeypress: (host, evt) => {
     cond ([
-      [propEq ('key') ('Tab'), () => {}],
+      [propEq ('ctrlKey') (true), () => {}],
       [T, () => update (host) (insertText (evt.key) (host.block))]
     ]) (evt)
   }

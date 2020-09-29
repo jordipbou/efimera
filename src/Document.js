@@ -22,10 +22,7 @@ export const insertBlockAfter = (block = createBlock ()) => (doc) =>
 export const removeBlock = (idx) => (doc) =>
   evolve ({
     blocks: remove (idx) (1),
-    focused: cond ([
-               [gte (length (doc.blocks) - 1), 
-                  always (length (doc.blocks) - 2)],
-               [T, identity]])
+    focused: () => min (idx, length (doc.blocks) - 2)
   }) (doc)
 
 export const updateBlock = (idx) => (block) => (doc) =>

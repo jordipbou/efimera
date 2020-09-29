@@ -7,8 +7,6 @@ export * from './BlockRenderer.js'
 export { npmImport } from './Eval.js'
 export { showHelpDialog } from './HelpView.js'
 
-export * from 'frmidi/src/index.js'
-
 // -------------------- Main element definition --------------------------
 
 define ('e-session', SessionView)

@@ -65,6 +65,19 @@ test ('Remove block', (t) => {
   e = removeBlock (1) (e)
   t.deepEqual (e.blocks, [createBlock (['b1']), createBlock (['b3'])])
   t.is (e.focused, 1)
+
+  d = createDocument ([
+    createBlock (['b1']),
+    createBlock (['b2']),
+    createBlock (['b3']),
+    createBlock (['b4']),
+    createBlock ([])
+  ])
+  e = removeBlock (1) (d)
+  t.is (e.focused, 1)
+
+  e = removeBlock (3) (d)
+  t.is (e.focused, 3)
 })
 
 test ('Update block', (t) => {
