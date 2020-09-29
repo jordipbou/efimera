@@ -509,7 +509,8 @@ export const toBlocks = (full_line) => (prefix) => (value) =>
     [is (Promise), always (HTMLPromiseTag (full_line) (prefix) (value))],
     [is (Function), always (HTMLFunctionTag (full_line) (prefix) (value))],
     [is (Object), always (HTMLObjectTag (full_line) (prefix) (value))],
-    // Regular Expression
+    // Regular Expression,
+    // Module!!
   ]) (value)
 
 export const ResultDefines = {

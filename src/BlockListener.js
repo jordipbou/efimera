@@ -9,7 +9,7 @@ import {
 import {
   } from './Document.js'
 import * as acorn from 'acorn'
-import { equals, join, length } from 'ramda'
+import { cond, equals, join, length, propEq, T } from 'ramda'
 import { is_evaluable, evaluate_code } from './Eval.js'
 
 const update = (host) => (detail) =>
@@ -26,8 +26,15 @@ export const createListener = () => ({
         dispatch (host, 'deleteblock', { bubbles: true, composed: true })
       } else if (evt.ctrlKey) {
         update (host) (deleteLine (host.block))
+        if (length (host.block.lines) === 1) {
+          dispatch (host, 'deleteresult', { bubbles: true, composed: true })
+        }
       } else {
-        update (host) (removeText (1) (host.block))
+        if (emptyBlock (host.block)) {
+          dispatch (host, 'deleteresult', { bubbles: true, composed: true })
+        } else {
+          update (host) (removeText (1) (host.block))
+        }
       }
     } else if (evt.key === 'Delete') {
       if (evt.ctrlKey) {
@@ -102,6 +109,11 @@ export const createListener = () => ({
     } else if (evt.key === 'Home') {
       update (host) (moveCursorToStart (host.block))
     } else if (evt.key === 'Tab') {
+      if (evt.ctrlKey) {
+        // Maintain Ctrl+Tab for changing browser tabs
+        return true
+      }
+
       update (host) (autocomplete (host.block))
     } else if ((evt.key === 's' || evt.key === 'S') && evt.ctrlKey) {
       dispatch (host, 'save', { bubbles: true, composed: true })
@@ -127,6 +139,9 @@ export const createListener = () => ({
     return false
   },
   onkeypress: (host, evt) => {
-    update (host) (insertText (evt.key) (host.block))
+    cond ([
+      [propEq ('key') ('Tab'), () => {}],
+      [T, () => update (host) (insertText (evt.key) (host.block))]
+    ]) (evt)
   }
 })

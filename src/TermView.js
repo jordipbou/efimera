@@ -30,7 +30,16 @@ const onDeleteBlock = (idx) => (host, evt) => {
     host.doc = removeBlock (idx) (host.doc)
     host.results = remove (idx) (1) (host.results)
     doAutocompletion (host)
+  } else {
+    host.results = [{ evaluated: false, value: undefined }]
+    host.doc = createDocument ()
   }
+}
+
+const onDeleteResult = (idx) => (host, evt) => {
+  host.results = update (idx) 
+                        ([{ evaluated: false, value: undefined }]) 
+                        (host.results)
 }
 
 const onInsertBlockAfter = (idx) => (host, evt) => {
@@ -98,8 +107,10 @@ const onBlockClick = (idx) => (host, evt) =>
 const onError = (host, evt) =>
   host.error = evt.detail
 
-const clearDocument = (host, evt) =>
+const clearDocument = (host, evt) => {
+  host.results = [{ evaluated: false, value: undefined }]
   host.doc = createDocument ()
+}
 
 export const TermView = {
   doc: { 
@@ -124,6 +135,7 @@ export const TermView = {
                     <e-block block=${b}
                              onmovecursorto=${onBlockClick (idx)}
                              ondeleteblock=${onDeleteBlock (idx)}
+                             ondeleteresult=${onDeleteResult (idx)}
                              oninsertblockafter=${onInsertBlockAfter (idx)}
                              onupdateblock=${onUpdateBlock (idx)}
                              onblockevaluated=${blockEvaluated (idx)}

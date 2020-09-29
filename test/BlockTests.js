@@ -326,7 +326,7 @@ test ('Delete current line', (t) => {
   b.cursor = [5, 1]
   c = deleteLine (b)
   t.deepEqual (c.lines, ['let a = 5', 'a + b'])
-  t.deepEqual (c.cursor, [0, 1])
+  t.deepEqual (c.cursor, [9, 1])
 
   b = createBlock ([''])
   c = deleteLine (b)
@@ -338,6 +338,12 @@ test ('Delete current line', (t) => {
   c = deleteLine (b)
   t.deepEqual (c.lines, [''])
   t.deepEqual (c.cursor, [0, 0])
+
+  b = createBlock (['let a = 10', 'let b = 5'])
+  b.cursor = [9, 1]
+  c = deleteLine (b)
+  t.deepEqual (c.lines, ['let a = 10'])
+  t.deepEqual (c.cursor, [10, 0])
 })
 
 test ('Complex inserting and removal', (t) => {

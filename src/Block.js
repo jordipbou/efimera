@@ -176,10 +176,21 @@ export const deleteLine = (block) =>
       lines: always (['']),
       cursor: always ([0, 0])
     }) (block)
-    : evolve ({
-        lines: addIndex (reject) ((l, idx) => idx === block.cursor [1]),
-        cursor: always ([0, block.cursor [1]])
+    : block.cursor [1] === 0 ?
+      evolve ({
+        lines: tail,
+        cursor: always ([0, 0])
       }) (block)
+      : evolve ({
+          lines: addIndex (reject) ((l, idx) => idx === block.cursor [1]),
+          cursor: always ([
+                    length 
+                      (block.lines 
+                        [min (block.cursor [1] - 1) 
+                             (length (block.lines) - 2)]), 
+                    min (block.cursor [1]) (length (block.lines) - 2)
+                  ])
+        }) (block)
 // --------------------------- Autocompletion ----------------------------
 
 export const willAutocomplete = (block) => {
