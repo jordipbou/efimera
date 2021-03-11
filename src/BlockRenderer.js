@@ -23,7 +23,7 @@ export const htmlEntities = (t) =>
                    (replace (/ /g) ('&nbsp;') (t)))
 
 export const lineDiv = (i) => (p) => (e) => (c) => (t) =>
-   html`<div class="line" onclick=${ onclick (i) }>${ html ([p]) }${ html ([htmlEntities (e)]) }${ html ([c]) }${ html ([htmlEntities (t)]) }</div>`
+   html`<div class="line" editablecontent onclick=${ onclick (i) }>${ html ([p]) }${ html ([htmlEntities (e)]) }${ html ([c]) }${ html ([htmlEntities (t)]) }</div>`
 
 export const promptSpan = (first) =>
   first ?

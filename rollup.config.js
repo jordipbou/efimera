@@ -1,8 +1,5 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-// Commented as rollup-plugin-terser has a security vulnerability
-// with npm marked as high.
-// import { terser } from 'rollup-plugin-terser';
 import postcss from 'rollup-plugin-postcss';
 import livereload from 'rollup-plugin-livereload';
 import serve from 'rollup-plugin-serve'
@@ -34,11 +31,9 @@ export default {
 
 		!production && serve ({
       contentBase: [ 'public' ],
-      host: 'localhost',
+      host: '0.0.0.0', //'localhost',
       port: 10001
     }),
 		!production && livereload ('public'),
-
-		// production && terser(),
 	]
 };

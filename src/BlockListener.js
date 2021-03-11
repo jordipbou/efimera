@@ -85,7 +85,8 @@ export const createListener = () => ({
     } else if (evt.key === 'ArrowLeft') {
       update (host) (moveCursorLeft (host.block))
     } else if (evt.key === 'ArrowRight') {
-      if (willAutocomplete (host.block)) {
+      if (willAutocomplete (host.block) 
+       && caret (host.block) [0] === length (host.block.lines [host.block.cursor [1]])) {
         update (host) (autocomplete (host.block))
       } else {
         update (host) (moveCursorRight (host.block))

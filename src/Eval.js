@@ -46,6 +46,8 @@ export const npmImport = (pkg, ns) => {
     return skypackImport ('rxjs', ns)
   } else if (pkg === 'rxjs/operators') {
     return skypackImport ('rxjs/operators', ns)
+  } else if (pkg === 'mathjs') {
+    return skypackImport ('mathjs', ns)
   } else {
     return unpkgImport (pkg, ns)
   }
